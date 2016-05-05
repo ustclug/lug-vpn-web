@@ -1,0 +1,25 @@
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/fixes.html" as fixes %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block content %}
+{{util.flashed_messages(dismissible=True)}}
+<div class="container">
+  <h1>Log in</h1>
+
+  <div>
+    {{ wtf.quick_form(form) }}
+  </div>
+  <div class="lead">
+    <p>
+      Not a user? Click <a href={{ url_for('register') }}>here</a> to sign up.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block head %}
+{{super()}}
+{{fixes.ie8()}}
+{% endblock %}
