@@ -24,6 +24,14 @@ class VPNAccount(db.Model):
         account=cls(user.email,user.password)
         account.save()
 
+class Record(db.Model):
+    __tablename__='radacct'
+    radacctid=db.Column(db.Integer,primary_key=True)
+    username=db.Column(db.String(64))
+    acctstarttime=db.Column(db.DateTime())
+    acctstoptime=db.Column(db.DateTime())
+    callingstationid=db.Column(db.String(50))
+
 class User(db.Model,UserMixin):
     __tablename__='user'
     id=db.Column(db.Integer,primary_key=True)
@@ -61,4 +69,7 @@ class User(db.Model,UserMixin):
     @classmethod
     def get_user_by_id(cls,id):
         return cls.query.get(id)
+
+    def get_record(self):
+        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).first()
 

@@ -14,7 +14,8 @@ def index():
     applying_users=None
     if current_user.admin:
         applying_users=User.get_applying()
-    return render_template('index.html',user=current_user,applying_users=applying_users)
+    record=current_user.get_record()
+    return render_template('index.html',user=current_user,applying_users=applying_users,record=record)
 
 @app.route('/register/',methods=['POST','GET'])
 def register():

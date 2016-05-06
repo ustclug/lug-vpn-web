@@ -21,6 +21,7 @@
     <h3>
       <span class="label label-success">Your VPN application has passed, you can launch your VPN with your email and password here</span>
     </h3>
+    Last Login:{{record.acctstarttime}} IP:{{record.callingstationid}}
   {% elif user.apply=='reject' %}
     <h3>
       <span class="label label-danger">Sorry, Your VPN application has been rejected</span>
