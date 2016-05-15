@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import TextField,PasswordField,SubmitField
+from wtforms import TextField,PasswordField,SubmitField,TextAreaField
 from wtforms.validators import InputRequired,Email,EqualTo,Length
 
 class RegisterForm(Form):
@@ -12,6 +12,14 @@ class LoginForm(Form):
     email=TextField('Email',[InputRequired(),Email(),Length(max=63)])
     password=PasswordField('Password',[InputRequired()])
     submit=SubmitField('Login')
+
+class ApplyForm(Form):
+    name=TextField('Name',[InputRequired()])
+    studentno=TextField('Student No.',[InputRequired()])
+    phone=TextField('Phone',[InputRequired()])
+    address=TextField('Address',[InputRequired()])
+    reason=TextAreaField('Apply reason',[InputRequired()])
+    submit=SubmitField('Apply')
 
 class ChangePasswordForm(Form):
     oldpassword=PasswordField('Current Password',[InputRequired()])

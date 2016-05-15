@@ -6,13 +6,13 @@
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>LUG VPN Apply</h1>
+  <h1>LUG VPN</h1>
   <p>
-    Hello, you are logged in as {{ user.email }}
+    You have logged in as {{ user.email }}
     <a href="{{ url_for('logout') }}">Log out</a>
   </p>
   {% if user.apply=='none' %}
-    {{ util.form_button(url_for('apply'),'Apply for LUG VPN',class='btn btn-lg btn-primary') }}
+    <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.apply=='applying' %}
     <h3>
       <span class="label label-info">Your VPN application is under review</span>
@@ -27,19 +27,8 @@
       <span class="label label-danger">Sorry, Your VPN application has been rejected</span>
     </h3>
   {% endif %}
-
-  {% if applying_users %}
-    <div class="row">
-      <ul class="list-group">
-        {% for u in applying_users %}
-        <li class="list-group-item">
-            {{ u.email }}
-            {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-            {{ util.form_button(url_for('reject',id=u.id),'Reject',class='btn btn-sm btn-danger') }}
-        </li>
-        {% endfor %}
-      </ul>
-    </div>
+  {% if user.admin %}
+    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">Manage</a>
   {% endif %}
 </div>
 {% endblock %}
