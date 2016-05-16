@@ -123,7 +123,8 @@ def manage():
 def pass_(id):
     if current_user.admin:
         user=User.get_user_by_id(id)
-        user.pass_apply()
+        if user.apply=='applying':
+            user.pass_apply()
     return redirect(url_for('manage'))
 
 @app.route('/reject/<int:id>',methods=['POST','GET'])
@@ -131,6 +132,7 @@ def pass_(id):
 def reject(id):
     if current_user.admin:
         user=User.get_user_by_id(id)
-        user.reject_apply()
+        if user.apply=='applying':
+            user.reject_apply()
     return redirect(url_for('manage'))
 

@@ -29,7 +29,11 @@ class VPNAccount(db.Model):
 
     @classmethod
     def add(cls,user):
-        account=cls(user.email,user.password)
+        account=cls.query.filter_by(username=user.email).first()
+        if not account:
+            account=cls(user.email,user.password)
+        else:
+            account.value=user.password
         account.save()
 
     @classmethod
