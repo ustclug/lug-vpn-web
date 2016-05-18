@@ -14,11 +14,11 @@
     <li class="list-group-item">
       <h4 class="list-group-item-heading">{{ u.email }}</h4>
       <p class="list-group-item-text">
-      Name: {{u.name|safe}}<br>
-      Student NO.: {{u.studentno|safe}}<br>
-      Phone: {{u.phone|safe}}<br>
-      Address: {{u.address|safe}}<br>
-      Apply reason: {{u.reason|safe}}<br>
+      Name: {{u.name}}<br>
+      Student NO.: {{u.studentno}}<br>
+      Phone: {{u.phone}}<br>
+      Address: {{u.address}}<br>
+      Apply reason: {{u.reason}}<br>
       Apply time: {{u.applytime}}<br>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       {{ util.form_button(url_for('reject',id=u.id),'Reject',class='btn btn-sm btn-danger') }}
@@ -41,12 +41,12 @@
         <tbody>
         {% for u in passed_users %}
             <tr>
-                <td>{{u[1].studentno|safe}}</td>
-                <td>{{u[1].name|safe}}</td>
-                <td>{{u[0].username|safe}}</td>
-                <td>{{u[2].acctstarttime|safe}}</td>
-                <td>{{u[2].acctstoptime|safe}}</td>
-                <td>{{u[2].callingstationid|safe}}</td>
+                <td>{{u[1].studentno}}</td>
+                <td>{{u[1].name}}</td>
+                <td>{{u[0].username}}</td>
+                <td>{{u[2].acctstarttime}}</td>
+                <td>{{u[2].acctstoptime}}</td>
+                <td>{{u[2].callingstationid}}</td>
             </tr>
         {% endfor %}
         </tbody>
