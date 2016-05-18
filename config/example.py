@@ -1,5 +1,5 @@
 SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://radius:radius@localhost/radius?charset=utf8'
-DEBUG=True
+DEBUG = True
 SECRET_KEY = 'secret-key'
 SERVER_NAME = 'localhost:5000'
 
