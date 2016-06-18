@@ -45,7 +45,13 @@
                 <td>{{u[1].name}}</td>
                 <td>{{u[0].username}}</td>
                 <td>{{u[2].acctstarttime}}</td>
-                <td>{{u[2].acctstoptime}}</td>
+                <td>
+                    {%if u[2].acctstoptime%}
+                        {{u[2].acctstoptime}}
+                    {%elif u[2].acctstarttime%}
+                        Still login
+                    {%endif%}
+                </td>
                 <td>{{u[2].callingstationid}}</td>
             </tr>
         {% endfor %}
