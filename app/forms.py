@@ -20,7 +20,6 @@ class ApplyForm(Form):
     name = StringField('Name', [InputRequired()])
     studentno = StringField('Student No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
-    address = StringField('Address', [InputRequired()])
     reason = TextAreaField('Apply reason', [InputRequired()])
     submit = SubmitField('Apply')
 

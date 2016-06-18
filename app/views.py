@@ -95,14 +95,12 @@ def apply():
             name = form['name'].data
             studentno = form['studentno'].data
             phone = form['phone'].data
-            address = form['address'].data
             reason = form['reason'].data
             if current_user.apply == 'none':
                 current_user.apply = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno
                 current_user.phone = phone
-                current_user.address = address
                 current_user.reason = reason
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()

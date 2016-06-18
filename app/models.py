@@ -57,7 +57,6 @@ class User(db.Model, UserMixin):
     name = db.Column(db.String(127))
     studentno = db.Column(db.String(127))
     phone = db.Column(db.String(127))
-    address = db.Column(db.String(127))
     reason = db.Column(db.Text)
     applytime = db.Column(db.DateTime)
 
