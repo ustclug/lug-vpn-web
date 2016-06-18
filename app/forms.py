@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, BooleanField
 from wtforms.validators import InputRequired, Email, EqualTo, Length
 
 
@@ -21,6 +21,7 @@ class ApplyForm(Form):
     studentno = StringField('Student No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reason = TextAreaField('Apply reason', [InputRequired()])
+    agree = BooleanField('I agree to the following constitution')
     submit = SubmitField('Apply')
 
 

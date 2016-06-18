@@ -96,7 +96,10 @@ def apply():
             studentno = form['studentno'].data
             phone = form['phone'].data
             reason = form['reason'].data
-            if current_user.apply == 'none':
+            agree = form['agree'].data
+            if not agree:
+                flash('You must agree to the constitution', 'error')
+            elif current_user.apply == 'none':
                 current_user.apply = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno
