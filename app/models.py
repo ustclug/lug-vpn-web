@@ -9,6 +9,8 @@ class Record(db.Model):
     acctstarttime = db.Column(db.DateTime())
     acctstoptime = db.Column(db.DateTime())
     callingstationid = db.Column(db.String(50))
+    acctinputoctets = db.Column(db.BigInteger)
+    acctoutputoctets = db.Column(db.BigInteger)
 
 
 class VPNAccount(db.Model):
@@ -91,3 +93,6 @@ class User(db.Model, UserMixin):
 
     def get_record(self):
         return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).first()
+
+    def get_records(self, n):
+        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).limit(n)

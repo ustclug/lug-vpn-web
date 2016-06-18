@@ -9,12 +9,18 @@ import datetime
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
+def sizeof_fmt(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f %s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f %s%s" % (num, 'Yi', suffix)
 
 @app.route('/')
 @login_required
 def index():
-    record = current_user.get_record()
-    return render_template('index.html', user=current_user, record=record)
+    records = current_user.get_records(10)
+    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt)
 
 
 @app.route('/register/', methods=['POST', 'GET'])

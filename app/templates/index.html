@@ -21,14 +21,42 @@
     <h3>
       <span class="label label-success">Your VPN application has passed, you can launch your VPN with your email and password here</span>
     </h3>
-    Last Login:{{record.acctstarttime}} IP:{{record.callingstationid}}
+    <h3>Recent Login</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Start time</th>
+                <th>Stop time</th>
+                <th>IP</th>
+                <th>Upload traffic</th>
+                <th>Download traffic</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in records %}
+            <tr>
+                <td>{{r.acctstarttime}}</td>
+                <td>
+                    {%if r.acctstoptime%}
+                        {{r.acctstoptime}}
+                    {%elif r.acctstarttime%}
+                        Still login
+                    {%endif%}
+                </td>
+                <td>{{r.callingstationid}}</td>
+                <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
+                <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
   {% elif user.apply=='reject' %}
     <h3>
       <span class="label label-danger">Sorry, Your VPN application has been rejected</span>
     </h3>
   {% endif %}
   {% if user.admin %}
-    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">Manage</a>
+    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">Manage users</a>
   {% endif %}
 </div>
 {% endblock %}
