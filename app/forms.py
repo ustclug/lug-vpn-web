@@ -22,7 +22,7 @@ class ApplyForm(Form):
     phone = StringField('Phone', [InputRequired()])
     location = StringField('Current living country/region', [InputRequired()])
     reason = TextAreaField('Apply reason', [InputRequired()])
-    agree = BooleanField('I agree to the following constitution')
+    agree = BooleanField('I agree to the following terms of conditions')
     submit = SubmitField('Apply')
 
 
