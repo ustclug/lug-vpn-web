@@ -101,6 +101,7 @@ def apply():
             phone = form['phone'].data
             reason = form['reason'].data
             agree = form['agree'].data
+            location = form['location'].data
             if not agree:
                 flash('You must agree to the terms of conditions', 'error')
             elif current_user.apply == 'none':
@@ -109,6 +110,7 @@ def apply():
                 current_user.studentno = studentno
                 current_user.phone = phone
                 current_user.reason = reason
+                current_user.location = location
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 return redirect(url_for('index'))
