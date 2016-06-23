@@ -61,6 +61,7 @@ class User(db.Model, UserMixin):
     phone = db.Column(db.String(127))
     reason = db.Column(db.Text)
     applytime = db.Column(db.DateTime)
+    location = db.Column(db.String(127))
 
     def __init__(self, email, password):
         self.email = email
