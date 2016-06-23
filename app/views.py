@@ -30,9 +30,7 @@ def register():
         if form.validate_on_submit():
             email = form['email'].data
             password = form['password'].data
-            if not email.split('@')[-1] in ['ustc.edu.cn', 'mail.ustc.edu.cn']:
-                flash('Email must end with @[mail.]ustc.edu.cn', 'error')
-            elif User.get_user_by_email(email):
+            if User.get_user_by_email(email):
                 flash('Email already exists', 'error')
             else:
                 token = ts.dumps(email, salt='email-confirm-key')
@@ -104,7 +102,7 @@ def apply():
             reason = form['reason'].data
             agree = form['agree'].data
             if not agree:
-                flash('You must agree to the constitution', 'error')
+                flash('You must agree to the terms of conditions', 'error')
             elif current_user.apply == 'none':
                 current_user.apply = 'applying'
                 current_user.name = name
