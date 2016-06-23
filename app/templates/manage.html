@@ -19,6 +19,7 @@
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
       Apply time: {{u.applytime}}<br>
+      Location: {{ u.location }}<br>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       {{ util.form_button(url_for('reject',id=u.id),'Reject',class='btn btn-sm btn-danger') }}
       </p>
