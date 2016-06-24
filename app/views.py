@@ -3,7 +3,7 @@ from app.forms import *
 from app.models import *
 from app.mail import *
 from flask import render_template, redirect, url_for, request, flash, abort
-from flask.ext.login import current_user, login_required, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
 
