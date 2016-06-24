@@ -2,7 +2,7 @@ from app import *
 from app.forms import *
 from app.models import *
 from app.mail import *
-from flask import render_template, redirect, url_for, request, flash
+from flask import render_template, redirect, url_for, request, flash, abort
 from flask.ext.login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
@@ -95,6 +95,8 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
+    if current_user.apply in ['applying', 'pass']:
+        abort(403)
     form = ApplyForm()
     if request.method == 'POST':
         if form.validate_on_submit():
