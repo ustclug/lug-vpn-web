@@ -11,16 +11,20 @@
     You have logged in as {{ user.email }}
     <a href="{{ url_for('logout') }}">Log out</a>
   </p>
-  {% if user.apply=='none' %}
-    <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply</a>
-  {% elif user.apply=='applying' %}
+  {% if user.status=='none' %}
+    <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
+  {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your VPN application is under review</span>
+      <span class="label label-info">Your VPN application is under review, please wait.</span>
     </h3>
-  {% elif user.apply=='pass' %}
+  {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your VPN application has passed, you can launch your VPN with your email and password here</span>
+      <span class="label label-success">Your VPN application has passed</span>
     </h3>
+    <p>Username: {{user.email}}</p>
+    <p>Password: {{user.vpnpassword}}
+        {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-danger') }}
+    </p>
     <h3>Recent Login</h3>
     <table class="table">
         <thead>
@@ -50,9 +54,16 @@
         {% endfor %}
         </tbody>
     </table>
-  {% elif user.apply=='reject' %}
+  {% elif user.status=='reject' %}
     <h3>
-      <span class="label label-danger">Sorry, Your VPN application has been rejected</span>
+      <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
+      {{user.rejectreason}}
+      <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply again</a>
+    </h3>
+  {% elif user.status=='banned' %}
+    <h3>
+      <span class="label label-danger">Your VPN account has been banned for the following reason</span>
+      {{user.banreason}}
     </h3>
   {% endif %}
   {% if user.admin %}

@@ -6,15 +6,10 @@ from flask import render_template, redirect, url_for, request, flash, abort
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
+from app.utils import *
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-def sizeof_fmt(num, suffix='B'):
-    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
-        if abs(num) < 1024.0:
-            return "%3.1f %s%s" % (num, unit, suffix)
-        num /= 1024.0
-    return "%.1f %s%s" % (num, 'Yi', suffix)
 
 @app.route('/')
 @login_required
@@ -66,6 +61,10 @@ def confirm():
     if not user:
         flash('Invalid user', 'error')
         return render_template('confirm_error.html')
+    if VPNAccount.get_account_by_email(user.email):
+        #existing vpn user
+        user.status = 'pass'
+        user.vpnpassword = VPNAccount.get_account_by_email(user.email).value
     user.active = True
     user.save()
     flash('User actived')
@@ -82,7 +81,7 @@ def login():
             user = User.get_user_by_email(email)
             if not user:
                 flash('Email not found', 'error')
-            elif user.password != password:
+            elif not user.check_password(password):
                 flash('Password incorrect', 'error')
             elif not user.active:
                 flash('Email not confirmed', 'error')
@@ -95,7 +94,7 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if current_user.apply in ['applying', 'pass']:
+    if not current_user.status in ['none', 'reject']:
         abort(403)
     form = ApplyForm()
     if request.method == 'POST':
@@ -107,8 +106,8 @@ def apply():
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
-            elif current_user.apply == 'none':
-                current_user.apply = 'applying'
+            elif current_user.status == 'none':
+                current_user.status = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno
                 current_user.phone = phone
@@ -132,16 +131,16 @@ def manage():
     if not current_user.admin:
         return redirect(url_for('index'))
     applying_users = User.get_applying()
-    passed_users = list(map(lambda u: (u, User.get_user_by_email(u.username), u.get_record()), VPNAccount.get_all()))
-    return render_template('manage.html', applying_users=applying_users, passed_users=passed_users)
+    users = [(VPNAccount.get_account_by_email(u.email), u, u.get_record()) for u in User.get_users()]
+    return render_template('manage.html', applying_users=applying_users, users=users)
 
 
-@app.route('/pass/<int:id>', methods=['POST', 'GET'])
+@app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
-        if user.apply == 'applying':
+        if user.status == 'applying':
             user.pass_apply()
     return redirect(url_for('manage'))
 
@@ -151,6 +150,70 @@ def pass_(id):
 def reject(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
-        if user.apply == 'applying':
+        if user.status == 'applying':
             user.reject_apply()
     return redirect(url_for('manage'))
+
+
+@app.route('/ban/<int:id>', methods=['POST', 'GET'])
+@login_required
+def ban(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        if user.status == 'pass':
+            user.ban()
+    return redirect(url_for('manage'))
+
+
+@app.route('/unban/<int:id>', methods=['POST', 'GET'])
+@login_required
+def unban(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        if user.status == 'banned':
+            user.unban()
+    return redirect(url_for('manage'))
+
+
+@app.route('/setadmin/<int:id>', methods=['POST', 'GET'])
+@login_required
+def setadmin(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        user.admin=1
+        user.save()
+    return redirect(url_for('manage'))
+
+
+@app.route('/unsetadmin/<int:id>', methods=['POST', 'GET'])
+@login_required
+def unsetadmin(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        user.admin=0
+        user.save()
+    return redirect(url_for('manage'))
+
+
+@app.route('/edit/<int:id>', methods=['POST', 'GET'])
+@login_required
+def edit(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+    return redirect(url_for('manage'))
+
+
+@app.route('/mail/<int:id>', methods=['POST', 'GET'])
+@login_required
+def mail(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+    return redirect(url_for('manage'))
+
+
+@app.route('/changevpnpassword', methods=['POST'])
+@login_required
+def changevpnpassword():
+    if current_user.status == 'pass':
+        current_user.change_vpn_password()
+    return redirect(url_for('index'))

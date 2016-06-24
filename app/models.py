@@ -1,5 +1,7 @@
 from app import db
 from flask_login import UserMixin
+from app.utils import *
+import hashlib
 
 
 class Record(db.Model):
@@ -32,51 +34,107 @@ class VPNAccount(db.Model):
         db.session.commit()
 
     @classmethod
-    def add(cls, user):
-        account = cls.query.filter_by(username=user.email).first()
+    def get_account_by_email(cls, email):
+        return cls.query.filter_by(username=email).first()
+
+    @classmethod
+    def add(cls, email, password):
+        account = cls.get_account_by_email(email)
         if not account:
-            account = cls(user.email, user.password)
+            account = cls(email, password)
         else:
-            account.value = user.password
+            raise Exception('account already exist')
         account.save()
 
     @classmethod
-    def get_all(cls):
-        return cls.query.all()
+    def delete(cls, email):
+        account = cls.get_account_by_email(email)
+        if account:
+            db.session.delete(account)
+            db.session.commit()
+        else:
+            raise Exception('account not found')
 
-    def get_record(self):
-        return Record.query.filter_by(username=self.username).order_by(Record.radacctid.desc()).first()
+    @classmethod
+    def changepass(cls, email, newpass):
+        account = cls.get_account_by_email(email)
+        if not account:
+            raise Exception('account not found')
+        else:
+            account.value = newpass
+        account.save()
 
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(63), unique=True)
-    password = db.Column(db.String(127), nullable=False)
+    passwordhash = db.Column(db.String(127), nullable=False)
+    salt = db.Column(db.String(127), nullable=False)
     active = db.Column(db.Boolean(), default=False)
     admin = db.Column(db.Boolean(), default=False)
-    apply = db.Column(db.Enum('none', 'applying', 'pass', 'reject'), default='none')
+    status = db.Column(db.Enum('none', 'applying', 'pass', 'reject', 'banned'), default='none')
     name = db.Column(db.String(127))
     studentno = db.Column(db.String(127))
     phone = db.Column(db.String(127))
     reason = db.Column(db.Text)
     applytime = db.Column(db.DateTime)
+    vpnpassword = db.Column(db.String(127))
+    rejectreason = db.Column(db.Text)
+    banreason = db.Column(db.Text)
 
     def __init__(self, email, password):
         self.email = email
-        self.password = password
+        self.set_password(password)
+
+    def set_password(self, password):
+        self.salt = random_string(10)
+        s = hashlib.sha256()
+        s.update(password.encode('utf-8'))
+        s.update(self.salt.encode('utf-8'))
+        self.passwordhash = s.hexdigest()
+
+    def check_password(self, password):
+        s = hashlib.sha256()
+        s.update(password.encode('utf-8'))
+        s.update(self.salt.encode('utf-8'))
+        return self.passwordhash == s.hexdigest()
+
+    def enable_vpn(self):
+        if not self.vpnpassword:
+            self.generate_vpn_password()
+        VPNAccount.add(self.email, self.vpnpassword)
+
+    def disable_vpn(self):
+        VPNAccount.delete(self.email)
+
+    def change_vpn_password(self):
+        self.generate_vpn_password()
+        VPNAccount.changepass(self.email, self.vpnpassword)
 
     @classmethod
     def get_applying(cls):
-        return cls.query.filter_by(apply='applying').all()
+        return cls.query.filter_by(status='applying').all()
 
     def pass_apply(self):
-        self.apply = 'pass'
+        self.status = 'pass'
         self.save()
-        VPNAccount.add(self)
+        VPNAccount.add(self.email, self.vpnpassword)
 
-    def reject_apply(self):
-        self.apply = 'reject'
+    def reject_apply(self, reason=''):
+        self.status = 'reject'
+        self.rejectreason=reason
+        self.save()
+
+    def ban(self, reason=''):
+        self.status = 'banned'
+        self.banreason=reason
+        self.disable_vpn()
+        self.save()
+
+    def unban(self):
+        self.status = 'pass'
+        self.enable_vpn()
         self.save()
 
     def save(self):
@@ -96,3 +154,12 @@ class User(db.Model, UserMixin):
 
     def get_records(self, n):
         return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).limit(n)
+
+    def generate_vpn_password(self):
+        self.vpnpassword = random_string(8)
+        self.save()
+
+    @classmethod
+    def get_users(cls):
+        return cls.query.filter(db.or_(cls.status=='pass',cls.status=='banned'))
+
