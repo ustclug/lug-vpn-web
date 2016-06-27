@@ -25,9 +25,17 @@
       <span class="label label-success">Your VPN application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
-    <p>Password: <code>{{user.vpnpassword}}</code>
-        {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
-    </p>
+    <p>Password: <code>{{user.vpnpassword}}</code></p>
+    {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
+
+    <h3>Usage</h3>
+    <ul>
+        <li>iOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md</a></li>
+        <li>MacOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md</a></li>
+        <li>Other platforms: To be added soon</li>
+        <li>OpenVPN config file: <a href="{{url_for('static',filename='lugvpn.ovpn')}}">Download</a></li>
+    </ul>
+
     <h3>VPN Log</h3>
     <table class="table">
         <thead>
@@ -76,7 +84,7 @@
   {% if user.admin %}
     <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">VPN User Management</a>
   {% endif %}
-</div>
+</ul>
 {% endblock %}
 
 {% block head %}
