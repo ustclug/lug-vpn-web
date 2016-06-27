@@ -116,6 +116,10 @@ class User(db.Model, UserMixin):
     def get_applying(cls):
         return cls.query.filter_by(status='applying').all()
 
+    @classmethod
+    def get_rejected(cls):
+        return cls.query.filter_by(status='reject').all()
+
     def pass_apply(self):
         self.status = 'pass'
         self.enable_vpn()
@@ -123,12 +127,12 @@ class User(db.Model, UserMixin):
 
     def reject_apply(self, reason=''):
         self.status = 'reject'
-        self.rejectreason=reason
+        self.rejectreason = reason
         self.save()
 
     def ban(self, reason=''):
         self.status = 'banned'
-        self.banreason=reason
+        self.banreason = reason
         self.disable_vpn()
         self.save()
 
@@ -161,5 +165,4 @@ class User(db.Model, UserMixin):
 
     @classmethod
     def get_users(cls):
-        return cls.query.filter(db.or_(cls.status=='pass',cls.status=='banned'))
-
+        return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned'))

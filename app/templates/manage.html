@@ -6,7 +6,7 @@
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>Manage VPN Users</h1>
+  <h1>VPN User Management</h1>
   <div class="row">
     <h3>New applications ({{applying_users|length}})</h3>
     <ul class="list-group">
@@ -14,11 +14,12 @@
     <li class="list-group-item">
       <h4 class="list-group-item-heading">{{ u.email }}</h4>
       <p class="list-group-item-text">
+      <p>
       Name: {{u.name}}<br>
       Student NO.: {{u.studentno}}<br>
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
-      Apply time: {{u.applytime}}<br>
+      Apply time: {{u.applytime}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       {{ util.form_button(url_for('reject',id=u.id),'Reject',class='btn btn-sm btn-danger') }}
       </p>
@@ -66,6 +67,32 @@
                     {% else %}
                         {{ util.form_button(url_for('ban',id=u[1].id),'Ban',class='btn btn-secondary btn-sm') }}
                     {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h3>Rejected Users ({{rejected_users|length}})</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student NO.</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Reject reason</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in rejected_users %}
+            <tr>
+                <td>{{u.studentno}}</td>
+                <td>{{u.name}}</td>
+                <td>{{u.email}}</td>
+                <td>{{u.rejectreason}}</td>
+                <td>
+                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('reject',id=u.id),'Edit reason',class='btn btn-primary btn-sm') }}
                 </td>
             </tr>
         {% endfor %}

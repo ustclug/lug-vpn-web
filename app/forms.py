@@ -1,5 +1,5 @@
 from flask_wtf import Form
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, BooleanField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, BooleanField, HiddenField
 from wtforms.validators import InputRequired, Email, EqualTo, Length
 
 
@@ -32,6 +32,13 @@ class ChangePasswordForm(Form):
     submit = SubmitField('Change Password')
 
 
-class ResetPasswordForm(Form):
+class RecoverPasswordForm(Form):
     email = StringField('Email', [InputRequired(), Email(), Length(max=63)])
-    submit = SubmitField('Reset Password')
+    submit = SubmitField('Recover Password')
+
+
+class ResetPasswordForm(Form):
+    password = PasswordField('New Password', [InputRequired(), EqualTo('confirm', message='Passwords must match')])
+    confirm = PasswordField('Repeat Password', [InputRequired()])
+    token = HiddenField("token")
+    submit = SubmitField('Submit')

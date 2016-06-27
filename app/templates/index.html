@@ -7,27 +7,28 @@
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
   <h1>LUG VPN</h1>
-  <p>
-    You have logged in as {{ user.email }}
-    <a href="{{ url_for('logout') }}">Log out</a>
-  </p>
+  <div>
+    You have logged in as <code>{{ user.email }}</code>
+    <a class="btn btn-sm btn-warning" type="button" href="{{ url_for('changepassword') }}">Change password</a>
+    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-danger') }}
+  </div>
   {% if user.status=='none' %}
-    <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
   {% elif user.status=='applying' %}
     <h3>
       <span class="label label-info">Your VPN application is under review, please wait.</span>
     </h3>
-    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('apply') }}">Edit</a>
-    {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-danger btn-lg') }}
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
+    {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
       <span class="label label-success">Your VPN application has passed</span>
     </h3>
-    <p>Username: {{user.email}}</p>
-    <p>Password: {{user.vpnpassword}}
+    <p>Username: <code>{{user.email}}</code></p>
+    <p>Password: <code>{{user.vpnpassword}}</code>
         {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-danger') }}
     </p>
-    <h3>Recent Login</h3>
+    <h3>VPN Log</h3>
     <table class="table">
         <thead>
             <tr>
@@ -69,7 +70,7 @@
     </h3>
   {% endif %}
   {% if user.admin %}
-    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">Manage users</a>
+    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">VPN User Management</a>
   {% endif %}
 </div>
 {% endblock %}
