@@ -17,6 +17,8 @@
     <h3>
       <span class="label label-info">Your VPN application is under review, please wait.</span>
     </h3>
+    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('apply') }}">Edit</a>
+    {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-danger btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
       <span class="label label-success">Your VPN application has passed</span>
@@ -57,9 +59,9 @@
   {% elif user.status=='reject' %}
     <h3>
       <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
-      {{user.rejectreason}}
-      <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply again</a>
     </h3>
+      {{user.rejectreason}}
+      <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
       <span class="label label-danger">Your VPN account has been banned for the following reason</span>

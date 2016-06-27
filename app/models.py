@@ -101,7 +101,7 @@ class User(db.Model, UserMixin):
         return self.passwordhash == s.hexdigest()
 
     def enable_vpn(self):
-        if not self.vpnpassword:
+        if self.vpnpassword is None:
             self.generate_vpn_password()
         VPNAccount.add(self.email, self.vpnpassword)
 
@@ -118,8 +118,8 @@ class User(db.Model, UserMixin):
 
     def pass_apply(self):
         self.status = 'pass'
+        self.enable_vpn()
         self.save()
-        VPNAccount.add(self.email, self.vpnpassword)
 
     def reject_apply(self, reason=''):
         self.status = 'reject'

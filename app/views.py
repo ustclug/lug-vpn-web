@@ -94,9 +94,9 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if not current_user.status in ['none', 'reject']:
+    if not current_user.status in ['none', 'reject', 'applying']:
         abort(403)
-    form = ApplyForm()
+    form = ApplyForm(request.form, current_user)
     if request.method == 'POST':
         if form.validate_on_submit():
             name = form['name'].data
@@ -106,7 +106,7 @@ def apply():
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
-            elif current_user.status == 'none':
+            else:
                 current_user.status = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno
@@ -117,6 +117,13 @@ def apply():
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form)
 
+@app.route('/cancel/', methods=['POST'])
+@login_required
+def cancel():
+    if current_user.status == 'applying':
+        current_user.status = 'none'
+        current_user.save()
+    return redirect(url_for('index'))
 
 @app.route('/logout/')
 @login_required
@@ -189,9 +196,12 @@ def setadmin(id):
 @login_required
 def unsetadmin(id):
     if current_user.admin:
-        user = User.get_user_by_id(id)
-        user.admin=0
-        user.save()
+        if current_user.id != id:
+            user = User.get_user_by_id(id)
+            user.admin=0
+            user.save()
+        else:
+            flash('You cannot unset yourself', 'error')
     return redirect(url_for('manage'))
 
 
