@@ -9,8 +9,8 @@
   <h1>LUG VPN</h1>
   <div>
     You have logged in as <code>{{ user.email }}</code>
-    <a class="btn btn-sm btn-warning" type="button" href="{{ url_for('changepassword') }}">Change password</a>
-    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-danger') }}
+    <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
+    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
   </div>
   {% if user.status=='none' %}
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
@@ -26,7 +26,7 @@
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code>
-        {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-danger') }}
+        {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
     </p>
     <h3>VPN Log</h3>
     <table class="table">
@@ -61,13 +61,17 @@
     <h3>
       <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
     </h3>
-      {{user.rejectreason}}
-      <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('apply') }}">Apply again</a>
+    <div class="well">
+        {{user.rejectreason}}
+    </div>
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
       <span class="label label-danger">Your VPN account has been banned for the following reason</span>
-      {{user.banreason}}
     </h3>
+    <div class="well">
+        {{user.banreason}}
+    </div>
   {% endif %}
   {% if user.admin %}
     <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">VPN User Management</a>

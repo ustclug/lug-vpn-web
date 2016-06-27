@@ -161,21 +161,31 @@ def pass_(id):
 @app.route('/reject/<int:id>', methods=['POST', 'GET'])
 @login_required
 def reject(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        if user.status == 'applying':
-            user.reject_apply()
-    return redirect(url_for('manage'))
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    form = RejectForm(rejectreason=user.rejectreason)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            rejectreason = form['rejectreason'].data
+            user.reject_apply(rejectreason)
+            return redirect(url_for('manage'))
+    return render_template('reject.html', form=form, email=user.email)
 
 
 @app.route('/ban/<int:id>', methods=['POST', 'GET'])
 @login_required
 def ban(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        if user.status == 'pass':
-            user.ban()
-    return redirect(url_for('manage'))
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    form = BanForm(banreason=user.banreason)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            banreason = form['banreason'].data
+            user.ban(banreason)
+            return redirect(url_for('manage'))
+    return render_template('ban.html', form=form, email=user.email)
 
 
 @app.route('/unban/<int:id>', methods=['POST'])

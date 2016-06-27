@@ -42,3 +42,12 @@ class ResetPasswordForm(Form):
     confirm = PasswordField('Repeat Password', [InputRequired()])
     token = HiddenField("token")
     submit = SubmitField('Submit')
+
+
+class RejectForm(Form):
+    rejectreason = TextAreaField('Reject reason', [InputRequired()])
+    submit = SubmitField('Reject')
+
+class BanForm(Form):
+    banreason = TextAreaField('Ban reason', [InputRequired()])
+    submit = SubmitField('Ban')

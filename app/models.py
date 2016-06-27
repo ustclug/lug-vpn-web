@@ -101,12 +101,14 @@ class User(db.Model, UserMixin):
         return self.passwordhash == s.hexdigest()
 
     def enable_vpn(self):
-        if self.vpnpassword is None:
-            self.generate_vpn_password()
-        VPNAccount.add(self.email, self.vpnpassword)
+        if not VPNAccount.get_account_by_email(self.email):
+            if self.vpnpassword is None:
+                self.generate_vpn_password()
+            VPNAccount.add(self.email, self.vpnpassword)
 
     def disable_vpn(self):
-        VPNAccount.delete(self.email)
+        if VPNAccount.get_account_by_email(self.email):
+            VPNAccount.delete(self.email)
 
     def change_vpn_password(self):
         self.generate_vpn_password()
