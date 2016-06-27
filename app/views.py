@@ -31,7 +31,7 @@ def register():
             elif User.get_user_by_email(email):
                 flash('Email already exists', 'error')
             else:
-                token = ts.dumps(email, salt='email-confirm-key')
+                token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'email-confirm-key')
                 url = url_for('confirm', token=token, _external=True)
                 send_mail('Confirm your email',
                           'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
@@ -54,7 +54,7 @@ def confirm():
         flash('No token provided', 'error')
         return render_template('confirm_error.html')
     try:
-        email = ts.loads(token, salt="email-confirm-key", max_age=86400)
+        email = ts.loads(token, salt=app.config['SECRET_KEY'] + "email-confirm-key", max_age=86400)
     except:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
@@ -117,6 +117,11 @@ def apply():
                 current_user.reason = reason
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
+                html = 'Name: ' + name + \
+                       '<br>Student No: ' + studentno + \
+                       '<br>Phone: ' + phone + \
+                       '<br>Reason: ' + reason
+                send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form)
 
@@ -155,6 +160,10 @@ def pass_(id):
         user = User.get_user_by_id(id)
         if user.status in ['applying', 'reject']:
             user.pass_apply()
+            html = 'Username: ' + user.email + \
+                   '<br>Password: ' + user.vpnpassword + \
+                   '<br> Please login to VPN apply website for detail.'
+            send_mail('Your VPN application has passed', html, user.email)
     return redirect(url_for('manage'))
 
 
@@ -169,6 +178,8 @@ def reject(id):
         if form.validate_on_submit():
             rejectreason = form['rejectreason'].data
             user.reject_apply(rejectreason)
+            html = 'Reason:<br>' + rejectreason
+            send_mail('Your VPN application has been rejected', html, user.email)
             return redirect(url_for('manage'))
     return render_template('reject.html', form=form, email=user.email)
 
@@ -184,6 +195,8 @@ def ban(id):
         if form.validate_on_submit():
             banreason = form['banreason'].data
             user.ban(banreason)
+            html = 'Reason:<br>' + banreason
+            send_mail('Your VPN application has been banned', html, user.email)
             return redirect(url_for('manage'))
     return render_template('ban.html', form=form, email=user.email)
 
@@ -226,15 +239,24 @@ def unsetadmin(id):
 def edit(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
+        #TODO
     return redirect(url_for('manage'))
 
 
 @app.route('/mail/<int:id>', methods=['POST', 'GET'])
 @login_required
 def mail(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-    return redirect(url_for('manage'))
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    form = MailForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            send_mail(form['subject'].data,form['content'].data,user.email)
+            flash('Mail has been sent')
+            return redirect(url_for('manage'))
+    return render_template('mail.html', form=form, email=user.email)
+
 
 
 @app.route('/changevpnpassword/', methods=['POST'])
@@ -272,7 +294,7 @@ def recoverpassword():
             if not User.get_user_by_email(email):
                 flash('Email not found', 'error')
             else:
-                token = ts.dumps(email, salt='recover-password-key')
+                token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'recover-password-key')
                 url = url_for('resetpassword', token=token, _external=True)
                 send_mail('Confirm your email',
                           'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
@@ -293,7 +315,7 @@ def resetpassword():
         flash('No token provided', 'error')
         return render_template('confirm_error.html')
     try:
-        email = ts.loads(token, salt="recover-password-key", max_age=86400)
+        email = ts.loads(token, salt=app.config['SECRET_KEY'] + "recover-password-key", max_age=86400)
     except:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')

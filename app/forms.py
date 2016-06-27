@@ -48,6 +48,13 @@ class RejectForm(Form):
     rejectreason = TextAreaField('Reject reason', [InputRequired()])
     submit = SubmitField('Reject')
 
+
 class BanForm(Form):
     banreason = TextAreaField('Ban reason', [InputRequired()])
     submit = SubmitField('Ban')
+
+
+class MailForm(Form):
+    subject = StringField('Subject', [InputRequired()])
+    content = TextAreaField('Content', [InputRequired()])
+    submit = SubmitField('Send')

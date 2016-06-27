@@ -61,7 +61,7 @@
                     {% else %}
                         {{ util.form_button(url_for('setadmin',id=u[1].id),'Set admin',class='btn btn-default btn-sm') }}
                     {% endif %}
-                    {{ util.form_button(url_for('mail',id=u[1].id),'Mail',class='btn btn-default btn-sm') }}
+                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u[1].id) }}">Mail</a>
                     {% if u[1].status=='banned' %}
                         {{ util.form_button(url_for('unban',id=u[1].id),'Unban',class='btn btn-danger btn-sm') }}
                     {% else %}
