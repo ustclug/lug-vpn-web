@@ -53,7 +53,7 @@ def confirm():
         flash('No token provided', 'error')
         return render_template('confirm_error.html')
     try:
-        email = ts.loads(token, salt="email-confirm-key", max_age=600)
+        email = ts.loads(token, salt="email-confirm-key", max_age=86400)
     except:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
