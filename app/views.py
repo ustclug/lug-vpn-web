@@ -118,7 +118,7 @@ def apply():
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 html = 'Name: ' + name + \
-                       '<br>Student No: ' + studentno + \
+                       '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
                 send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
