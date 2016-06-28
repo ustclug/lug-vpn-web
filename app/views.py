@@ -26,7 +26,7 @@ def register():
         if form.validate_on_submit():
             email = form['email'].data
             password = form['password'].data
-            if not email.split('@')[-1] in ['ustc.edu.cn', 'mail.ustc.edu.cn']:
+            if not email.split('@')[-1] in ['ustc.edu.cn', 'mail.ustc.edu.cn', 'ustclug.org']:
                 flash('Email must end with @[mail.]ustc.edu.cn', 'error')
             elif User.get_user_by_email(email):
                 flash('Email already exists', 'error')
