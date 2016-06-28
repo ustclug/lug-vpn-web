@@ -33,11 +33,11 @@ def register():
             else:
                 token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'email-confirm-key')
                 url = url_for('confirm', token=token, _external=True)
+                user = User(email, password)
+                user.save()
                 send_mail('Confirm your email',
                           'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
                           , email)
-                user = User(email, password)
-                user.save()
                 return redirect(url_for('register_ok'))
     return render_template('register.html', form=form)
 
