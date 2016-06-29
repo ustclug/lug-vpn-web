@@ -33,7 +33,14 @@
         <li>iOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md</a></li>
         <li>macOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md</a></li>
         <li>Other platforms: To be added soon</li>
-        <li>OpenVPN config file: <a href="{{url_for('static',filename='lugvpn.ovpn')}}">Download</a></li>
+        <li>Server address:<ul>
+            <li>Singapore: sg.zlix.tech</li>
+            <li>Japan(Tokyo): jp.zlix.tech</li>
+            <li>US(Oregon): us.zlix.tech</li>
+        </ul></li>
+        <li>OpenVPN config file: <a href="{{url_for('static',filename='sg.ustcaf.ovpn')}}">Singapore</a>,
+            <a href="{{url_for('static',filename='jp.ustcaf.ovpn')}}">Japan(Tokyo)</a>,
+            <a href="{{url_for('static',filename='us.ustcaf.ovpn')}}">US(Oregon)</a></li>
     </ul>
 
     <h3>VPN Log</h3>
@@ -84,7 +91,7 @@
   {% if user.admin %}
     <a class="btn btn-lg btn-info" type="button" href="{{ url_for('manage') }}">VPN User Management</a>
   {% endif %}
-</ul>
+</div>
 {% endblock %}
 
 {% block head %}
