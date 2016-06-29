@@ -18,7 +18,7 @@ class LoginForm(Form):
 
 class ApplyForm(Form):
     name = StringField('Name', [InputRequired()])
-    studentno = StringField('Student No.', [InputRequired()])
+    studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     location = StringField('Current living country/region', [InputRequired()])
     reason = TextAreaField('Apply reason', [InputRequired()])
