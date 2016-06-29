@@ -27,6 +27,7 @@ CREATE TABLE `user` (
   `admin` tinyint(1) DEFAULT NULL,
   `status` enum('none','applying','pass','reject','banned') DEFAULT NULL,
   `name` varchar(127) DEFAULT NULL,
+  `location` varchar(127) DEFAULT NULL,
   `studentno` varchar(127) DEFAULT NULL,
   `phone` varchar(127) DEFAULT NULL,
   `reason` text,
@@ -41,8 +42,8 @@ CREATE TABLE `user` (
 
 cur.execute("""
 insert into user
-(`id`,`email`,`active`,`admin`,`status`,`name`,`studentno`,`phone`,`reason`,`applytime`,`vpnpassword`,`passwordhash`,`salt`)
-select `id`,`email`,`active`,`admin`,`apply`,`name`,`studentno`,`phone`,`reason`,`applytime`,
+(`id`,`email`,`active`,`admin`,`status`,`name`,`location`,`studentno`,`phone`,`reason`,`applytime`,`vpnpassword`,`passwordhash`,`salt`)
+select `id`,`email`,`active`,`admin`,`apply`,`name`,`location`,`studentno`,`phone`,`reason`,`applytime`,
 (select `value` from `radcheck` where username=user_bak.email),'',''
 from user_bak
 where 1
