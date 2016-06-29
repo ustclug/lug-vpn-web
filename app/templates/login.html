@@ -11,11 +11,15 @@
   <div>
     {{ wtf.quick_form(form) }}
   </div>
-  <div class="lead">
+  <h4>
+    <p></p>
     <p>
       Not a user? Click <a href={{ url_for('register') }}>here</a> to sign up.
     </p>
-  </div>
+    <p>
+      Don't remember your password? Click <a href={{ url_for('recoverpassword') }}>here</a> to recover your password.
+    </p>
+  </h4>
 </div>
 {% endblock %}
 

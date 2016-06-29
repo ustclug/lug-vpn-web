@@ -6,29 +6,37 @@
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>USTCAF VPN</h1>
-  <p>
-    You have logged in as {{ user.email }}
-    <a href="{{ url_for('logout') }}">Log out</a>
-  </p>
-  {% if user.apply=='none' %}
-    <a class="btn btn-lg btn-primary" type="button" href="{{ url_for('apply') }}">Apply</a>
-  {% elif user.apply=='applying' %}
+  <h1>LUG VPN</h1>
+  <div>
+    You have logged in as <code>{{ user.email }}</code>
+    <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
+    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
+  </div>
+  {% if user.status=='none' %}
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
+  {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your VPN application is under review</span>
+      <span class="label label-info">Your VPN application is under review, please wait.</span>
     </h3>
-  {% elif user.apply=='pass' %}
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
+    {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
+  {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your VPN application has passed, you can launch your VPN with your email and password here</span>
+      <span class="label label-success">Your VPN application has passed</span>
     </h3>
-      <ul>
-      <li>Connection method: PPTP, OpenVPN</li>
-      <li>Singapore server: sg.zlix.tech</li>
-      <li>Tokyo server: jp.zlix.tech</li>
-      <li>US (Oregon) server: us.zlix.tech</li>
-      <li>If you have any questions please contact internet (at) ustc.global</li>
-      </ul>
-    <h3>Recent Login</h3>
+    <p>Username: <code>{{user.email}}</code></p>
+    <p>Password: <code>{{user.vpnpassword}}</code></p>
+    {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
+
+    <h3>Usage</h3>
+    <ul>
+        <li>iOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md</a></li>
+        <li>MacOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md</a></li>
+        <li>Other platforms: To be added soon</li>
+        <li>OpenVPN config file: <a href="{{url_for('static',filename='lugvpn.ovpn')}}">Download</a></li>
+    </ul>
+
+    <h3>VPN Log</h3>
     <table class="table">
         <thead>
             <tr>
@@ -57,15 +65,26 @@
         {% endfor %}
         </tbody>
     </table>
-  {% elif user.apply=='reject' %}
+  {% elif user.status=='reject' %}
     <h3>
-      <span class="label label-danger">Sorry, Your VPN application has been rejected</span>
+      <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
     </h3>
+    <div class="well">
+        {{user.rejectreason}}
+    </div>
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
+  {% elif user.status=='banned' %}
+    <h3>
+      <span class="label label-danger">Your VPN account has been banned for the following reason</span>
+    </h3>
+    <div class="well">
+        {{user.banreason}}
+    </div>
   {% endif %}
   {% if user.admin %}
-    <a class="btn btn-lg btn-warning" type="button" href="{{ url_for('manage') }}">Manage users</a>
+    <a class="btn btn-lg btn-info" type="button" href="{{ url_for('manage') }}">VPN User Management</a>
   {% endif %}
-</div>
+</ul>
 {% endblock %}
 
 {% block head %}

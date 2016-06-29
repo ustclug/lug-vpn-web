@@ -6,7 +6,7 @@
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>Manage VPN Users</h1>
+  <h1>VPN User Management</h1>
   <div class="row">
     <h3>New applications ({{applying_users|length}})</h3>
     <ul class="list-group">
@@ -14,6 +14,7 @@
     <li class="list-group-item">
       <h4 class="list-group-item-heading">{{ u.email }}</h4>
       <p class="list-group-item-text">
+      <p>
       Name: {{u.name}}<br>
       Student NO.: {{u.studentno}}<br>
       Phone: {{u.phone}}<br>
@@ -21,12 +22,12 @@
       Apply time: {{u.applytime}}<br>
       Location: {{ u.location }}<br>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-      {{ util.form_button(url_for('reject',id=u.id),'Reject',class='btn btn-sm btn-danger') }}
+      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
       </p>
     </li>
     {% endfor %}
     </ul>
-    <h3>All Users ({{passed_users|length}})</h3>
+    <h3>All Users ({{users|length}})</h3>
     <table class="table">
         <thead>
             <tr>
@@ -36,14 +37,15 @@
                 <th>Last Start</th>
                 <th>Last Stop</th>
                 <th>Last IP</th>
+                <th>Operation</th>
             </tr>
         </thead>
         <tbody>
-        {% for u in passed_users %}
+        {% for u in users %}
             <tr>
                 <td>{{u[1].studentno}}</td>
                 <td>{{u[1].name}}</td>
-                <td>{{u[0].username}}</td>
+                <td>{{u[1].email}}</td>
                 <td>{{u[2].acctstarttime}}</td>
                 <td>
                     {%if u[2].acctstoptime%}
@@ -53,6 +55,46 @@
                     {%endif%}
                 </td>
                 <td>{{u[2].callingstationid}}</td>
+                <td>
+                    {{ util.form_button(url_for('edit',id=u[1].id),'Edit',class='btn btn-default btn-sm') }}
+                    {% if u[1].admin %}
+                        {{ util.form_button(url_for('unsetadmin',id=u[1].id),'Unset admin',class='btn btn-warning btn-sm') }}
+                    {% else %}
+                        {{ util.form_button(url_for('setadmin',id=u[1].id),'Set admin',class='btn btn-default btn-sm') }}
+                    {% endif %}
+                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u[1].id) }}">Mail</a>
+                    {% if u[1].status=='banned' %}
+                        {{ util.form_button(url_for('unban',id=u[1].id),'Unban',class='btn btn-danger btn-sm') }}
+                    {% else %}
+                        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u[1].id) }}">Ban</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <h3>Rejected Users ({{rejected_users|length}})</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Student NO.</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Reject reason</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in rejected_users %}
+            <tr>
+                <td>{{u.studentno}}</td>
+                <td>{{u.name}}</td>
+                <td>{{u.email}}</td>
+                <td>{{u.rejectreason}}</td>
+                <td>
+                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
+                </td>
             </tr>
         {% endfor %}
         </tbody>
