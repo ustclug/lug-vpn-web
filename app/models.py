@@ -87,6 +87,14 @@ class User(db.Model, UserMixin):
         self.email = email
         self.set_password(password)
 
+    def set_active(self):
+        if VPNAccount.get_account_by_email(self.email):
+            # existing vpn user
+            self.status = 'pass'
+            self.vpnpassword = VPNAccount.get_account_by_email(self.email).value
+        self.active = True
+        self.save()
+
     def set_password(self, password):
         self.salt = random_string(10)
         s = hashlib.sha256()
@@ -168,4 +176,3 @@ class User(db.Model, UserMixin):
     def generate_vpn_password(self):
         self.vpnpassword = random_string(8)
         self.save()
-
