@@ -118,6 +118,7 @@ def apply():
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 html = 'Name: ' + name + \
+                       '<br>Email: ' + current_user.email + \
                        '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
