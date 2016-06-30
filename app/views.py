@@ -112,7 +112,7 @@ def apply():
             else:
                 current_user.status = 'applying'
                 current_user.name = name
-                current_user.studentno = studentno
+                current_user.studentno = studentno.upper()
                 current_user.phone = phone
                 current_user.reason = reason
                 current_user.applytime = datetime.datetime.now()
