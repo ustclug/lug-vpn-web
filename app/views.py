@@ -60,12 +60,7 @@ def confirm():
     if not user:
         flash('Invalid user', 'error')
         return render_template('confirm_error.html')
-    if VPNAccount.get_account_by_email(user.email):
-        # existing vpn user
-        user.status = 'pass'
-        user.vpnpassword = VPNAccount.get_account_by_email(user.email).value
-    user.active = True
-    user.save()
+    user.set_active()
     flash('User actived')
     return redirect(url_for('login'))
 
@@ -85,7 +80,7 @@ def login():
             elif not user.check_password(password):
                 flash('Email or password incorrect', 'error')
             elif not user.active:
-                flash('Email not confirmed', 'error')
+                flash('Email not confirmed. Please recover your account at the bottom of this page.', 'error')
             else:
                 login_user(user)
                 return redirect(url_for('index'))
@@ -111,13 +106,14 @@ def apply():
             else:
                 current_user.status = 'applying'
                 current_user.name = name
-                current_user.studentno = studentno
+                current_user.studentno = studentno.upper()
                 current_user.phone = phone
                 current_user.reason = reason
                 current_user.location = location
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 html = 'Name: ' + name + \
+                       '<br>Email: ' + current_user.email + \
                        '<br>Student/Class No.: ' + studentno + \
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
@@ -239,7 +235,7 @@ def unsetadmin(id):
 def edit(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
-        #TODO
+        # TODO
     return redirect(url_for('manage'))
 
 
@@ -252,11 +248,10 @@ def mail(id):
     form = MailForm()
     if request.method == 'POST':
         if form.validate_on_submit():
-            send_mail(form['subject'].data,form['content'].data,user.email)
+            send_mail(form['subject'].data, form['content'].data, user.email)
             flash('Mail has been sent')
             return redirect(url_for('manage'))
     return render_template('mail.html', form=form, email=user.email)
-
 
 
 @app.route('/changevpnpassword/', methods=['POST'])
@@ -305,7 +300,7 @@ def recoverpassword():
 
 @app.route('/recover_password_ok/')
 def recover_password_ok():
-    return render_template('recover_password_ok.html')
+    return render_template('register_ok.html')
 
 
 @app.route('/resetpassword/', methods=['POST', 'GET'])
@@ -323,13 +318,15 @@ def resetpassword():
     if not user:
         flash('Invalid user', 'error')
         return render_template('confirm_error.html')
-
+    elif not user.active:
+        user.set_active()
+        flash('User actived')
+        return redirect(url_for('login'))
     form = ResetPasswordForm(token=token)
     if request.method == 'POST':
         if form.validate_on_submit():
             password = form['password'].data
             user.set_password(password)
-            user.active = True
             user.save()
             flash('Reset password succeeded')
             return redirect(url_for('login'))
