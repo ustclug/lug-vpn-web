@@ -42,7 +42,8 @@
             <tr>
                 <th>Start time</th>
                 <th>Stop time</th>
-                <th>IP</th>
+                <th>Login IP</th>
+                <th>Intranet IP</th>
                 <th>Upload traffic</th>
                 <th>Download traffic</th>
             </tr>
@@ -59,6 +60,7 @@
                     {%endif%}
                 </td>
                 <td>{{r.callingstationid}}</td>
+                <td>{{r.framedipaddress}}</td>
                 <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
                 <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
             </tr>

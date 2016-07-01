@@ -35,7 +35,8 @@
                 <th>Email</th>
                 <th>Last Start</th>
                 <th>Last Stop</th>
-                <th>Last IP</th>
+                <th>Last Login IP</th>
+                <th>Last Intranet IP</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -54,6 +55,7 @@
                     {%endif%}
                 </td>
                 <td>{{u[2].callingstationid}}</td>
+                <td>{{u[2].framedipaddress}}</td>
                 <td>
                     {{ util.form_button(url_for('edit',id=u[1].id),'Edit',class='btn btn-default btn-sm') }}
                     {% if u[1].admin %}

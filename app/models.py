@@ -13,6 +13,7 @@ class Record(db.Model):
     callingstationid = db.Column(db.String(50))
     acctinputoctets = db.Column(db.BigInteger)
     acctoutputoctets = db.Column(db.BigInteger)
+    framedipaddress = db.Column(db.String(15))
 
 
 class VPNAccount(db.Model):
