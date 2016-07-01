@@ -57,7 +57,7 @@
                 <td>{{u[2].callingstationid}}</td>
                 <td>{{u[2].framedipaddress}}</td>
                 <td>
-                    {{ util.form_button(url_for('edit',id=u[1].id),'Edit',class='btn btn-default btn-sm') }}
+                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u[1].id) }}">Edit</a>
                     {% if u[1].admin %}
                         {{ util.form_button(url_for('unsetadmin',id=u[1].id),'Unset admin',class='btn btn-warning btn-sm') }}
                     {% else %}
