@@ -18,10 +18,10 @@ class LoginForm(Form):
 
 class ApplyForm(Form):
     name = StringField('Name', [InputRequired()])
-    studentno = StringField('Student/Staff No.', [InputRequired()])
+    studentno = StringField('Student/Staff/Class No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     location = StringField('Current living country/region', [InputRequired()])
-    reason = TextAreaField('Apply reason', [InputRequired()])
+    reason = TextAreaField('Apply reason (Please specify your current working/studying institution)', [InputRequired()])
     agree = BooleanField('I agree to the following terms of conditions')
     submit = SubmitField('Apply')
 
