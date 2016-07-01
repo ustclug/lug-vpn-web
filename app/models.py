@@ -177,3 +177,13 @@ class User(db.Model, UserMixin):
     def generate_vpn_password(self):
         self.vpnpassword = random_string(8)
         self.save()
+
+    def month_traffic(self):
+        r = db.engine.execute('select TrafficSum from monthtraffic where UserName = %s',self.email).first()
+        return sizeof_fmt(float(r[0]) if r else 0)
+
+    def last_month_traffic(self):
+        r = db.engine.execute('select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
+        return sizeof_fmt(float(r[0]) if r else 0)
+
+
