@@ -59,3 +59,10 @@ class MailForm(Form):
     subject = StringField('Subject', [InputRequired()])
     content = TextAreaField('Content', [InputRequired()])
     submit = SubmitField('Send')
+
+
+class EditForm(Form):
+    name = StringField('Name')
+    studentno = StringField('Student/Staff No.')
+    phone = StringField('Phone')
+    submit = SubmitField('Save')

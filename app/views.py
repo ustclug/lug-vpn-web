@@ -234,10 +234,18 @@ def unsetadmin(id):
 @app.route('/edit/<int:id>', methods=['POST', 'GET'])
 @login_required
 def edit(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        # TODO
-    return redirect(url_for('manage'))
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    form = EditForm(request.form, user)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            user.name = form['name'].data
+            user.studentno = form['studentno'].data
+            user.phone = form['phone'].data
+            user.save()
+            return redirect(url_for('manage'))
+    return render_template('edit.html', form=form, email=user.email)
 
 
 @app.route('/mail/<int:id>', methods=['POST', 'GET'])
