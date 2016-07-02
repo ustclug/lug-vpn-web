@@ -1,6 +1,4 @@
-{% extends "bootstrap/base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/fixes.html" as fixes %}
+{% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}Confirm Email{% endblock %}
@@ -17,9 +15,4 @@
     <a class="btn btn-default" href="{{url_for('recoverpassword')}}">Resend email</a>
   </p>
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
 {% endblock %}

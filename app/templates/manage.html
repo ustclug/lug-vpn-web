@@ -1,6 +1,4 @@
-{% extends "bootstrap/base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/fixes.html" as fixes %}
+{% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}VPN User Management{% endblock %}
@@ -104,9 +102,4 @@
     </table>
   </div>
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
 {% endblock %}
