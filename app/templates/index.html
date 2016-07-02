@@ -3,10 +3,12 @@
 {% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
 
+{% block title %}LUG VPN{% endblock %}
+
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>LUG VPN</h1>
+  <h1>{{ self.title() }}</h1>
   <div>
     You have logged in as <code>{{ user.email }}</code>
     <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>

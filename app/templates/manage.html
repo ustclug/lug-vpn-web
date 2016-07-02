@@ -3,10 +3,12 @@
 {% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
 
+{% block title %}VPN User Management{% endblock %}
+
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>VPN User Management</h1>
+  <h1>{{ self.title() }}</h1>
   <div class="row">
     <h3>New Applications ({{applying_users|length}})</h3>
     <ul class="list-group">

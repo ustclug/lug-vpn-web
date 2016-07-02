@@ -3,10 +3,12 @@
 {% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
 
+{% block title %}Email Confirm Error{% endblock %}
+
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>Email confirm error</h1>
+  <h1>{{ self.title() }}</h1>
 </div>
 {% endblock %}
 
