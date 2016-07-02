@@ -1,7 +1,8 @@
-{% extends "bootstrap/base.html" %}
+{% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
+
+{% block title %}Ban VPN Account{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -11,9 +12,4 @@
   {{ wtf.quick_form(form) }}
 
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
 {% endblock %}
