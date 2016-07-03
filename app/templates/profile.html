@@ -14,6 +14,12 @@
   <p>Name: {{user.name}}</p>
   <p>Email: {{user.email}}</p>
   <p>Phone: {{user.phone}}</p>
+  <p>Apply reason: {{user.reason}}</p>
+  <p>Apply time: {{user.applytime}}</p>
+  <p>Status: {{user.status}}</p>
+  {% if user.status=='banned' %}
+    <p>Ban reason: {{user.banreason}}</p>
+  {% endif %}
 
   <h3>VPN Traffic</h3>
   <p>Last month: {{user.last_month_traffic()}}</p>
