@@ -7,6 +7,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
 from app.utils import *
+import json
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
@@ -340,3 +341,16 @@ def resetpassword():
             flash('Reset password succeeded')
             return redirect(url_for('login'))
     return render_template('resetpassword.html', form=form)
+
+
+@app.route('/traffic/')
+@login_required
+def traffic():
+    last_month_traffic = current_user.last_month_traffic_by_day()
+    month_traffic = current_user.month_traffic_by_day()
+    last_month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in last_month_traffic]
+    last_month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in last_month_traffic]
+    month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in month_traffic]
+    month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in month_traffic]
+    return json.dumps({'last_month_upload': last_month_upload, 'last_month_download': last_month_download,
+                       'month_upload': month_upload, 'month_download': month_download})

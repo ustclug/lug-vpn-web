@@ -1,12 +1,13 @@
-{% extends "bootstrap/base.html" %}
+{% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
+
+{% block title %}LUG VPN Login{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>Log in</h1>
+  <h1>{{ self.title() }}</h1>
 
   <div>
     {{ wtf.quick_form(form) }}
@@ -21,9 +22,4 @@
     </p>
   </h4>
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
 {% endblock %}

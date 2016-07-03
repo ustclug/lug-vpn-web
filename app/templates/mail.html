@@ -1,19 +1,15 @@
-{% extends "bootstrap/base.html" %}
+{% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/fixes.html" as fixes %}
 {% import "bootstrap/utils.html" as util %}
+
+{% block title %}Send Email{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>Send mail to {{email}}</h1>
+  <h1>Send email to {{email}}</h1>
 
   {{ wtf.quick_form(form) }}
 
 </div>
-{% endblock %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
 {% endblock %}

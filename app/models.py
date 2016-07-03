@@ -2,6 +2,8 @@ from app import db
 from flask_login import UserMixin
 from app.utils import *
 import hashlib
+import datetime
+import calendar
 
 
 class Record(db.Model):
@@ -180,11 +182,53 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute('select TrafficSum from monthtraffic where UserName = %s',self.email).first()
+        r = db.engine.execute('select TrafficSum from monthtraffic where UserName = %s', self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
     def last_month_traffic(self):
         r = db.engine.execute('select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
+    def last_month_traffic_by_day(self):
+        r = db.engine.execute("""
+            select
+                day(radius.radacct.acctstarttime) AS Day,
+                sum(radius.radacct.acctinputoctets) AS Upload,
+                sum(radius.radacct.acctoutputoctets) AS Download
+            from
+                radius.radacct
+            where
+                month(radius.radacct.acctstarttime) = month(date_sub(now(),interval 1 month)) and
+                year(radius.radacct.acctstarttime) = year(date_sub(now(),interval 1 month)) and
+                radius.radacct.username = %s
+            group by
+                day(radius.radacct.acctstarttime);
+        """, self.email)
+        lastmonth = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
+        days = calendar.monthrange(lastmonth.year, lastmonth.month)[1]
+        traffic = [(i, 0, 0) for i in range(1, days + 1)]
+        for row in r:
+            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        return traffic
 
+    def month_traffic_by_day(self):
+        r = db.engine.execute("""
+            select
+                day(radius.radacct.acctstarttime) AS Day,
+                sum(radius.radacct.acctinputoctets) AS Upload,
+                sum(radius.radacct.acctoutputoctets) AS Download
+            from
+                radius.radacct
+            where
+                month(radius.radacct.acctstarttime) = month(now()) and
+                year(radius.radacct.acctstarttime) = year(now()) and
+                radius.radacct.username = %s
+            group by
+                day(radius.radacct.acctstarttime);
+        """, self.email)
+        now = datetime.datetime.now()
+        days = calendar.monthrange(now.year, now.month)[1]
+        traffic = [(i, 0, 0) for i in range(1, days + 1)]
+        for row in r:
+            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        return traffic
