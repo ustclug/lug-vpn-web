@@ -33,9 +33,8 @@
                 <th>Student/Staff No.</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Phone</th>
+                <th>Last month traffic</th>
                 <th>Month traffic</th>
-                <th>Details</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -45,10 +44,10 @@
                 <td>{{u.studentno}}</td>
                 <td>{{u.name}}</td>
                 <td>{{u.email}}</td>
-                <td>{{u.phone}}</td>
+                <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
-                <td><a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">Details</a></td>
                 <td>
+                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
                     <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
                     {% if u.admin %}
                         {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm') }}
@@ -94,10 +93,10 @@
     </table>
   </div>
 </div>
+{% endblock %}
 {% block scripts %}
 {{super()}}
 <link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
 <script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
-{% endblock %}
 {% endblock %}

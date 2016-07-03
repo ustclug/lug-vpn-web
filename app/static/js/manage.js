@@ -31,7 +31,8 @@ $(document).ready(function () {
             responsive: true,
             select: true,
             columnDefs: [
-               { type: 'file-size', targets: 4 }
+                { type: 'file-size', targets: 3 },
+                { type: 'file-size', targets: 4 }
             ],
             aaSorting: []
         });

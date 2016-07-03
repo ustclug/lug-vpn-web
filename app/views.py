@@ -148,8 +148,9 @@ def manage():
     users = User.get_users()
     rejected_users = User.get_rejected()
     all_month_traffic = User.all_month_traffic()
+    all_last_month_traffic = User.all_last_month_traffic()
     return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users,
-                           all_month_traffic=all_month_traffic)
+                           all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
 
 
 @app.route('/pass/<int:id>', methods=['POST'])

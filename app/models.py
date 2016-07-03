@@ -193,6 +193,11 @@ class User(db.Model, UserMixin):
         r = db.engine.execute('select * from monthtraffic')
         return {row[0]: row[1] for row in r}
 
+    @classmethod
+    def all_last_month_traffic(cls):
+        r = db.engine.execute('select * from lastmonthtraffic')
+        return {row[0]: row[1] for row in r}
+
     def last_month_traffic_by_day(self):
         r = db.engine.execute("""
             select
