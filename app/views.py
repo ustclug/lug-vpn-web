@@ -146,9 +146,12 @@ def manage():
     if not current_user.admin:
         return redirect(url_for('index'))
     applying_users = User.get_applying()
-    users = [(VPNAccount.get_account_by_email(u.email), u, u.get_record()) for u in User.get_users()]
+    users = User.get_users()
     rejected_users = User.get_rejected()
-    return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users)
+    all_month_traffic = User.all_month_traffic()
+    all_last_month_traffic = User.all_last_month_traffic()
+    return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users,
+                           all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
 
 
 @app.route('/pass/<int:id>', methods=['POST'])
@@ -346,11 +349,28 @@ def resetpassword():
 @app.route('/traffic/')
 @login_required
 def traffic():
-    last_month_traffic = current_user.last_month_traffic_by_day()
-    month_traffic = current_user.month_traffic_by_day()
+    if request.args.get('id'):
+        if current_user.admin:
+            user = User.get_user_by_id(request.args.get('id'))
+        else:
+            abort(403)
+    else:
+        user = current_user
+    last_month_traffic = user.last_month_traffic_by_day()
+    month_traffic = user.month_traffic_by_day()
     last_month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in last_month_traffic]
     last_month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in last_month_traffic]
     month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in month_traffic]
     month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in month_traffic]
     return json.dumps({'last_month_upload': last_month_upload, 'last_month_download': last_month_download,
                        'month_upload': month_upload, 'month_download': month_download})
+
+
+@app.route('/profile/<int:id>')
+@login_required
+def profile(id):
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    records = user.get_records(10)
+    return render_template('profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt)

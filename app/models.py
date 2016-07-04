@@ -189,6 +189,16 @@ class User(db.Model, UserMixin):
         r = db.engine.execute('select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
+    @classmethod
+    def all_month_traffic(cls):
+        r = db.engine.execute('select * from monthtraffic')
+        return {row[0]: row[1] for row in r}
+
+    @classmethod
+    def all_last_month_traffic(cls):
+        r = db.engine.execute('select * from lastmonthtraffic')
+        return {row[0]: row[1] for row in r}
+
     def last_month_traffic_by_day(self):
         r = db.engine.execute("""
             select
