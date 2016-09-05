@@ -1,26 +1,16 @@
-FROM python:3
+FROM smartentry/alpine:3.4-0.3.2
 
-MAINTAINER Yifan Gao "git@gaoyifan.com"
+MAINTAINER Yifan Gao <docker@yfgao.com>
 
-ENV CACHE_DIR="/etc/docker-lugvpn-apply"
+COPY docker $ASSETS_DIR
 
-ENV BUILD_SCRIPT="${CACHE_DIR}/build.sh" \
-    TEMPLATES_DIR="${CACHE_DIR}/templates" \
-    DEFAULT_ENV="${CACHE_DIR}/default_env"
+COPY . /srv/lugvpn-web
 
-COPY docker/assets $CACHE_DIR
-
-COPY docker/entrypoint/entrypoint.sh /sbin/entrypoint.sh
-
-COPY . /srv/lugvpn-apply
-
-RUN /sbin/entrypoint.sh build
+RUN smartentry.sh build
 
 EXPOSE 5000/tcp
 
-ENTRYPOINT ["/sbin/entrypoint.sh"]
+WORKDIR /srv/lugvpn-web
 
-WORKDIR /srv/lugvpn-apply
-
-CMD ["/usr/local/bin/python", "run.py"]
+CMD ["python3", "run.py"]
 
