@@ -5,6 +5,21 @@ import hashlib
 import datetime
 import calendar
 
+class Group(db.Model):
+    __tablename__ = 'radusergroup'
+    username = db.Column(db.String(64), primary_key=True)
+    groupname = db.Column(db.String(64))
+    priority = db.Column(db.Integer)
+
+    def __init__(self, email, group='normal', priority=1):
+        self.username = email
+        self.groupname = group
+        self.priority = priority
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
 
 class Record(db.Model):
     __tablename__ = 'radacct'
@@ -48,12 +63,14 @@ class VPNAccount(db.Model):
         else:
             raise Exception('account already exist')
         account.save()
+        Group(email).save()
 
     @classmethod
     def delete(cls, email):
         account = cls.get_account_by_email(email)
         if account:
             db.session.delete(account)
+            db.session.delete(Group(email))
             db.session.commit()
         else:
             raise Exception('account not found')
