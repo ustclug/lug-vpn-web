@@ -1,7 +1,7 @@
 #!/bin/bash
 sed -i 's|dl-cdn.alpinelinux.org|mirrors.ustc.edu.cn|' /etc/apk/repositories
 apk update
-apk add python3 mariadb-client-libs
+apk add python3 mariadb-client-libs tzdata
 apk add --virtual build-dependencies python3-dev build-base mariadb-dev
 cd /srv/lugvpn-web
 pip3 install -r requirements.txt
