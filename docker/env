@@ -1,0 +1,17 @@
+MYSQL_USER      = root
+MYSQL_PASSWORD  = radius
+MYSQL_HOST      = mysql
+MYSQL_DATABASE  = radius
+MYSQL_CHARSET   = utf8
+DEBUG           = True
+SECRET_KEY      = secret-key
+SERVER_NAME     = localhost:5000
+MAIL_ENABLE     = False
+MAIL_SERVER     = mail
+MAIL_PORT       = 25
+MAIL_TLS_ENABLE = False
+MAIL_SSL_ENABLE = False
+MAIL_USERNAME   = ""
+MAIL_PASSWORD   = ""
+MAIL_SENDER     = noreply@vpn.ustclug.org
+ADMIN_MAIL      = vpn@ustclug.org
