@@ -101,7 +101,6 @@ def apply():
             name = form['name'].data
             studentno = form['studentno'].data
             phone = form['phone'].data
-            reason = form['reason'].data
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
@@ -110,14 +109,12 @@ def apply():
                 current_user.name = name
                 current_user.studentno = studentno.upper()
                 current_user.phone = phone
-                current_user.reason = reason
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 html = 'Name: ' + name + \
                        '<br>Email: ' + current_user.email + \
                        '<br>Student/Staff No: ' + studentno + \
-                       '<br>Phone: ' + phone + \
-                       '<br>Reason: ' + reason
+                       '<br>Phone: ' + phone
                 send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form)
@@ -162,8 +159,8 @@ def pass_(id):
             user.pass_apply()
             html = 'Username: ' + user.email + \
                    '<br>Password: ' + user.vpnpassword + \
-                   '<br> Please login to VPN apply website for detail.'
-            send_mail('Your VPN application has passed', html, user.email)
+                   '<br> Please login to light apply website for detail.'
+            send_mail('Your application has passed', html, user.email)
     return redirect(url_for('manage'))
 
 
@@ -179,7 +176,7 @@ def reject(id):
             rejectreason = form['rejectreason'].data
             user.reject_apply(rejectreason)
             html = 'Reason:<br>' + rejectreason
-            send_mail('Your VPN application has been rejected', html, user.email)
+            send_mail('Your application has been rejected', html, user.email)
             return redirect(url_for('manage'))
     return render_template('reject.html', form=form, email=user.email)
 
@@ -196,7 +193,7 @@ def ban(id):
             banreason = form['banreason'].data
             user.ban(banreason)
             html = 'Reason:<br>' + banreason
-            send_mail('Your VPN application has been banned', html, user.email)
+            send_mail('Your application has been banned', html, user.email)
             return redirect(url_for('manage'))
     return render_template('ban.html', form=form, email=user.email)
 

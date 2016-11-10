@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
 
-{% block title %}LUG VPN{% endblock %}
+{% block title %}LUG Light Accelerator{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -13,38 +13,58 @@
     {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
   </div>
   {% if user.status=='none' %}
-    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your VPN application is under review, please wait.</span>
+      <span class="label label-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
     {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your VPN application has passed</span>
+      <span class="label label-success">Your application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
 
-    <h3>Usage</h3>
+    <h3>HTTP2/TLS proxy(recommended)</h3>
     <ul>
-        <li>iOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-iOS.md</a></li>
-        <li>macOS： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-macOS.md</a></li>
-        <li>Android： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-Android.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-Android.md</a></li>
-        <li>Linux： <a href="https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-Linux.md">https://git.ustclug.org/LUG-VPN/vpn-doc/blob/master/usage-Linux.md</a></li>
-        <li>Other platforms: To be added soon. <a href="https://git.ustclug.org/LUG-VPN/vpn-doc">contribute documents?</a></li>
-        <li>OpenVPN config file: <a href="{{url_for('static',filename='lugvpn.ovpn')}}">Download</a></li>
+        <li>PAC <code>https://ftp.ustclug.org/light/https.pac</code></li>
+        <li>host <code>light.ustclug.org</code></li>
+        <li>port <code>29980</code></li>
     </ul>
+    <h3>HTTP proxy</h3>
+    <ul>
+        <li>PAC <code>https://ftp.ustclug.org/light/http.pac</code></li>
+        <li>host <code>light.ustclug.org</code></li>
+        <li>port <code>29979</code></li>
+    </ul>
+    <h3>usage</h3>
+    <h4>chrome+SwitchyOmega</h4>
+    <ol>
+        <li>install <a href='https://chrome.google.com'>Google Chrome</a></li>
+        <li>install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
+        <li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
+        <li>fill <code>http://ftp.ustclug.org/light/https.pac</code> in &quot;PAC URL&quot;</li>
+        <li>Click &quot;Download Profile Now&quot; </li>
+        <li>Click the lock-like icon (at the right of &quot;PAC Script&quot;).</li>
+        <li>Enter your username and password</li>
+        <li>Click &quot;Apply changes&quot; button</li>
+        <li>Close SwitchyOmega Option Page</li>
+        <li>choose the profile you created above</li>
+        <li>enjoy</li>
+    </ol>
+    <h4>system proxy setting</h4>
+    <p>Please refer to <a href='https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html'>the page</a>.</p>
 
-    <h3>VPN Traffic</h3>
+    <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
     <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>
     <p>This month: {{user.month_traffic()}}</p>
     <div id="month_traffic" style="height: 300px; width: 100%;"></div>
 
-    <h3>VPN Log</h3>
+    <h3>Log</h3>
     <table class="table">
         <thead>
             <tr>
@@ -77,7 +97,7 @@
     </table>
   {% elif user.status=='reject' %}
     <h3>
-      <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
+      <span class="label label-danger">Sorry, Your Light application has been rejected for the following reason</span>
     </h3>
     <div class="well">
         {{user.rejectreason}}
@@ -85,14 +105,14 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
-      <span class="label label-danger">Your VPN account has been banned for the following reason</span>
+      <span class="label label-danger">Your Light account has been banned for the following reason</span>
     </h3>
     <div class="well">
         {{user.banreason}}
     </div>
   {% endif %}
   {% if user.admin %}
-    <a class="btn btn-lg btn-info" type="button" href="{{ url_for('manage') }}">VPN User Management</a>
+    <a class="btn btn-lg btn-info" type="button" href="{{ url_for('manage') }}">User Management</a>
   {% endif %}
 </ul>
 {% endblock %}

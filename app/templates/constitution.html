@@ -1,30 +1,23 @@
-<h1>Linux用户协会VPN服务章程（个人用户）</h1>
-<p><em>version: 1.0.2</em></p>
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>constitution.md</title></head>
+<body><h1>Linux用户协会轻量级(light)网络加速服务章程</h1>
+<p><em>version: 1.0.0</em></p>
 <h2>总则</h2>
 <p><a href='https://lug.ustc.edu.cn/wiki/lug/services/rules'>USTC LUG网络服务总则</a></p>
 <h2>服务介绍</h2>
-<p>中国科学技术大学Linux用户协会（以下称LUG或“我们”）VPN 是一项为LUG活跃会员提供的非营利性的网络加速服务。</p>
-<h3>特性</h3>
+<p>中国科学技术大学Linux用户协会（以下称LUG或“我们”）light服务是一项为LUG会员提供的非营利性的网络加速服务。</p>
+<h3>功能</h3>
 <ul><li>
-访问科大校园网</li>
-<li>
-论文下载</li>
-<li>
-国际网络加速</li>
-<li>
-特殊线路优化</li>
-<li>
-IPv6网络（仅OpenVPN）</li>
+有限的国际网络加速</li>
 </ul>
 <h3>支持协议</h3>
 <ul><li>
-OpenVPN（推荐）</li>
+HTTP 1.1</li>
 <li>
-IPSec/IKE</li>
-<li>
-AnyConnect</li>
-<li>
-PPTP（不安全）</li>
+HTTP 2.0 TLS</li>
 </ul>
 <h2>账号的取得</h2>
 <h3>申请对象</h3>
@@ -37,35 +30,6 @@ PPTP（不安全）</li>
 <li>
 在LUG中曾经担任职务的会员</li>
 </ul>
-<h3>申请条件</h3>
-<p>申请者需满足以下条件之一：</p>
-<ul><li>
-当前学期内参加3次小聚活动</li>
-<li>
-当前学期内主讲1次小聚或Linux User Party</li>
-<li>
-当前学期内撰写2篇新闻稿，并被审核通过</li>
-<li>
-经考核的服务器维护小组成员</li>
-<li>
-在社团中担任或曾经担任<a href='https://lug.ustc.edu.cn/wiki/lug/person-in-charge'>任意职务</a></li>
-<li>
-由三位（含）以上社团负责人认定的突出贡献</li>
-<li>
-在职教师</li>
-</ul>
-<p>攻略：</p>
-<ul><li>
-想来参加小聚？请关注<a href='http://bbs.ustc.edu.cn/cgi/bbsdoc?board=Linux'>瀚海星云Linux版</a>的通知，或订阅<a href='https://calendar.google.com/calendar/embed?src=ja62uhhr2mquiabuji30vgcndc%2540group.calendar.google.com'>谷歌日历</a></li>
-<li>
-希望在每周小聚活动中做分享？快来<a href='https://lug.ustc.edu.cn/wiki/lug/contact#%E5%AE%98%E6%96%B9%E9%82%AE%E4%BB%B6%E5%9C%B0%E5%9D%80'>联系我们</a>吧</li>
-<li>
-希望撰写新闻稿？请在<a href='https://lug.ustc.edu.cn/blog/'>LUG新闻站</a>投稿。投稿范围包含：LUG活动新闻、LUG会议新闻、LUG新服务介绍...</li>
-<li>
-希望加入服务器维护小组？快来<a href='https://lug.ustc.edu.cn/wiki/lug/contact#%E9%9D%A2%E5%AF%B9%E9%9D%A2%E4%BA%A4%E6%B5%81'>活动室</a>面基吧</li>
-<li>
-换届选举将在每学年春季学期举行，具体时间请关注<a href='https://lug.ustc.edu.cn/wiki/lug/contact#%E5%8F%82%E4%B8%8E%E9%82%AE%E4%BB%B6%E5%88%97%E8%A1%A8%E8%AE%A8%E8%AE%BA_%E6%8E%A8%E8%8D%90'>邮件列表</a>通知</li>
-</ul>
 <h3>申请材料</h3>
 <ul><li>
 姓名</li>
@@ -75,62 +39,35 @@ PPTP（不安全）</li>
 科大邮箱（没有科大邮箱？<a href='http://ustcnet.ustc.edu.cn/service/index.php?activeTab=tabNewRegister'>点我注册</a>）</li>
 <li>
 手机号（仅用于紧急联系）</li>
-<li>
-满足何种申请条件</li>
 </ul>
 <h3>申请方式</h3>
-<p>使用校园网访问<a href='http://getvpn.ustclug.org'>VPN在线申请网站</a>提交您的申请材料。我们将在3个工作日内予以答复。</p>
+<p>使用校园网访问<a href='http://light.ustclug.org'>在线申请网站</a>提交您的申请材料。我们将在3个工作日内予以答复。</p>
 <p>温馨提示：提交虚假的申请材料，将<strong>永久</strong>失去申请资格，已开通的账号亦将被封停。</p>
-<h4>申请理由填写说明</h4>
-<p>只需要在申请理由中陈述您满足哪项申请条件即可，无需说明VPN用途。我们将根据您的申请材料做出判断，或要求您补充信息。</p>
-<p>如果您满足的条件是“参加小聚”，请列举您在本学期中参加的小聚名称，以便我们核实。</p>
-<p>下面列举了一些常见的<strong>不被接受</strong>的申请理由：</p>
-<ul><li>
-需要借助VPN访问XX网站</li>
-<li>
-科研需要</li>
-<li>
-人在外地，需要访问校内资源</li>
-</ul>
 <h3>账号的有效时间</h3>
-<p>有效时间自申请通过之日起，至下一个学期假期结束。</p>
-<p>如：4月1日通过申请，则有效期至次年春季学期的开学日（一般为次年2月），不含开学日当天。</p>
-<h3>有效时间的延续</h3>
-<p>如果您在VPN有效期内的最后一个学期中，仍然满足申请条件，有效时间将延续一个学期。</p>
-<p>注：夏季小学期视为与之相邻的春季学期的一部分</p>
+<p>在校期间有效。</p>
 <h2>限制</h2>
 <h3>资源限制</h3>
 <ul><li>
 带宽：未限制</li>
 <li>
-同时在线设备数：5</li>
-<li>
-月流量：100GB</li>
+月流量：10GB</li>
 </ul>
 <h3>功能限制</h3>
 <ul><li>
-禁止访问网络通</li>
+仅限访问<a href='https://git.ustclug.org/lug-light/accelerate-list/blob/master/accelerate.list'>白名单</a>中的网站</li>
 <li>
-禁止连接远程主机的25/tcp端口</li>
+仅限访问tcp 80、443、5228端口</li>
 </ul>
 <h3>滥用</h3>
-<p>为了保障服务器安全稳定运行，LUG VPN禁止以下行为：</p>
+<p>为了保障服务器安全稳定运行，本服务禁止以下行为：</p>
 <ul><li>
 分享账号</li>
-<li>
-将连接VPN的主机作为网关（或代理服务器），为其他主机提供网络服务。（个人使用的除外）</li>
 <li>
 网络扫描、网络攻击或其他黑客行为</li>
 <li>
 运行网络爬虫</li>
 <li>
-发送垃圾邮件</li>
-<li>
-运行TOR服务节点</li>
-<li>
-批量下载论文</li>
-<li>
-可能导致IDC投诉的行为（如：下载盗版BT资源）</li>
+可能导致IDC投诉的行为</li>
 <li>
 违反中国法律法规或科大校纪校规的行为</li>
 <li>
@@ -138,7 +75,7 @@ PPTP（不安全）</li>
 </ul>
 <p>一经发现，管理员将视情节发出警告、暂停账号或永久封停账号。</p>
 <h2>隐私</h2>
-<p>LUG VPN不提供隐私保护功能。</p>
-<p>所有经过服务器流量将被机器记录和分析，LUG承诺不会对外泄露这些数据。记录保存时间为90天。</p>
-<p>例外：当接到上级主管部门要求时，我们有权在不提前通知的情况下提交这些数据。</p>
-<p>如果有隐私保护需求，建议使用<a href='https://www.torproject.org'>tor</a>。</p>
+<p>所有经过服务器请求将被机器记录，LUG承诺不会对外泄露这些数据。记录保存时间为90天。</p>
+<p>例外：当接到上级主管部门要求时，我们有权在不经过您同意的情况下提交这些数据。</p>
+</body>
+</html>

@@ -20,7 +20,6 @@ class ApplyForm(Form):
     name = StringField('Name', [InputRequired()])
     studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
-    reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
     agree = BooleanField('I agree to the following constitution')
     submit = SubmitField('Apply')
 
