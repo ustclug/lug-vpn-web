@@ -105,7 +105,6 @@ def apply():
             caseid = form['caseid'].data
             question1 = form['question1'].data
             question2 = form['question2'].data
-            question3 = form['question3'].data
             if not agree:
                 flash('You must agree to the terms of conditions', 'error')
             else:
@@ -116,8 +115,7 @@ def apply():
                 current_user.reason = reason + \
                                       '\nCaseID: ' + caseid + \
                                       '\nQuestion1: ' + question1 + \
-                                      '\nQuestion2: ' + question2 + \
-                                      '\nQuestion3: ' + question3
+                                      '\nQuestion2: ' + question2
                 current_user.location = location
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
@@ -129,8 +127,7 @@ def apply():
                        '<br>Reason: ' + reason + \
                        '<br>CaseID: ' + caseid + \
                        '<br>Question1: ' + question1 + \
-                       '<br>Question2: ' + question2 + \
-                       '<br>Question3: ' + question3
+                       '<br>Question2: ' + question2
                 send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form)
