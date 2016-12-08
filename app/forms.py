@@ -1,6 +1,6 @@
 from flask_wtf import Form
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, BooleanField, HiddenField
-from wtforms.validators import InputRequired, Email, EqualTo, Length
+from wtforms.validators import InputRequired, Email, EqualTo, Length, Regexp
 
 
 class RegisterForm(Form):
@@ -23,9 +23,10 @@ class ApplyForm(Form):
     location = StringField('Current living country/region', [InputRequired()])
     caseid = StringField('Case ID Number (Required for users in China, contact alumni(at)ustc.global for a case ID)')
     reason = TextAreaField('Apply reason (Please specify your current working/studying institution)', [InputRequired()])
-    question1 = TextAreaField('Security question 1: What is the website address of USTC Alumni Foundation (USTCAF)?')
-    question2 = TextAreaField('Security question 2: When was USTCAF founded?')
-    question3 = TextAreaField('Security question 3: What is the TaxID of USTCAF?')
+    question1 = TextAreaField('Security question 1: What is the website address of USTC Alumni Foundation (USTCAF)?',
+                              [InputRequired(), Regexp('^.*ustcaf\.org$|^.*ustc\.global$', message="Question 1 incorrect.")])
+    question2 = TextAreaField('Security question 2: In which year was USTCAF founded?', [InputRequired(),
+                                                                                         Regexp('^1995$', message="Qeustion 2 incorrect")])
     agree = BooleanField('I agree to the following terms of conditions')
     submit = SubmitField('Apply')
 
