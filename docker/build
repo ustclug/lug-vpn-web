@@ -1,4 +1,6 @@
 #!/bin/bash
+set -x
+set -e
 apk update
 apk add python3 mariadb-client-libs tzdata
 apk add --virtual build-dependencies python3-dev build-base mariadb-dev
