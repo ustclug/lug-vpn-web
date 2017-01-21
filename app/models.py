@@ -26,10 +26,10 @@ class VPNAccount(db.Model):
     op = db.Column(db.CHAR(2), default='==')
     value = db.Column(db.String(253))
 
-    def __init__(self, username, password):
+    def __init__(self, username, value, is_expiration=False):
         self.username = username
-        self.value = password
-        self.attribute = 'Cleartext-Password'
+        self.value = value
+        self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
         self.op = ':='
 
     def save(self):
@@ -38,22 +38,39 @@ class VPNAccount(db.Model):
 
     @classmethod
     def get_account_by_email(cls, email):
-        return cls.query.filter_by(username=email).first()
+        return cls.query.filter_by(username=email).filter_by(attribute='Cleartext-Password').first()
 
     @classmethod
-    def add(cls, email, password):
+    def get_expiration_by_email(cls, email):
+        return cls.query.filter_by(username=email).filter_by(attribute='Expiration').first()
+
+    @classmethod
+    def add(cls, email, password, expiration):
         account = cls.get_account_by_email(email)
         if not account:
             account = cls(email, password)
+            account.save()
+            cls.update_expiration(email, expiration)
         else:
             raise Exception('account already exist')
-        account.save()
+
+    @classmethod
+    def update_expiration(cls, email, expiration):
+        expiration_row = cls.get_expiration_by_email(email)
+        if not expiration_row:
+            expiration_row = cls(email, expiration.strftime('%d %b %Y'), True)
+        else:
+            expiration_row.value = expiration.strftime('%d %b %Y')
+        expiration_row.save()
 
     @classmethod
     def delete(cls, email):
         account = cls.get_account_by_email(email)
         if account:
             db.session.delete(account)
+            expiration = cls.get_expiration_by_email(email)
+            if expiration:
+                db.session.delete(expiration)
             db.session.commit()
         else:
             raise Exception('account not found')
@@ -85,6 +102,8 @@ class User(db.Model, UserMixin):
     vpnpassword = db.Column(db.String(127))
     rejectreason = db.Column(db.Text)
     banreason = db.Column(db.Text)
+    expiration = db.Column(db.Date)
+    renewing = db.Column(db.Boolean(), default=False)
 
     def __init__(self, email, password):
         self.email = email
@@ -115,7 +134,7 @@ class User(db.Model, UserMixin):
         if not VPNAccount.get_account_by_email(self.email):
             if self.vpnpassword is None:
                 self.generate_vpn_password()
-            VPNAccount.add(self.email, self.vpnpassword)
+            VPNAccount.add(self.email, self.vpnpassword, self.expiration)
 
     def disable_vpn(self):
         if VPNAccount.get_account_by_email(self.email):
@@ -127,7 +146,7 @@ class User(db.Model, UserMixin):
 
     @classmethod
     def get_applying(cls):
-        return cls.query.filter_by(status='applying').order_by(cls.applytime).all()
+        return cls.query.filter(db.or_(cls.status == 'applying', cls.renewing == True)).order_by(cls.applytime).all()
 
     @classmethod
     def get_rejected(cls):
@@ -139,12 +158,24 @@ class User(db.Model, UserMixin):
 
     def pass_apply(self):
         self.status = 'pass'
+        self.expiration = next_semester_end()
         self.enable_vpn()
+        self.save()
+
+    def pass_renewal(self):
+        self.expiration = next_semester_end()
+        VPNAccount.update_expiration(self.email, self.expiration)
+        self.renewing = False
         self.save()
 
     def reject_apply(self, reason=''):
         self.status = 'reject'
         self.rejectreason = reason
+        self.save()
+
+    def reject_renewal(self, reason=''):
+        self.rejectreason = reason
+        self.renewing = False
         self.save()
 
     def ban(self, reason=''):

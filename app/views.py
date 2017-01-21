@@ -17,7 +17,8 @@ def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     records = current_user.get_records(10)
-    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt)
+    renewal = (current_user.expiration - datetime.date.today()).days <= 180 if current_user.expiration else False
+    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt, renewal=renewal)
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -93,7 +94,7 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if not current_user.status in ['none', 'reject', 'applying']:
+    if not current_user.status in ['none', 'reject', 'applying', 'pass']:
         abort(403)
     form = ApplyForm(request.form, current_user)
     if request.method == 'POST':
@@ -106,7 +107,10 @@ def apply():
             if not agree:
                 flash('You must agree to the constitution', 'error')
             else:
-                current_user.status = 'applying'
+                if current_user.status == 'pass':
+                    current_user.renewing = True
+                else:
+                    current_user.status = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno.upper()
                 current_user.phone = phone
@@ -118,9 +122,13 @@ def apply():
                        '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
-                send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
+                if current_user.status == 'pass':
+                    title = 'VPN Renewal: '
+                else:
+                    title = 'New VPN Application: '
+                send_mail(title + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
-    return render_template('apply.html', form=form)
+    return render_template('apply.html', form=form, renew=current_user.status == 'pass')
 
 
 @app.route('/cancel/', methods=['POST'])
@@ -156,14 +164,19 @@ def manage():
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        if user.status in ['applying', 'reject']:
-            user.pass_apply()
-            html = 'Username: ' + user.email + \
-                   '<br>Password: ' + user.vpnpassword + \
-                   '<br> Please login to VPN apply website for detail.'
-            send_mail('Your VPN application has passed', html, user.email)
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    if user.status in ['applying', 'reject']:
+        user.pass_apply()
+        html = 'Username: ' + user.email + \
+               '<br>Password: ' + user.vpnpassword + \
+               '<br>Please login to VPN apply website for detail.'
+        send_mail('Your VPN application has passed', html, user.email)
+    elif user.renewing:
+        user.pass_renewal()
+        html = 'Your VPN renewal has passed<br>Please login to VPN apply website for detail.'
+        send_mail('Your VPN renewal has passed', html, user.email)
     return redirect(url_for('manage'))
 
 
@@ -177,9 +190,13 @@ def reject(id):
     if request.method == 'POST':
         if form.validate_on_submit():
             rejectreason = form['rejectreason'].data
-            user.reject_apply(rejectreason)
             html = 'Reason:<br>' + rejectreason
-            send_mail('Your VPN application has been rejected', html, user.email)
+            if user.renewing:
+                user.reject_renewal(rejectreason)
+                send_mail('Your VPN renewal has been rejected', html, user.email)
+            else:
+                user.reject_apply(rejectreason)
+                send_mail('Your VPN application has been rejected', html, user.email)
             return redirect(url_for('manage'))
     return render_template('reject.html', form=form, email=user.email)
 

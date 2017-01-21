@@ -27,6 +27,14 @@
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
+    <p></p>
+    <p>Expiration date: <code>{{user.expiration}}</code></p>
+
+    {% if user.renewing %}
+      <p>Your renewal is under review, please wait.</p>
+    {% elif renewal %}
+      <a class="btn btn-sm btn-warning" type="button" href="{{ url_for('apply') }}">Renew</a>
+    {% endif %}
 
     <h3>Usage</h3>
     <ul>

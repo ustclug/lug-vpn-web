@@ -19,7 +19,8 @@
       Student NO.: {{u.studentno}}<br>
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
-      Apply time: {{u.applytime}}<br></p>
+      Apply time: {{u.applytime}}<br>
+      Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
       </p>
@@ -33,6 +34,7 @@
                 <th>Student/Staff No.</th>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Expiration</th>
                 <th>Last month traffic</th>
                 <th>Month traffic</th>
                 <th>Operation</th>
@@ -44,6 +46,7 @@
                 <td>{{u.studentno}}</td>
                 <td>{{u.name}}</td>
                 <td>{{u.email}}</td>
+                <td>{{u.expiration}}</td>
                 <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>
