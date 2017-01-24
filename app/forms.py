@@ -21,7 +21,7 @@ class ApplyForm(Form):
     studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     agree = BooleanField('I agree to the following constitution')
-    submit = SubmitField('Apply')
+    submit_btn = SubmitField('Apply')
 
 
 class ChangePasswordForm(Form):
