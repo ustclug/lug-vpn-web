@@ -26,7 +26,8 @@ class ApplyForm(Form):
     question1 = StringField('Security question 1: What is the website address of USTC Alumni Foundation (USTCAF)?', [InputRequired(), Regexp('^.*ustcaf\.org$|^.*ustc\.global$', message="Question 1 incorrect.")])
     question2 = StringField('Security question 2: In which year was USTCAF founded?', [InputRequired(), Regexp('^199[56]$', message="Question 2 incorrect")])
     agree = BooleanField('I agree to the following terms of conditions')
-    submit = SubmitField('Apply')
+    submit_btn = SubmitField('Apply')
+
 
 
 class ChangePasswordForm(Form):

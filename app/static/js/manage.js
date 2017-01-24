@@ -25,6 +25,12 @@ jQuery.fn.dataTable.ext.type.order['file-size-pre'] = function ( data ) {
 };
 
 $(document).ready(function () {
+    $('#applying_list .btn-success').on('click', function (e) {
+        e.preventDefault();
+        $(this).attr("disabled", true);
+        $(this).text("Please wait...");
+        $(this).closest("form").submit();
+    });
     if(!$.fn.dataTable.isDataTable('#all_users'))
         $('#all_users').DataTable({
             colReorder: true,

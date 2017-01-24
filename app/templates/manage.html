@@ -9,7 +9,7 @@
   <h1>{{ self.title() }}</h1>
   <div class="row">
     <h3>New Applications ({{applying_users|length}})</h3>
-    <ul class="list-group">
+    <ul class="list-group" id="applying_list">
     {% for u in applying_users %}
     <li class="list-group-item">
       <h4 class="list-group-item-heading">{{ u.email }}</h4>
