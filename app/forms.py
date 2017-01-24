@@ -22,7 +22,7 @@ class ApplyForm(Form):
     phone = StringField('Phone', [InputRequired()])
     reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
     agree = BooleanField('I agree to the following constitution')
-    submit = SubmitField('Apply')
+    submit_btn = SubmitField('Apply')
 
 
 class ChangePasswordForm(Form):
