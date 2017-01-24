@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
 
-{% block title %}USTCAF VPN{% endblock %}
+{% block title %}中国科大校友基金会 (USTCAF) 校友网络服务{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -16,13 +16,13 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
   {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your VPN application is under review, please wait.</span>
+      <span class="label label-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
     {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your VPN application has passed</span>
+      <span class="label label-success">Your application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
