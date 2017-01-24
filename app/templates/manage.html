@@ -34,9 +34,9 @@
                 <th>Student/Staff No.</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Expiration</th>
                 <th>Last month traffic</th>
                 <th>Month traffic</th>
+                <th>Expiration</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -46,9 +46,9 @@
                 <td>{{u.studentno}}</td>
                 <td>{{u.name}}</td>
                 <td>{{u.email}}</td>
-                <td>{{u.expiration}}</td>
                 <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td>{{u.expiration}}</td>
                 <td>
                     <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
                     <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
