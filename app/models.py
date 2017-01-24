@@ -6,6 +6,26 @@ import datetime
 import calendar
 
 
+class Group(db.Model):
+    __tablename__ = 'radusergroup'
+    username = db.Column(db.String(64), primary_key=True)
+    groupname = db.Column(db.String(64))
+    priority = db.Column(db.Integer)
+
+    def __init__(self, email, group='normal', priority=1):
+        self.username = email
+        self.groupname = group
+        self.priority = priority
+
+    def save(self):
+        db.session.add(self)
+        db.session.commit()
+
+    @classmethod
+    def get_group_by_email(cls, email):
+        return cls.query.filter_by(username=email).first()
+
+
 class Record(db.Model):
     __tablename__ = 'radacct'
     radacctid = db.Column(db.Integer, primary_key=True)
@@ -50,6 +70,9 @@ class VPNAccount(db.Model):
         if not account:
             account = cls(email, password)
             account.save()
+            if not Group.get_group_by_email(email):
+                group = Group(email)
+                group.save()
             cls.update_expiration(email, expiration)
         else:
             raise Exception('account already exist')
@@ -71,6 +94,9 @@ class VPNAccount(db.Model):
             expiration = cls.get_expiration_by_email(email)
             if expiration:
                 db.session.delete(expiration)
+            group = Group.get_group_by_email(email)
+            if group:
+                db.session.delete(group)
             db.session.commit()
         else:
             raise Exception('account not found')
