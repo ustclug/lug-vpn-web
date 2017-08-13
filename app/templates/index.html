@@ -28,8 +28,7 @@
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
 
-    <h3>Usage</h3>
-      <h4>VPN</h4>
+      <h3>VPN</h3>
       <p>Server address: <b>hz.zlix.tech</b></p>
       <p>OpenVPN config file: <a href="{{url_for('static',filename='hz.ustcaf.ovpn')}}">Download</a></p>
       <h4>Usage</h4>
@@ -38,16 +37,15 @@
         <li>macOS： <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-macOS.md">macOS User guide</a></li>
         <li>Android: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Android.md">Android User guide</a> </li>
         <li>Windows: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Windows.md">Windows User guide</a> </li>
-        <li>Other platforms: To be added soon</li>
+        <li>Linux: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Linux.md">Linux User guide</a> </li>
     </ul>
-    <h4>Light HTTP2/TLS proxy (recommended)</h4>
+    <h3>Light HTTP2/TLS proxy (recommended)</h3>
     <ul>
         <li>PAC: <code>http://internet.zlix.tech/static/https.pac</code></li>
         <li>Host: <code>light.zlix.tech</code></li>
         <li>Port: <code>29980</code></li>
     </ul>
-    <h4>Usage</h4>
-    <h5>Chrome+SwitchyOmega</h5>
+    <h4>Usage via Chrome+SwitchyOmega</h4>
     <ol>
         <li>Install <a href='https://chrome.google.com'>Google Chrome</a></li>
         <li>Install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
@@ -61,7 +59,7 @@
         <li>Choose the profile you created above</li>
         <li>Enjoy</li>
     </ol>
-    <h5>System proxy setting</h5>
+    <h4>System proxy setting</h4>
     <p>Please refer to <a href='https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html'>this page</a>.</p>
 
     <h3>VPN Traffic</h3>
