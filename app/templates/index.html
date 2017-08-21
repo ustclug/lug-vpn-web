@@ -28,49 +28,71 @@
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
 
-    <h3>HTTP2/TLS proxy(recommended)</h3>
-    <ul>
-        <li>PAC <code>https://ftp.ustclug.org/light/https.pac</code></li>
-        <li>host <code>light.ustclug.org</code></li>
-        <li>port <code>29980</code></li>
-    </ul>
-    <h3>HTTP proxy</h3>
-    <ul>
-        <li>PAC <code>https://ftp.ustclug.org/light/http.pac</code></li>
-        <li>host <code>light.ustclug.org</code></li>
-        <li>port <code>29979</code></li>
-    </ul>
-    <h3>Usage</h3>
-    <h4>Chrome+SwitchyOmega</h4>
-    <ol>
-        <li>install <a href='https://www.google.com/chrome/'>Google Chrome</a></li>
-        <li>install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
-        <li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
-        <li>fill <code>http://ftp.ustclug.org/light/https.pac</code> in &quot;PAC URL&quot;</li>
-        <li>Click &quot;Download Profile Now&quot;</li>
-        <li>Click the lock-like icon (at the right of &quot;PAC Script&quot;).</li>
-        <li>Enter your username and password</li>
-        <li>Click &quot;Apply changes&quot; button</li>
-        <li>Close SwitchyOmega Option Page</li>
-        <li>choose the profile you created above</li>
-        <li>enjoy</li>
-    </ol>
-    <h4>iOS device (iOS 9.3 or later)</h4>
-    <ol>
-        <li>Install <strong>Wingy</strong> via App Store</li>
-        <li>Open Wingy -&gt; Configurations -&gt; Add New Configuration -&gt; Http(s)</li>
-        <li>Enable Https</li>
-        <li>Host <code>light.ustclug.org</code></li>
-        <li>Port <code>29980</code></li>
-        <li>Enable Auth, and fill in your username and password above</li>
-        <li>ProxyRule Auto Mode. (P.S. If something went wrong, please try Global Mode)</li>
-        <li>click Done</li>
-        <li>Connect to server. (P.S. the biggest button on the first page)</li>
-        <li>Allow the VPN configuration request, which need your PIN code.</li>
-        <li>enjoy</li>
-    </ol>
-    <h4>system proxy setting</h4>
-    <p>Please refer to <a href='https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html'>the page</a>.</p>
+<h3 id="http2tlsproxyrecommended">HTTP2/TLS proxy(recommended)</h3>
+<ul>
+<li>PAC <code>https://ftp.ustclug.org/light/https.pac</code></li>
+<li>host <code>light.ustclug.org</code></li>
+<li>port <code>29980</code></li>
+</ul>
+<h3 id="httpproxy">HTTP proxy</h3>
+<ul>
+<li>PAC <code>https://ftp.ustclug.org/light/http.pac</code></li>
+<li>host <code>light.ustclug.org</code></li>
+<li>port <code>29979</code></li>
+</ul>
+<h3 id="socks5proxytelegramonly">Socks5 proxy (Telegram only)</h3>
+<ul>
+<li>host <code>light.ustclug.org</code></li>
+<li>port <code>6626</code></li>
+</ul>
+<h3 id="usage">Usage</h3>
+<h4 id="chromeswitchyomega">Chrome+SwitchyOmega</h4>
+<ol>
+<li>install <a href="https://www.google.com/chrome/">Google Chrome</a></li>
+<li>install plugin <a href="https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif">SwitchyOmega</a></li>
+<li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
+<li>fill <code>http://ftp.ustclug.org/light/https.pac</code> in "PAC URL"</li>
+<li>Click "Download Profile Now"</li>
+<li>Click the lock-like icon (at the right of "PAC Script").</li>
+<li>Enter your username and password</li>
+<li>Click "Apply changes" button</li>
+<li>Close SwitchyOmega Option Page</li>
+<li>choose the profile you created above</li>
+<li>enjoy</li>
+</ol>
+<h4 id="iosdeviceios93orlater">iOS device (iOS 9.3 or later)</h4>
+<ol>
+<li>Install <strong>Wingy</strong> via App Store</li>
+<li>Open Wingy -&gt; Configurations -&gt; Add New Configuration -&gt; Http(s)</li>
+<li>Enable Https</li>
+<li>Host <code>light.ustclug.org</code></li>
+<li>Port <code>29980</code></li>
+<li>Enable Auth, and fill in your username and password above</li>
+<li>ProxyRule Auto Mode. (P.S. If something went wrong, please try Global Mode)</li>
+<li>click Done</li>
+<li>Connect to server. (P.S. the biggest button on the first page)</li>
+<li>Allow the VPN configuration request, which need your PIN code.</li>
+<li>enjoy</li>
+</ol>
+<h4 id="systemproxysetting">system proxy setting</h4>
+<p>Please refer to <a href="https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html">the page</a>.</p>
+<h3 id="telegramproxyusageiosdevice">Telegram proxy usage(iOS device)</h3>
+<ol>
+<li>Install and Open your <em>Telegram Messenger</em> App</li>
+<li>Open Settings -&gt;  Data and Storage -&gt; Use Proxy</li>
+<li>Check <em>SOCKS5</em> protocol</li>
+<li>Fill related information</li>
+</ol>
+<ul>
+<li>Server: light.ustclug.org</li>
+<li>Port: 6626</li>
+<li>Username, Password (please check from <a href="https://light.ustclug.org">light.ustclug.org</a>)</li>
+<li>Use for calls：not recommended</li>
+</ul>
+<ol>
+<li>Save and enjoy</li>
+</ol>
+<p><em>P.S.</em> DO <strong>NOT</strong> share your account.</p>
 
     <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
