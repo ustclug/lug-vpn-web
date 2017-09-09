@@ -228,6 +228,15 @@ def unban(id):
     return redirect(url_for('manage'))
 
 
+@app.route('/renew/<int:id>', methods=['POST'])
+@login_required
+def renew(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        user.renew()
+    return redirect(url_for('manage'))
+
+
 @app.route('/setadmin/<int:id>', methods=['POST'])
 @login_required
 def setadmin(id):
