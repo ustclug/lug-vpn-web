@@ -23,6 +23,11 @@
       Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+      {% if u.status=='banned' %}
+          {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
+      {% else %}
+          <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+      {% endif %}
       </p>
     </li>
     {% endfor %}
