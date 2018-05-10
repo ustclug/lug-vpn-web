@@ -17,7 +17,7 @@ class LoginForm(Form):
 
 
 class ApplyForm(Form):
-    name = StringField('Name', [InputRequired()])
+    name = StringField('Name (in your native language)', [InputRequired()])
     studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
