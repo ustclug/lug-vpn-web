@@ -17,7 +17,7 @@ class LoginForm(Form):
 
 
 class ApplyForm(Form):
-    name = StringField('Name', [InputRequired()])
+    name = StringField('Name (eg. 张三)', [InputRequired()])
     studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     agree = BooleanField('I agree to the following constitution')
