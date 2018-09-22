@@ -17,7 +17,8 @@ def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     records = current_user.get_records(10)
-    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt)
+    escaped_email = current_user.email.replace('@', '%40')
+    return render_template('index.html', user=current_user, escaped_email=escaped_email, records=records, sizeof_fmt=sizeof_fmt)
 
 
 @app.route('/register/', methods=['POST', 'GET'])
