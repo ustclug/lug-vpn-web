@@ -35,7 +35,8 @@ def register():
                 user = User(email, password)
                 user.save()
                 send_mail('Confirm your email',
-                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
                           , email)
                 return redirect(url_for('register_ok'))
     return render_template('register.html', form=form)
@@ -93,7 +94,7 @@ def login():
 def apply():
     if not current_user.status in ['none', 'reject', 'applying']:
         abort(403)
-    form = ApplyForm(request.form, current_user)
+    form = ApplyForm(request.form, obj=current_user)
     if request.method == 'POST':
         if form.validate_on_submit():
             name = form['name'].data
@@ -166,14 +167,17 @@ def manage():
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        if user.status in ['applying', 'reject']:
-            user.pass_apply()
-            html = 'Username: ' + user.email + \
-                   '<br>Password: ' + user.vpnpassword + \
-                   '<br> Please login to VPN apply website for detail.'
-            send_mail('Your VPN application has passed', html, user.email)
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    if user.status in ['applying', 'reject']:
+        user.pass_apply()
+        html = 'Username: ' + user.email + \
+               '<br>Password: ' + user.vpnpassword + \
+               '<br>Please login to <a href="' + \
+               url_for('index', _external=True) + \
+               '">VPN apply website</a> for detail.'
+        send_mail('Your VPN application has passed', html, user.email)
     return redirect(url_for('manage'))
 
 
@@ -250,7 +254,7 @@ def edit(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    form = EditForm(request.form, user)
+    form = EditForm(request.form, obj=user)
     if request.method == 'POST':
         if form.validate_on_submit():
             user.name = form['name'].data
@@ -314,7 +318,8 @@ def recoverpassword():
                 token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'recover-password-key')
                 url = url_for('resetpassword', token=token, _external=True)
                 send_mail('Confirm your email',
-                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
                           , email)
                 return redirect(url_for('recover_password_ok'))
     return render_template('recoverpassword.html', form=form)
