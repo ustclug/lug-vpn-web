@@ -27,7 +27,11 @@
     </li>
     {% endfor %}
     </ul>
-    <h3>All Users ({{users|length}})</h3>
+    <h3>
+        All Users
+        ({{users|length}})
+        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
+    </h3>
     <table class="table" id="all_users">
         <thead>
             <tr>

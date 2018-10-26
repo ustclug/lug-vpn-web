@@ -164,6 +164,31 @@ def manage():
                            all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
 
 
+@app.route('/create/', methods=['POST', 'GET'])
+@login_required
+def create():
+    if not current_user.admin:
+        abort(403)
+    form = RegisterForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            email = form['email'].data
+            password = form['password'].data
+            if User.get_user_by_email(email):
+                flash('Email already exists', 'error')
+            else:
+                token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'email-confirm-key')
+                url = url_for('confirm', token=token, _external=True)
+                user = User(email, password)
+                user.save()
+                send_mail('Confirm your email',
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
+                          , email)
+                return redirect(url_for('register_ok'))
+    return render_template('register.html', form=form)
+
+
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
