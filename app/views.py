@@ -169,7 +169,7 @@ def manage():
 def create():
     if not current_user.admin:
         abort(403)
-    form = RegisterForm()
+    form = CreateForm()
     if request.method == 'POST':
         if form.validate_on_submit():
             email = form['email'].data
