@@ -44,6 +44,13 @@ class ResetPasswordForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class CreateForm(FlaskForm):
+    email = StringField('Email', [InputRequired(), Email(), Length(max=63)])
+    password = PasswordField('Password', [InputRequired(), EqualTo('confirm', message='Passwords must match')])
+    confirm = PasswordField('Repeat Password', [InputRequired()])
+    submit = SubmitField('Register')
+
+
 class RejectForm(FlaskForm):
     rejectreason = TextAreaField('Reject reason', [InputRequired()])
     submit = SubmitField('Reject')
