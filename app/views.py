@@ -116,7 +116,7 @@ def apply():
                        '<br>Email: ' + current_user.email + \
                        '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone
-                send_mail('New VPN Application: ' + name, html, app.config['ADMIN_MAIL'])
+                send_mail('New Light Application: ' + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form)
 
