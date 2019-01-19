@@ -76,7 +76,8 @@ class User(db.Model, UserMixin):
     salt = db.Column(db.String(127), nullable=False)
     active = db.Column(db.Boolean(), default=False)
     admin = db.Column(db.Boolean(), default=False)
-    status = db.Column(db.Enum('none', 'applying', 'pass', 'reject', 'banned'), default='none')
+    status = db.Column(db.Enum('none', 'applying', 'pass',
+                               'reject', 'banned'), default='none')
     name = db.Column(db.String(127))
     studentno = db.Column(db.String(127))
     phone = db.Column(db.String(127))
@@ -95,7 +96,8 @@ class User(db.Model, UserMixin):
         if VPNAccount.get_account_by_email(self.email):
             # existing vpn user
             self.status = 'pass'
-            self.vpnpassword = VPNAccount.get_account_by_email(self.email).value
+            self.vpnpassword = VPNAccount.get_account_by_email(
+                self.email).value
         self.active = True
         self.save()
 
@@ -105,6 +107,9 @@ class User(db.Model, UserMixin):
         s.update(password.encode('utf-8'))
         s.update(self.salt.encode('utf-8'))
         self.passwordhash = s.hexdigest()
+
+    def set_vpnpassword(self, password):
+        self.vpnpassword = password
 
     def check_password(self, password):
         s = hashlib.sha256()
@@ -122,8 +127,11 @@ class User(db.Model, UserMixin):
         if VPNAccount.get_account_by_email(self.email):
             VPNAccount.delete(self.email)
 
-    def change_vpn_password(self):
-        self.generate_vpn_password()
+    def change_vpn_password(self, password=None):
+        if password:
+            self.set_vpnpassword(password)
+        else:
+            self.generate_vpn_password()
         VPNAccount.changepass(self.email, self.vpnpassword)
 
     @classmethod
@@ -182,11 +190,13 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute('select TrafficSum from monthtraffic where UserName = %s', self.email).first()
+        r = db.engine.execute(
+            'select TrafficSum from monthtraffic where UserName = %s', self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
     def last_month_traffic(self):
-        r = db.engine.execute('select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
+        r = db.engine.execute(
+            'select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
     @classmethod

@@ -26,7 +26,8 @@
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
-    {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
+    {{ util.form_button(url_for('generatevpnpassword'),'Regenerate random VPN password',class='btn btn-sm btn-warning') }}
+    {{ util.form_button(url_for('changevpnpassword'),'Change VPN password',class='btn btn-sm btn-danger') }}
 
     <h3>Light HTTP2/TLS proxy (recommended)</h3>
     <ul>

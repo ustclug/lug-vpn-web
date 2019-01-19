@@ -42,6 +42,13 @@ class ChangePasswordForm(FlaskForm):
     submit = SubmitField('Change Password')
 
 
+class ChangeVPNPasswordForm(FlaskForm):
+    password = PasswordField('New VPN Password (Do NOT use your personal passwords for other sites!)', [InputRequired(), EqualTo(
+        'confirm', message='Passwords must match')])
+    confirm = PasswordField('Repeat Password', [InputRequired])
+    submit = SubmitField('Change VPN Password')
+
+
 class RecoverPasswordForm(FlaskForm):
     email = StringField('Email', [InputRequired(), Email(), Length(max=63)])
     submit = SubmitField('Recover Password')
@@ -57,7 +64,8 @@ class ResetPasswordForm(FlaskForm):
 
 class CreateForm(FlaskForm):
     email = StringField('Email', [InputRequired(), Email(), Length(max=63)])
-    password = PasswordField('Password', [InputRequired(), EqualTo('confirm', message='Passwords must match')])
+    password = PasswordField('Password', [InputRequired(), EqualTo(
+        'confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', [InputRequired()])
     submit = SubmitField('Register')
 

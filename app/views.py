@@ -305,9 +305,24 @@ def mail(id):
     return render_template('mail.html', form=form, email=user.email)
 
 
-@app.route('/changevpnpassword/', methods=['POST'])
+@app.route('/changevpnpassword/', methods=['POST', 'GET'])
 @login_required
 def changevpnpassword():
+    if current_user.status == 'pass':
+        form = ChangeVPNPasswordForm()
+        if request.method == 'POST':
+            if form.validate_on_submit():
+                password = form['password'].data
+                current_user.change_vpn_password(password)
+                current_user.save()
+                flash('VPN password successfully changed')
+                return redirect(url_for('index'))
+    return redirect(url_for('index'))
+
+
+@app.route('/generatevpnpassword/', methods=['POST'])
+@login_required
+def generatevpnpassword():
     if current_user.status == 'pass':
         current_user.change_vpn_password()
     return redirect(url_for('index'))
