@@ -29,22 +29,24 @@
     {{ util.form_button(url_for('generatevpnpassword'),'Regenerate random VPN password',class='btn btn-sm btn-warning') }}
     <a class="btn btn-sm btn-danger" type="button" href="{{ url_for ('changevpnpassword') }}">Change VPN password</a>
 
-    <h2>Support us</h2>
-    <p>USTC Alumni Foundation is a non-profit organization focused on supporting USTC alumni worldwide.
+    <h3>Support us</h3>
+    <p>USTC Alumni Foundation (USTCAF) is a non-profit organization focused on supporting USTC alumni worldwide.
     We rely on generous donations from our fellow alumni and friends to cover our infrastructure and maintenance costs
-    for running our Internet Services. If you find our services useful, please consider supporting us in the following way:</p>
+    for running our Internet Services. If you find our services useful, please consider supporting us
+    by donating to USTCAF in the following way:</p>
     <ul>
-        <li>Go to our <a href="http://www.ustcaf.org/donate/donate.php">donation webpage;</a></li>
+        <li>Go to our <a href="https://www.ustcaf.org/donate/donate.php">donation webpage</a>;</li>
         <li>After login/registration, select "<b>AFund</b>" under "子基金";</li>
         <li>Under "注释", put "Internet";</li>
         <li>Complete donation following instructions.</li>
     </ul>
-    <p>Thank you for using our services and we appreciate any support from you!</p>
+    <p>Thank you for using our services and we appreciate any support from you! If you have any questions, please contact
+    us at <a href="mailto:internet@ustc.global">internet@ustc.global</a></p>
 
     <h3>Light HTTP2/TLS proxy (recommended)</h3>
     <ul>
         <li>PAC: <code>http://internet.zlix.tech/static/https.pac</code></li>
-        <li>Host: <code>light.zlix.tech</code></li>
+        <li>Host: <code>vpn.zlix.tech</code></li>
         <li>Port: <code>29980</code></li>
     </ul>
     <h4>Usage via Chrome+SwitchyOmega</h4>
