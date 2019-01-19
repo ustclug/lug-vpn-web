@@ -148,7 +148,7 @@ class User(db.Model, UserMixin):
 
     @classmethod
     def get_inactive(cls):
-        return cls.query.filter_by(active == False).order_by(cls.applytime.desc()).all()
+        return cls.query.filter_by(active=False).order_by(cls.applytime.desc()).all()
 
     def pass_apply(self):
         self.status = 'pass'
