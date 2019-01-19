@@ -331,6 +331,7 @@ def changevpnpassword():
                 current_user.save()
                 flash('VPN password successfully changed')
                 return redirect(url_for('index'))
+        return render_template('changevpnpassword.html', form=form)
     return redirect(url_for('index'))
 
 
