@@ -44,7 +44,7 @@ class ChangePasswordForm(FlaskForm):
 
 class ChangeVPNPasswordForm(FlaskForm):
     password = PasswordField('New VPN Password (Do NOT use your personal passwords for other sites!)', [InputRequired(), EqualTo(
-        'confirm', message='Passwords must match')])
+        'confirm', message='Passwords must match'), Length(min=8, message='Password length should not be less than 8')])
     confirm = PasswordField('Repeat Password', [InputRequired()])
     submit = SubmitField('Change VPN Password')
 
