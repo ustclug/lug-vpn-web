@@ -28,20 +28,6 @@
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
 
-    <h3>VPN</h3>
-    <p>Server address: <b>hz.zlix.tech</b></p>
-    <p>OpenVPN config file: <a href="{{url_for('static',filename='hz.ustcaf.ovpn')}}">Download</a></p>
-    <h4>Usage</h4>
-    <ul>
-        <li>iOS： <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-iOS.md">iOS User guide</a></li>
-        <li>macOS： <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-macOS.md">macOS User guide</a></li>
-        <li>Android: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Android.md">Android User
-                guide</a> </li>
-        <li>Windows: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Windows.md">Windows User
-                guide</a> </li>
-        <li>Linux: <a href="https://github.com/katherlee/ustcaf-vpn-doc/blob/master/usage-Linux.md">Linux User guide</a>
-        </li>
-    </ul>
     <h3>Light HTTP2/TLS proxy (recommended)</h3>
     <ul>
         <li>PAC: <code>http://internet.zlix.tech/static/https.pac</code></li>
@@ -80,6 +66,176 @@
     </ol>
     <h4>System proxy setting</h4>
     <p>Please refer to <a href='https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html'>this page</a>.</p>
+
+    <h3>VPN</h3>
+    <p>Server address: <b>vpn.zlix.tech</b></p>
+    <p>OpenVPN config file: <a href="{{url_for('static',filename='vpn.ustcaf.ovpn')}}">Download</a></p>
+
+    <h4>Usage</h4>
+    <ul>
+        <li><b>iOS</b>
+            <ul>
+                <li>OpenVPN
+                    <ol>
+                        <li>OpenVPN已在中国App Store下架。请先注册一个非中国区的Apple ID（比如美国区）。</li>
+                        <li>使用这个账号登录App Store</li>
+                        <li>在App Store中搜索并下载OpenVPN</li>
+                        <li>打开配置文件，打开程序选择OpenVPN</li>
+                        <li>打开OpenVPN，点击+号，确认导入配置</li>
+                        <li>输入用户名密码，连接。</li>
+                    </ol>
+                </li>
+                <li>PPTP (iOS 9 or earlier)
+                    <ol>
+                        <li>打开Settings-&gt;VPN-&gt;Add VPN Configuration</li>
+                        <li>Type选择PPTP</li>
+                        <li>Description输入自定义名称</li>
+                        <li>Server输入vpn.zlix.tech</li>
+                        <li>Account填写用户名</li>
+                        <li>Password填写密码（如不填则会每次连接时询问）</li>
+                        <li>确认勾选Send All Traffic（默认勾选）</li>
+                        <li>点击右上角的Done，然后连接VPN</li>
+                    </ol>
+                </li>
+                <li>AnyConnect
+                    <ol>
+                        <li>从App Store安装“Cisco AnyConnect"</li>
+                        <li>打开App ”AnyConnect"</li>
+                        <li>选择Connections -&gt; Add VPN Connection…</li>
+                        <li>Decription输入自定义名称</li>
+                        <li>Server Address填写vpn.zlix.tech</li>
+                        <li>Advanced -&gt; Certificate 选择 Disable</li>
+                        <li>保存VPN配置并返回首页</li>
+                        <li>连接VPN，根据提示输入用户名密码</li>
+                    </ol>
+                </li>
+            </ul>
+        </li>
+
+        <li><b>macOS</b>
+            <ul>
+                <li>
+                    <p>OpenVPN</p>
+                    <ol>
+                        <li>下载并安装<a href="https://ftp.ustclug.org/software/openvpn/">TunnelBlick</a></li>
+                        <li>下载并打开（双击）配置文件</li>
+                        <li>输入管理员密码，确认导入配置文件</li>
+                        <li>使用TunnelBlick连接到OpenVPN服务器（需要输入登录凭证）</li>
+                    </ol>
+                </li>
+                <li>
+                    <p>PPTP (10.11 EI Capitan or earlier)</p>
+                    <ol>
+                        <li>打开-&gt;System Preferences-&gt;Network</li>
+                        <li>点击左侧的+号，新增一个网络接口</li>
+                        <li>Interface选择VPN；VPN Type选择PPTP；点击Create</li>
+                        <li>在左侧点击刚才创建的网络接口；Server Address填写vpn.zlix.tech；Account name填写用户名</li>
+                        <li>点击Authentication Settings；User Authentication单选框选择Password，并输入您的密码；点击OK。</li>
+                        <li>点击Advanced；<strong>勾选Send all traffic over VPN connection</strong></li>
+                    </ol>
+                </li>
+                <li>
+                    <p>AnyConnect</p>
+                    <ol>
+                        <li>下载并安装<a href="https://ftp.ustclug.org/software/anyconnect/">AnyConnect Client</a></li>
+                        <li>打开“Cisco AnyConnect Secure Mobility Client”</li>
+                        <li>VPN填入 vpn.zlix.tech</li>
+                        <li>点击Connect按钮</li>
+                        <li>依照提示输入用户名密码</li>
+                    </ol>
+                </li>
+            </ul>
+        </li>
+        <li><b>Android</b>
+            <ul>
+                <li>OpenVPN
+                    <ol type="1">
+                        <li>先在网站上下载 OpenVPN 配置文件，文件名为 <code>vpn.ustcaf.ovpn</code>。</li>
+                        <li>Android 上需要安装 OpenVPN 的客户端，这里我们推荐使用开源的 OpenVPN for Android。 下载途径：</li>
+                    </ol>
+                    <ul>
+                        <li>作者提供的<a href="http://plaisthos.de/android/ics-openvpn-latest-stable.apk">链接</a></li>
+                        <li><a href="https://play.google.com/store/apps/details?id=de.blinkt.openvpn">Google Play</a></li>
+                        <li><a href="https://f-droid.org/repository/browse/?fdid=de.blinkt.openvpn">F-Droid</a></li>
+                    </ul>
+                    <ol start="3" type="1">
+                        <li>在 OpenVPN for Android 右上角三个按钮中最右边一个，即是导入配置文件的按钮，点击并 导入配置文件。</li>
+                    </ol>
+                </li>
+                <li>AnyConnect
+                    <ol type="1">
+                        <li>从<a href="https://play.google.com/store/apps/details?id=com.cisco.anyconnect.vpn.android.avf">Google
+                                Play</a>安装“AnyConnect”</li>
+                        <li>打开“AnyConnect”</li>
+                        <li>选择Connection -&gt; Add VPN Connection…</li>
+                        <li>Decription输入自定义名称</li>
+                        <li>Server Address填写vpn.zlix.tech</li>
+                        <li>Advanced -&gt; Certificate 选择 Disable</li>
+                        <li>保存VPN配置并返回首页</li>
+                        <li>点击右上角，选择Settings</li>
+                        <li>去掉Block Untrusted Servers的勾并返回</li>
+                        <li>连接VPN，会有安全提示，确认证书的Serial (hex) 为 37:76:B4:A7:CF:5B:D7:EF:45:3F:C9:CC:75:5D:A5:8B
+                            ，点击Continue</li>
+                        <li>根据提示输入用户名密码</li>
+                        <li>enjoy</li>
+                    </ol>
+                </li>
+            </ul>
+        </li>
+        <li><b>Windows</b>
+            <ul>
+                <li>Cisco AnyConnect
+                    <ol type="1">
+                        <li>下载并安装 <a href="https://ftp.ustclug.org/software/anyconnect/anyconnect-win-4.4.03034-core-vpn-predeploy-k9.msi">AnyConnect
+                                Client</a></li>
+                        <li>打开 “Cisco AnyConnect Secure Mobility Client”</li>
+                        <li>VPN 填入 vpn.zlix.tech</li>
+                        <li>点击 Connect</li>
+                        <li>依照提示输入用户名密码</li>
+                    </ol>
+                </li>
+                <li>OpenVPN
+                    <ol type="1">
+                        <li><a href="https://ftp.ustclug.org/software/openvpn/">下载</a>并安装客户端</li>
+                        <li>打开OpenVPN GUI</li>
+                        <li>右下角会多出来一个图标，右键，import file，选择下载好的配置文件并导入</li>
+                        <li>导入完成后，再次右键，点击connect，按照提示输入用户名和密码</li>
+                        <li>enjoy</li>
+                    </ol>
+                </li>
+                <li>PPTP (Windows10)
+                    <ol type="1">
+                        <li>打开start（开始菜单）-&gt;Settings（设置）</li>
+                        <li>选择Network &amp; Internet -&gt; VPN</li>
+                        <li>点击Add a VPN connection</li>
+                        <li>VPN Provider 选择 “Windows (built-in)”</li>
+                        <li>Server name or address 输入所需服务器地址</li>
+                        <li>Connection Name填写任意名称</li>
+                        <li>VPN Type选择PPTP</li>
+                        <li>在下方填写用户名和密码（也可以连接时输入），点击Save</li>
+                        <li>保存后在Settings -&gt; Network &amp; Internet -&gt; VPN 下即可点选刚添加的VPN连接。</li>
+                    </ol>
+                </li>
+                <li>PPTP (Windows 7)
+                    <ol type="1">
+                        <li>右键点击右下角任务栏的网络连接图标，选择 Open Network and Sharing Center</li>
+                        <li>点击 Set up a new connection or network</li>
+                        <li>选择 Connect to a workplace</li>
+                        <li>选择 Use my Internet connection (VPN)</li>
+                        <li>Internet name 输入所需服务器地址</li>
+                        <li>Destination name 填写任意名称</li>
+                        <li>勾选Don’t connect now; just set it up so I can connect later，点击下一步</li>
+                        <li>在下一步填写用户名和密码，点击Create创建连接</li>
+                        <li>点击Close关闭窗口，暂时不要连接</li>
+                        <li>在Network and Sharing Center 中点击左侧的Change Adapter Settings</li>
+                        <li>在Adapter页面中可以看到刚刚添加的连接，右键点击-&gt;Properties</li>
+                        <li>在Security选项卡下，Type of VPN 选择PPTP，Data Encryption选择Optional Encryption，点击OK完成设置</li>
+                        <li>右键点击连接图标可以连接和断开VPN</li>
+                    </ol>
+                </li>
+            </ul>
+        </li>
+    </ul>
 
     <h3>VPN Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
