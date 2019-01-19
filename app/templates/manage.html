@@ -70,6 +70,25 @@
         {% endfor %}
         </tbody>
     </table>
+
+    <h3>Users with pending email confirmation</h3>
+        <table class="table" id="inactive_users">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in inactive_users %}
+                <tr>
+                    <td>{{u.email}}</td>
+                    <td>{{ util.form_button(url_for('activate',id=u.id),'Activate',class='btn btn-warning btn-sm') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
     <h3>Rejected Users ({{rejected_users|length}})</h3>
     <table class="table" id="rejected_users">
         <thead>

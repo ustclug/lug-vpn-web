@@ -156,12 +156,14 @@ def manage():
     if not current_user.admin:
         return redirect(url_for('index'))
     applying_users = User.get_applying()
+    inactive_users = User.get_inactive()
     users = User.get_users()
     rejected_users = User.get_rejected()
     all_month_traffic = User.all_month_traffic()
     all_last_month_traffic = User.all_last_month_traffic()
     return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users,
-                           all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
+                           inactive_users=inactive_users, all_month_traffic=all_month_traffic,
+                           all_last_month_traffic=all_last_month_traffic)
 
 
 @app.route('/create/', methods=['POST', 'GET'])
@@ -303,6 +305,18 @@ def mail(id):
             flash('Mail has been sent')
             return redirect(url_for('manage'))
     return render_template('mail.html', form=form, email=user.email)
+
+
+@app.route('/activate/<int:id>', methods=['POST'])
+@login_required
+def activate(id):
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    email = user.email
+    user.set_active()
+    flash('User (' + email + ') activated')
+    return redirect(url_for('manage'))
 
 
 @app.route('/changevpnpassword/', methods=['POST', 'GET'])
