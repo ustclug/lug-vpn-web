@@ -49,48 +49,84 @@
         <li>Host: <code>vpn.zlix.tech</code></li>
         <li>Port: <code>29980</code></li>
     </ul>
-    <h4>Usage via Chrome+SwitchyOmega</h4>
-    <ol>
-        <li>Install <a href='https://www.google.com/chrome/'>Google Chrome</a></li>
-        <li>Install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
-        <li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
-        <li>Fill <code>http://internet.zlix.tech/static/https.pac</code> in &quot;PAC URL&quot;</li>
-        <li>Click &quot;Download Profile Now&quot;</li>
-        <li>Click the lock-like icon (on the right of &quot;PAC Script&quot;).</li>
+    <h4>Usage</h4>
+    <div class="panel-group" id="light-usage">
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-chrome">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-chrome" aria-expanded="true" aria-controls="collapse-chrome">
+                        Chrome+SwitchyOmega
+                    </button>
+                </h5>
+            </div>
 
-        <li>Enter your username and password</li>
-        <li>Click &quot;Apply changes&quot; button</li>
-        <li>Close SwitchyOmega Option Page</li>
-        <li>Choose the profile you created above</li>
-        <li>Enjoy</li>
-    </ol>
+            <div id="collapse-chrome" class="panel-collapse collapse in" aria-labelledby="heading-chrome" data-parent="#light-usage">
+                <div class="panel-body">
+                    <ol>
+                        <li>Install <a href='https://www.google.com/chrome/'>Google Chrome</a></li>
+                        <li>Install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
+                        <li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
+                        <li>Fill <code>http://internet.zlix.tech/static/https.pac</code> in &quot;PAC URL&quot;</li>
+                        <li>Click &quot;Download Profile Now&quot;</li>
+                        <li>Click the lock-like icon (on the right of &quot;PAC Script&quot;).</li>
 
-    <h4>iOS device (iOS 9.3 or later)</h4>
-    <ol>
-        <li>Install <strong>Wingy</strong> via App Store</li>
-        <li>Open Wingy -&gt; Configurations -&gt; Add New Configuration -&gt; Http(s)</li>
-        <li>Enable Https</li>
-        <li>Host <code>vpn.zlix.tech</code></li>
-        <li>Port <code>29980</code></li>
-        <li>Enable Auth, and fill in your username and password above</li>
-        <li>ProxyRule Auto Mode. (P.S. If something went wrong, please try Global Mode)</li>
-        <li>click Done</li>
-        <li>Connect to server. (P.S. the biggest button on the first page)</li>
-        <li>Allow the VPN configuration request, which need your PIN code.</li>
-        <li>enjoy</li>
-    </ol>
-    <h4>System proxy setting</h4>
-    <p>Please refer to <a href='https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html'>this page</a>.</p>
+                        <li>Enter your username and password</li>
+                        <li>Click &quot;Apply changes&quot; button</li>
+                        <li>Close SwitchyOmega Option Page</li>
+                        <li>Choose the profile you created above</li>
+                        <li>Enjoy</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-light-ios">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-light-ios" aria-expanded="true" aria-controls="collapse-light-ios">
+                        iOS device (iOS 9.3 or later)
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-light-ios" class="panel-collapse collapse" aria-labelledby="heading-light-ios" data-parent="#light-usage">
+                <div class="panel-body">
+                    <ol>
+                        <li>Install <strong>Wingy</strong> via App Store</li>
+                        <li>Open Wingy -&gt; Configurations -&gt; Add New Configuration -&gt; Http(s)</li>
+                        <li>Enable Https</li>
+                        <li>Host <code>vpn.zlix.tech</code></li>
+                        <li>Port <code>29980</code></li>
+                        <li>Enable Auth, and fill in your username and password above</li>
+                        <li>ProxyRule Auto Mode. (P.S. If something went wrong, please try Global Mode)</li>
+                        <li>click Done</li>
+                        <li>Connect to server. (P.S. the biggest button on the first page)</li>
+                        <li>Allow the VPN configuration request, which need your PIN code.</li>
+                        <li>enjoy</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <h3>VPN</h3>
     <p>Server address: <b>vpn.zlix.tech</b></p>
     <p>OpenVPN config file: <a href="{{url_for('static',filename='vpn.ustcaf.ovpn')}}">Download</a></p>
 
     <h4>Usage</h4>
-    <ul>
-        <li><b>iOS</b>
-            <ul>
-                <li>OpenVPN
+    <div class="panel-group" id="vpn-usage">
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-vpn-ios">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-ios" aria-expanded="true" aria-controls="collapse-vpn-ios">
+                        iOS
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-vpn-ios" class="panel-collapse collapse in" aria-labelledby="heading-vpn-ios" data-parent="#vpn-usage">
+                <div class="panel-body">
+                    <h5>OpenVPN</h5>
                     <ol>
                         <li>OpenVPN已在中国App Store下架。请先注册一个非中国区的Apple ID（比如美国区）。</li>
                         <li>使用这个账号登录App Store</li>
@@ -99,8 +135,8 @@
                         <li>打开OpenVPN，点击+号，确认导入配置</li>
                         <li>输入用户名密码，连接。</li>
                     </ol>
-                </li>
-                <li>PPTP (iOS 9 or earlier)
+
+                    <h5>PPTP (iOS 9 or earlier)</h5>
                     <ol>
                         <li>打开Settings-&gt;VPN-&gt;Add VPN Configuration</li>
                         <li>Type选择PPTP</li>
@@ -111,8 +147,8 @@
                         <li>确认勾选Send All Traffic（默认勾选）</li>
                         <li>点击右上角的Done，然后连接VPN</li>
                     </ol>
-                </li>
-                <li>AnyConnect
+
+                    <h5>AnyConnect</h5>
                     <ol>
                         <li>从App Store安装“Cisco AnyConnect"</li>
                         <li>打开App ”AnyConnect"</li>
@@ -123,23 +159,30 @@
                         <li>保存VPN配置并返回首页</li>
                         <li>连接VPN，根据提示输入用户名密码</li>
                     </ol>
-                </li>
-            </ul>
-        </li>
+                </div>
+            </div>
+        </div>
 
-        <li><b>macOS</b>
-            <ul>
-                <li>
-                    <p>OpenVPN</p>
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-vpn-macos">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-macos" aria-expanded="true" aria-controls="collapse-vpn-macos">
+                        macOS
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-vpn-macos" class="panel-collapse collapse" aria-labelledby="heading-vpn-macos" data-parent="#vpn-usage">
+                <div class="panel-body">
+                    <h5>OpenVPN</h5>
                     <ol>
                         <li>下载并安装<a href="https://ftp.ustclug.org/software/openvpn/">TunnelBlick</a></li>
                         <li>下载并打开（双击）配置文件</li>
                         <li>输入管理员密码，确认导入配置文件</li>
                         <li>使用TunnelBlick连接到OpenVPN服务器（需要输入登录凭证）</li>
                     </ol>
-                </li>
-                <li>
-                    <p>PPTP (10.11 EI Capitan or earlier)</p>
+
+                    <h5>PPTP (10.11 EI Capitan or earlier)</h5>
                     <ol>
                         <li>打开-&gt;System Preferences-&gt;Network</li>
                         <li>点击左侧的+号，新增一个网络接口</li>
@@ -148,9 +191,8 @@
                         <li>点击Authentication Settings；User Authentication单选框选择Password，并输入您的密码；点击OK。</li>
                         <li>点击Advanced；<strong>勾选Send all traffic over VPN connection</strong></li>
                     </ol>
-                </li>
-                <li>
-                    <p>AnyConnect</p>
+
+                    <h5>AnyConnect</h5>
                     <ol>
                         <li>下载并安装<a href="https://ftp.ustclug.org/software/anyconnect/">AnyConnect Client</a></li>
                         <li>打开“Cisco AnyConnect Secure Mobility Client”</li>
@@ -158,12 +200,22 @@
                         <li>点击Connect按钮</li>
                         <li>依照提示输入用户名密码</li>
                     </ol>
-                </li>
-            </ul>
-        </li>
-        <li><b>Android</b>
-            <ul>
-                <li>OpenVPN
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-vpn-android">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-android" aria-expanded="true" aria-controls="collapse-vpn-android">
+                        Android
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-vpn-android" class="panel-collapse collapse" aria-labelledby="heading-vpn-android" data-parent="#vpn-usage">
+                <div class="panel-body">
+                    <h5>OpenVPN</h5>
                     <ol type="1">
                         <li>先在网站上下载 OpenVPN 配置文件，文件名为 <code>vpn.ustcaf.ovpn</code>。</li>
                         <li>Android 上需要安装 OpenVPN 的客户端，这里我们推荐使用开源的 OpenVPN for Android。 下载途径：</li>
@@ -176,8 +228,8 @@
                     <ol start="3" type="1">
                         <li>在 OpenVPN for Android 右上角三个按钮中最右边一个，即是导入配置文件的按钮，点击并 导入配置文件。</li>
                     </ol>
-                </li>
-                <li>AnyConnect
+
+                    <h5>AnyConnect</h5>
                     <ol type="1">
                         <li>从<a href="https://play.google.com/store/apps/details?id=com.cisco.anyconnect.vpn.android.avf">Google
                                 Play</a>安装“AnyConnect”</li>
@@ -194,12 +246,22 @@
                         <li>根据提示输入用户名密码</li>
                         <li>enjoy</li>
                     </ol>
-                </li>
-            </ul>
-        </li>
-        <li><b>Windows</b>
-            <ul>
-                <li>Cisco AnyConnect
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-vpn-windows">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-windows" aria-expanded="true" aria-controls="collapse-vpn-windows">
+                        Windows
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-vpn-windows" class="panel-collapse collapse" aria-labelledby="heading-vpn-windows" data-parent="#vpn-usage">
+                <div class="panel-body">
+                    <h5>Cisco AnyConnect</h5>
                     <ol type="1">
                         <li>下载并安装 <a href="https://ftp.ustclug.org/software/anyconnect/anyconnect-win-4.4.03034-core-vpn-predeploy-k9.msi">AnyConnect
                                 Client</a></li>
@@ -208,8 +270,8 @@
                         <li>点击 Connect</li>
                         <li>依照提示输入用户名密码</li>
                     </ol>
-                </li>
-                <li>OpenVPN
+
+                    <h5>OpenVPN</h5>
                     <ol type="1">
                         <li><a href="https://ftp.ustclug.org/software/openvpn/">下载</a>并安装客户端</li>
                         <li>打开OpenVPN GUI</li>
@@ -217,8 +279,8 @@
                         <li>导入完成后，再次右键，点击connect，按照提示输入用户名和密码</li>
                         <li>enjoy</li>
                     </ol>
-                </li>
-                <li>PPTP (Windows10)
+
+                    <h5>PPTP (Windows10)</h5>
                     <ol type="1">
                         <li>打开start（开始菜单）-&gt;Settings（设置）</li>
                         <li>选择Network &amp; Internet -&gt; VPN</li>
@@ -230,8 +292,8 @@
                         <li>在下方填写用户名和密码（也可以连接时输入），点击Save</li>
                         <li>保存后在Settings -&gt; Network &amp; Internet -&gt; VPN 下即可点选刚添加的VPN连接。</li>
                     </ol>
-                </li>
-                <li>PPTP (Windows 7)
+
+                    <h5>PPTP (Windows 7)</h5>
                     <ol type="1">
                         <li>右键点击右下角任务栏的网络连接图标，选择 Open Network and Sharing Center</li>
                         <li>点击 Set up a new connection or network</li>
@@ -247,10 +309,10 @@
                         <li>在Security选项卡下，Type of VPN 选择PPTP，Data Encryption选择Optional Encryption，点击OK完成设置</li>
                         <li>右键点击连接图标可以连接和断开VPN</li>
                     </ol>
-                </li>
-            </ul>
-        </li>
-    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <h3>VPN Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
