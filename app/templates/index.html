@@ -28,6 +28,7 @@
     <p>Password: <code>{{user.vpnpassword}}</code></p>
     {{ util.form_button(url_for('generatevpnpassword'),'Regenerate random VPN password',class='btn btn-sm btn-warning') }}
     <a class="btn btn-sm btn-danger" type="button" href="{{ url_for ('changevpnpassword') }}">Change VPN password</a>
+    <p><em>P.S.</em> DO <strong>NOT</strong> share your account!</p>
 
     <h3>Support us</h3>
     <p>USTC Alumni Foundation (USTCAF) is a non-profit organization focused on supporting USTC alumni worldwide.
@@ -103,6 +104,36 @@
                         <li>Connect to server. (P.S. the biggest button on the first page)</li>
                         <li>Allow the VPN configuration request, which need your PIN code.</li>
                         <li>enjoy</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" id="heading-light-telegram">
+                <h5 class="panel-title">
+                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-light-telegram" aria-expanded="true" aria-controls="collapse-light-telegram">
+                        Telegram Messenger
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapse-light-telegram" class="panel-collapse collapse" aria-labelledby="heading-light-telegram" data-parent="#light-usage">
+                <div class="panel-body">
+                    <ol>
+                        <li>Install and Open your <em>Telegram Messenger</em> App</li>
+                        <li>Open Settings -&gt;  Data and Storage -&gt; Use Proxy</li>
+                        <li>Check <em>SOCKS5</em> protocol</li>
+                        <li>Fill related information:</li>
+                    </ol>
+                    <ul>
+                        <li>Server: vpn.zlix.tech</li>
+                        <li>Port: 6626</li>
+                        <li>Username, Password (from this page)</li>
+                        <li>Use for calls: not recommended</li>
+                    </ul>
+                    <ol start="5">
+                        <li>Save and enjoy!</li>
                     </ol>
                 </div>
             </div>
