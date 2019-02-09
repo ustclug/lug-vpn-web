@@ -19,14 +19,19 @@
       Student NO.: {{u.studentno}}<br>
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
-      Apply time: {{u.applytime}}<br></p>
+      Apply time: {{u.applytime}}<br>
+      Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
       </p>
     </li>
     {% endfor %}
     </ul>
-    <h3>All Users ({{users|length}})</h3>
+    <h3>
+        All Users
+        ({{users|length}})
+        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
+    </h3>
     <table class="table" id="all_users">
         <thead>
             <tr>
@@ -35,6 +40,7 @@
                 <th>Email</th>
                 <th>Last month traffic</th>
                 <th>Month traffic</th>
+                <th>Expiration</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -46,6 +52,7 @@
                 <td>{{u.email}}</td>
                 <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td>{{u.expiration}}</td>
                 <td>
                     <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
                     <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
@@ -60,6 +67,8 @@
                     {% else %}
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
                     {% endif %}
+                    {{ util.form_button(url_for('renew',id=u.id),'Renew',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
                 </td>
             </tr>
         {% endfor %}

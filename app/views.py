@@ -38,7 +38,8 @@ def register():
                 user = User(email, password)
                 user.save()
                 send_mail('Confirm your email',
-                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
                           , email)
                 return redirect(url_for('register_ok'))
     return render_template('register.html', form=form)
@@ -94,9 +95,9 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if not current_user.status in ['none', 'reject', 'applying']:
+    if not current_user.status in ['none', 'reject', 'applying', 'pass']:
         abort(403)
-    form = ApplyForm(request.form, current_user)
+    form = ApplyForm(request.form, obj=current_user)
     if request.method == 'POST':
         if form.validate_on_submit():
             name = form['name'].data
@@ -106,7 +107,10 @@ def apply():
             if not agree:
                 flash('You must agree to the constitution', 'error')
             else:
-                current_user.status = 'applying'
+                if current_user.status == 'pass':
+                    current_user.renewing = True
+                else:
+                    current_user.status = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno.upper()
                 current_user.phone = phone
@@ -118,7 +122,7 @@ def apply():
                        '<br>Phone: ' + phone
                 send_mail('New Light Application: ' + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
-    return render_template('apply.html', form=form)
+    return render_template('apply.html', form=form, renew=current_user.status == 'pass')
 
 
 @app.route('/cancel/', methods=['POST'])
@@ -151,6 +155,31 @@ def manage():
                            all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
 
 
+@app.route('/create/', methods=['POST', 'GET'])
+@login_required
+def create():
+    if not current_user.admin:
+        abort(403)
+    form = CreateForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            email = form['email'].data
+            password = form['password'].data
+            if User.get_user_by_email(email):
+                flash('Email already exists', 'error')
+            else:
+                token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'email-confirm-key')
+                url = url_for('confirm', token=token, _external=True)
+                user = User(email, password)
+                user.save()
+                send_mail('Confirm your email',
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
+                          , email)
+                return redirect(url_for('register_ok'))
+    return render_template('register.html', form=form)
+
+
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
@@ -175,9 +204,13 @@ def reject(id):
     if request.method == 'POST':
         if form.validate_on_submit():
             rejectreason = form['rejectreason'].data
-            user.reject_apply(rejectreason)
             html = 'Reason:<br>' + rejectreason
-            send_mail('Your application has been rejected', html, user.email)
+            if user.renewing:
+                user.reject_renewal(rejectreason)
+                send_mail('Your renewal has been rejected', html, user.email)
+            else:
+                user.reject_apply(rejectreason)
+                send_mail('Your application has been rejected', html, user.email)
             return redirect(url_for('manage'))
     return render_template('reject.html', form=form, email=user.email)
 
@@ -206,6 +239,15 @@ def unban(id):
         user = User.get_user_by_id(id)
         if user.status == 'banned':
             user.unban()
+    return redirect(url_for('manage'))
+
+
+@app.route('/renew/<int:id>', methods=['POST'])
+@login_required
+def renew(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        user.renew()
     return redirect(url_for('manage'))
 
 
@@ -238,7 +280,7 @@ def edit(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    form = EditForm(request.form, user)
+    form = EditForm(request.form, obj=user)
     if request.method == 'POST':
         if form.validate_on_submit():
             user.name = form['name'].data
@@ -302,7 +344,8 @@ def recoverpassword():
                 token = ts.dumps(email, salt=app.config['SECRET_KEY'] + 'recover-password-key')
                 url = url_for('resetpassword', token=token, _external=True)
                 send_mail('Confirm your email',
-                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>'
+                          'Follow this link to confirm your email:<br><a href="' + url + '">' + url + '</a>' +
+                          '<br>If you are using USTC Email, please open a new tab and paste the URL manually!'
                           , email)
                 return redirect(url_for('recover_password_ok'))
     return render_template('recoverpassword.html', form=form)
@@ -371,3 +414,13 @@ def profile(id):
     user = User.get_user_by_id(id)
     records = user.get_records(10)
     return render_template('profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt)
+
+
+@app.route('/su/<int:id>', methods=['POST'])
+@login_required
+def su(id):
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    login_user(user)
+    return redirect(url_for('index'))
