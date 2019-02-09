@@ -68,6 +68,7 @@
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
                     {% endif %}
                     {{ util.form_button(url_for('renew',id=u.id),'Renew',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
                 </td>
             </tr>
         {% endfor %}

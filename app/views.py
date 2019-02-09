@@ -428,3 +428,13 @@ def profile(id):
     user = User.get_user_by_id(id)
     records = user.get_records(10)
     return render_template('profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt)
+
+
+@app.route('/su/<int:id>', methods=['POST'])
+@login_required
+def su(id):
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    login_user(user)
+    return redirect(url_for('index'))
