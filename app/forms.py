@@ -17,7 +17,7 @@ class LoginForm(FlaskForm):
 
 
 class ApplyForm(FlaskForm):
-    name = StringField('Name in Chinese', [InputRequired()])
+    name = StringField('Name in native language (eg. 张三)', [InputRequired()])
     studentno = StringField('Student/Staff No.', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
