@@ -18,7 +18,7 @@ class LoginForm(FlaskForm):
 
 class ApplyForm(FlaskForm):
     name = StringField('Name in native language (eg. 张三)', [InputRequired()])
-    studentno = StringField('Student/Staff No.', [InputRequired()])
+    studentno = StringField('Student/Staff No. (eg. PB18000001)', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
     agree = BooleanField('I agree to the following constitution')
