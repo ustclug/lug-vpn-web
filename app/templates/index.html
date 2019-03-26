@@ -12,6 +12,23 @@
     <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
     {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
   </div>
+
+  {% if user.admin %}
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Admin Panel</h3>
+      </div>
+      <div class="panel-body">
+        <a class="btn btn-default" type="button" href="{{ url_for('manage_applications') }}">
+            New Applications ({{ applying_count }})
+        </a>
+        <a class="btn btn-default" type="button" href="{{ url_for('manage_users') }}">
+            User Management
+        </a>
+      </div>
+    </div>
+  {% endif %}
+
   {% if user.status=='none' %}
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.status=='applying' %}
@@ -26,7 +43,7 @@
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
-    {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning') }}
+    {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning regen') }}
     <p></p>
     <p>Expiration date: <code>{{user.expiration}}</code></p>
 
@@ -163,13 +180,10 @@
         {{user.banreason}}
     </div>
   {% endif %}
-  {% if user.admin %}
-    <a class="btn btn-lg btn-info" type="button" href="{{ url_for('manage') }}">User Management</a>
-  {% endif %}
-</ul>
 {% endblock %}
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="{{url_for('static',filename='js/jquery.canvasjs.min.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/traffic.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/index.js')}}"></script>
 {% endblock %}

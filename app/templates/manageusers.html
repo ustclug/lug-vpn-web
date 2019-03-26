@@ -7,28 +7,10 @@
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
   <h1>{{ self.title() }}</h1>
+  <a class="btn btn-default" type="button" href="{{ url_for('index') }}">Back</a>
   <div class="row">
-    <h3>New Applications ({{applying_users|length}})</h3>
-    <ul class="list-group" id="applying_list">
-    {% for u in applying_users %}
-    <li class="list-group-item">
-      <h4 class="list-group-item-heading">{{ u.email }}</h4>
-      <p class="list-group-item-text">
-      <p>
-      Name: {{u.name}}<br>
-      Student NO.: {{u.studentno}}<br>
-      Phone: {{u.phone}}<br>
-      Apply reason: {{u.reason}}<br>
-      Apply time: {{u.applytime}}<br>
-      Renewal: {{u.renewing}}<br></p>
-      {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
-      </p>
-    </li>
-    {% endfor %}
-    </ul>
     <h3>
-        All Users
+        Active Users
         ({{users|length}})
         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
     </h3>
