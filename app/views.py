@@ -108,7 +108,7 @@ def apply():
                 flash('You must agree to the constitution', 'error')
             else:
                 if current_user.status == 'pass':
-                    current_user.renewing = True
+                    abort(403)  # disable renew function in light branch
                 else:
                     current_user.status = 'applying'
                 current_user.name = name
