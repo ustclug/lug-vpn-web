@@ -18,7 +18,9 @@ def index():
         return redirect(url_for('login'))
     records = current_user.get_records(10)
     renewal = (current_user.expiration - datetime.date.today()).days <= 180 if current_user.expiration else False
-    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt, renewal=renewal)
+    applying_count = User.get_applying_count()
+    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
+                           renewal=renewal, applying_count=applying_count)
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -148,18 +150,26 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/manage/')
+@app.route('/manageusers/')
 @login_required
-def manage():
+def manage_users():
     if not current_user.admin:
         return redirect(url_for('index'))
-    applying_users = User.get_applying()
     users = User.get_users()
     rejected_users = User.get_rejected()
     all_month_traffic = User.all_month_traffic()
     all_last_month_traffic = User.all_last_month_traffic()
-    return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users,
+    return render_template('manageusers.html', users=users, rejected_users=rejected_users,
                            all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
+
+
+@app.route('/manageapplications/')
+@login_required
+def manage_applications():
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    applying_users = User.get_applying()
+    return render_template('manageapplications.html', applying_users=applying_users)
 
 
 @app.route('/create/', methods=['POST', 'GET'])
@@ -205,7 +215,7 @@ def pass_(id):
         user.pass_renewal()
         html = 'Your VPN renewal has passed<br>Please login to VPN apply website for detail.'
         send_mail('Your VPN renewal has passed', html, user.email)
-    return redirect(url_for('manage'))
+    return redirect(url_for('manage_applications'))
 
 
 @app.route('/reject/<int:id>', methods=['POST', 'GET'])
@@ -225,7 +235,7 @@ def reject(id):
             else:
                 user.reject_apply(rejectreason)
                 send_mail('Your VPN application has been rejected', html, user.email)
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_applications'))
     return render_template('reject.html', form=form, email=user.email)
 
 
@@ -242,7 +252,7 @@ def ban(id):
             user.ban(banreason)
             html = 'Reason:<br>' + banreason
             send_mail('Your VPN application has been banned', html, user.email)
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_users'))
     return render_template('ban.html', form=form, email=user.email)
 
 
@@ -253,7 +263,7 @@ def unban(id):
         user = User.get_user_by_id(id)
         if user.status == 'banned':
             user.unban()
-    return redirect(url_for('manage'))
+    return redirect(url_for('manage_users'))
 
 
 @app.route('/renew/<int:id>', methods=['POST'])
@@ -262,7 +272,7 @@ def renew(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
         user.renew()
-    return redirect(url_for('manage'))
+    return redirect(url_for('manage_users'))
 
 
 @app.route('/setadmin/<int:id>', methods=['POST'])
@@ -272,7 +282,7 @@ def setadmin(id):
         user = User.get_user_by_id(id)
         user.admin = 1
         user.save()
-    return redirect(url_for('manage'))
+    return redirect(url_for('manage_users'))
 
 
 @app.route('/unsetadmin/<int:id>', methods=['POST'])
@@ -285,7 +295,7 @@ def unsetadmin(id):
             user.save()
         else:
             flash('You cannot unset yourself', 'error')
-    return redirect(url_for('manage'))
+    return redirect(url_for('manage_users'))
 
 
 @app.route('/edit/<int:id>', methods=['POST', 'GET'])
@@ -301,7 +311,7 @@ def edit(id):
             user.studentno = form['studentno'].data
             user.phone = form['phone'].data
             user.save()
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_users'))
     return render_template('edit.html', form=form, email=user.email)
 
 
@@ -316,7 +326,7 @@ def mail(id):
         if form.validate_on_submit():
             send_mail(form['subject'].data, form['content'].data, user.email)
             flash('Mail has been sent')
-            return redirect(url_for('manage'))
+            return redirect(url_for('manage_users'))
     return render_template('mail.html', form=form, email=user.email)
 
 

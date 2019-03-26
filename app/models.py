@@ -175,6 +175,10 @@ class User(db.Model, UserMixin):
         return cls.query.filter(db.or_(cls.status == 'applying', cls.renewing == True)).order_by(cls.applytime).all()
 
     @classmethod
+    def get_applying_count(cls):
+        return cls.query.filter(db.or_(cls.status == 'applying', cls.renewing == True)).count()
+
+    @classmethod
     def get_rejected(cls):
         return cls.query.filter_by(status='reject').order_by(cls.applytime.desc()).all()
 
