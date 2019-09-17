@@ -5,13 +5,52 @@
 {% block title %}Apply for LUG Light{% endblock %}
 
 {% block content %}
-{{util.flashed_messages(dismissible=True)}}
+{{ util.flashed_messages(dismissible=True) }}
 <div class="container">
-  <h1>{{ self.title() }}</h1>
+	<h1>{{ self.title() }}</h1>
 
-  {{ wtf.quick_form(form) }}
+	{# wtf.quick_form(form) #}
+	<form action="" method="post" class="form" role="form">
+		{{ form.csrf_token }}
+		<div class="form-group  required"><label class="control-label" for="name">Name in native language (eg. 张三, as written on your campus card)</label>
+			<input class="form-control" id="name" name="name" required type="text" value>
+		</div>
+		<div class="form-group  required"><label class="control-label" for="studentno">Student / Staff No. (eg. PB18000001)</label>
+			<input class="form-control" id="studentno" name="studentno" required type="text" value>
+		</div>
+		<div class="form-group  required"><label class="control-label" for="phone">Phone</label>
+			<input class="form-control" id="phone" name="phone" required type="text" value>
+		</div>
 
-  {% include "constitution.html" %}
+		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
+
+		<div class="modal fade" id="specialNoticeModal" tabindex="-1" role="dialog" aria-labelledby="specialNoticeModalLabel" aria-hidden="true">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header bg-danger" style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+							<span aria-hidden="true">&times;</span>
+						</button>
+						<h3 class="modal-title" id="specialNoticeModalLabel">请仔细阅读此注意事项</h3>
+					</div>
+					<div class="modal-body">
+						{% include "special_notice.html" %}
+					</div>
+					<div class="modal-footer">
+						<div class="checkbox">
+							<label>
+								<input id="agree" name="agree" type="checkbox" value="y"> I agree to the constitution and the Terms of Service.
+							</label>
+						</div>
+						<input class="btn btn-primary" id="submit_btn" name="submit_btn" type="submit" value="Apply">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+
+	{% include "constitution.html" %}
 
 </div>
 {% endblock %}
