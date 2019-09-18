@@ -1,6 +1,7 @@
 import random
 import string
 import datetime
+import requests
 
 
 def random_string(N):
@@ -23,3 +24,8 @@ def next_semester_end():
         return datetime.date(today.year + 1, 3, 1) + datetime.timedelta(days=-1)
     else:
         return datetime.date(today.year + 1, 9, 1) + datetime.timedelta(days=-1)
+
+
+def check_apply_info(email, name, studentno):
+    # Dummy function for now
+    return True
