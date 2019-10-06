@@ -188,12 +188,12 @@ class User(db.Model, UserMixin):
 
     def pass_apply(self):
         self.status = 'pass'
-        self.expiration = datetime.date(2099, 1, 1)
+        self.expiration = next_school_year_end()
         self.enable_vpn()
         self.save()
 
     def renew(self):
-        self.expiration = datetime.date(2099, 1, 1)
+        self.expiration = next_school_year_end()
         VPNAccount.update_expiration(self.email, self.expiration)
         self.save()
 

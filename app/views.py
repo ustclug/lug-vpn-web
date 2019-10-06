@@ -17,10 +17,11 @@ def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
     records = current_user.get_records(10)
+    renewal = (current_user.expiration - datetime.date.today()).days <= 180 if current_user.expiration else False
     escaped_email = current_user.email.replace('@', '%40')
     applying_count = User.get_applying_count()
     return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
-                           applying_count=applying_count, escaped_email=escaped_email,)
+                           renewal=renewal, applying_count=applying_count, escaped_email=escaped_email,)
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -105,6 +106,7 @@ def apply():
             name = form['name'].data
             studentno = form['studentno'].data
             phone = form['phone'].data
+            reason = form['reason'].data
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
@@ -112,19 +114,25 @@ def apply():
                 flash('Incorrect information provided', 'error')
             else:
                 if current_user.status == 'pass':
-                    abort(403)  # disable renew function in light branch
+                    current_user.renewing = True
                 else:
                     current_user.status = 'applying'
                 current_user.name = name
                 current_user.studentno = studentno.upper()
                 current_user.phone = phone
+                current_user.reason = reason
                 current_user.applytime = datetime.datetime.now()
                 current_user.save()
                 html = 'Name: ' + name + \
                        '<br>Email: ' + current_user.email + \
                        '<br>Student/Staff No: ' + studentno + \
-                       '<br>Phone: ' + phone
-                send_mail('New Light Application: ' + name, html, app.config['ADMIN_MAIL'])
+                       '<br>Phone: ' + phone + \
+                       '<br>Reason: ' + reason
+                if current_user.status == 'pass':
+                    title = 'Light Renewal: '
+                else:
+                    title = 'New Light Application: '
+                send_mail(title + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     return render_template('apply.html', form=form, renew=current_user.status == 'pass')
 
@@ -195,14 +203,21 @@ def create():
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
 def pass_(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        if user.status in ['applying', 'reject']:
-            user.pass_apply()
-            html = 'Username: ' + user.email + \
-                   '<br>Password: ' + user.vpnpassword + \
-                   '<br> Please login to light apply website for detail.'
-            send_mail('Your application has passed', html, user.email)
+    if not current_user.admin:
+        abort(403)
+    user = User.get_user_by_id(id)
+    if user.status in ['applying', 'reject']:
+        user.pass_apply()
+        html = 'Username: ' + user.email + \
+               '<br>Password: ' + user.vpnpassword + \
+               '<br>Please login to <a href="' + \
+               url_for('index', _external=True) + \
+               '">Light apply website</a> for detail.'
+        send_mail('Your Light application has passed', html, user.email)
+    elif user.renewing:
+        user.pass_renewal()
+        html = 'Your Light renewal has passed<br>Please login to Light apply website for detail.'
+        send_mail('Your Light renewal has passed', html, user.email)
     return redirect(url_for('manage_applications'))
 
 
@@ -219,10 +234,10 @@ def reject(id):
             html = 'Reason:<br>' + rejectreason
             if user.renewing:
                 user.reject_renewal(rejectreason)
-                send_mail('Your renewal has been rejected', html, user.email)
+                send_mail('Your Light renewal has been rejected', html, user.email)
             else:
                 user.reject_apply(rejectreason)
-                send_mail('Your application has been rejected', html, user.email)
+                send_mail('Your Light application has been rejected', html, user.email)
             return redirect(url_for('manage_applications'))
     return render_template('reject.html', form=form, email=user.email)
 
@@ -239,7 +254,7 @@ def ban(id):
             banreason = form['banreason'].data
             user.ban(banreason)
             html = 'Reason:<br>' + banreason
-            send_mail('Your application has been banned', html, user.email)
+            send_mail('Your Light application has been banned', html, user.email)
             return redirect(url_for('manage_users'))
     return render_template('ban.html', form=form, email=user.email)
 

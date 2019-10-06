@@ -26,6 +26,14 @@ def next_semester_end():
         return datetime.date(today.year + 1, 9, 1) + datetime.timedelta(days=-1)
 
 
+def next_school_year_end():
+    today = datetime.date.today()
+    if today.month < 3:
+        return datetime.date(today.year, 9, 20)
+    else:
+        return datetime.date(today.year + 1, 9, 20)
+
+
 def check_apply_info(email, name, studentno):
     # Dummy function for now
     return True

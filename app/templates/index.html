@@ -8,7 +8,7 @@
 <div class="container">
   <h1>{{ self.title() }}</h1>
   <div>
-    You are logged in as <code>{{ user.email }}</code>
+    You have logged in as <code>{{ user.email }}</code>
     <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
     {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
   </div>

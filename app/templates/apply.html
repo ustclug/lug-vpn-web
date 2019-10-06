@@ -2,7 +2,7 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "bootstrap/utils.html" as util %}
 
-{% block title %}Apply for LUG Light{% endblock %}
+{% block title %}{% if renew %}Renew{% else %}Apply{% endif %} for Light{% endblock %}
 
 {% block content %}
 {{ util.flashed_messages(dismissible=True) }}
@@ -21,6 +21,9 @@
 		<div class="form-group  required"><label class="control-label" for="phone">Phone</label>
 			<input class="form-control" id="phone" name="phone" required type="text" value>
 		</div>
+        <div class="form-group  required"><label class="control-label" for="reason">Apply reason (please specify the criteria which you meet)</label>
+          <textarea class="form-control" id="reason" name="reason" required></textarea>
+        </div>
 
 		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
 
