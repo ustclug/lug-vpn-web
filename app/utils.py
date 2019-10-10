@@ -2,6 +2,7 @@ import random
 import string
 import datetime
 import requests
+import xml.etree.ElementTree as ET
 
 
 def random_string(N):
@@ -34,6 +35,16 @@ def next_school_year_end():
         return datetime.date(today.year + 1, 9, 20)
 
 
-def check_apply_info(email, name, studentno):
-    # Dummy function for now
-    return True
+def fetch_from_lib_api(studentno):
+    params = {
+        "id": studentno
+    }
+    url = "http://api.lib.ustc.edu.cn:9380/get_info_from_id.php"
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        return {'message': "query failed"}
+    tree = ET.fromstring(response.text)
+    root = tree.getroot()
+    if root.tag != "reader_info":
+        return {'message': "bad XML response"}
+    return {key.tag: key.text for key in root}

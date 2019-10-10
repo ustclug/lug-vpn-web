@@ -2,7 +2,7 @@ from app import *
 from app.forms import *
 from app.models import *
 from app.mail import *
-from flask import render_template, redirect, url_for, request, flash, abort
+from flask import render_template, redirect, url_for, request, flash, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
@@ -98,7 +98,7 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if not current_user.status in ['none', 'reject', 'applying', 'pass']:
+    if current_user.status not in ['none', 'reject', 'applying', 'pass']:
         abort(403)
     form = ApplyForm(request.form, obj=current_user)
     if request.method == 'POST':
@@ -331,6 +331,15 @@ def mail(id):
             flash('Mail has been sent')
             return redirect(url_for('manage_users'))
     return render_template('mail.html', form=form, email=user.email)
+
+
+@app.route('/check/<int:id>', methods=['GET', 'POST'])
+@login_required
+def check_with_lib(id):
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    user = User.get_user_by_id(id)
+    return jsonify(fetch_from_lib_api(user.studentno))
 
 
 @app.route('/changevpnpassword/', methods=['POST'])

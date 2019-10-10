@@ -13,17 +13,18 @@
     <ul class="list-group" id="applying_list">
     {% for u in applying_users %}
     <li class="list-group-item">
-      <h4 class="list-group-item-heading">{{ u.email }}</h4>
+			<h4 class="list-group-item-heading">{{ u.email }} <span class="text-primary" id="email-{{ u.id }}"></span></h4>
       <p class="list-group-item-text">
       <p>
-      Name: {{u.name}}<br>
-      Student NO.: {{u.studentno}}<br>
+			Name: {{u.name}} <span class="text-primary" id="name-{{ u.id }}"></span><br>
+      School ID: {{u.studentno}} <span class="text-primary" id="role-{{ u.id }}"></span><br>
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
       Apply time: {{u.applytime}}<br>
       Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
+			<a class="btn btn-sm btn-primary" type="button" href="#" onclick="checkWithLibrary('{{ u.id }}')">Check</a>
       </p>
     </li>
     {% endfor %}
@@ -36,4 +37,25 @@
 <link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
 <script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
+<script type="text/javascript">
+	function checkWithLibrary(id) {
+		$.ajax({
+			url: "/check/" + id,
+			success: function(response) {
+				var data = JSON.parse(response);
+				if (data["message"]) {
+					alert(data["message"]);
+					return;
+				}
+				if (data["status"] !== "ok") {
+					alert("Bad status: " + data["status"]);
+					return;
+				}
+				$("#name-" + id).text(data["name"]);
+				$("#email-" + id).text(data["email"]);
+				$("#role-" + id).text(data["type"]);
+			}
+		});
+	}
+</script>
 {% endblock %}
