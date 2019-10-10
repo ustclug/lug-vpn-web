@@ -36,15 +36,12 @@ def next_school_year_end():
 
 
 def fetch_from_lib_api(studentno):
-    params = {
-        "id": studentno
-    }
+    params = {"id": studentno}
     url = "http://api.lib.ustc.edu.cn:9380/get_info_from_id.php"
     response = requests.get(url, params=params)
     if response.status_code != 200:
         return {'message': "query failed"}
-    tree = ET.fromstring(response.text)
-    root = tree.getroot()
+    root = ET.fromstring(response.text)
     if root.tag != "reader_info":
         return {'message': "bad XML response"}
     return {key.tag: key.text for key in root}

@@ -42,7 +42,7 @@
 		$.ajax({
 			url: "/check/" + id,
 			success: function(response) {
-				var data = JSON.parse(response);
+				var data = response;
 				if (data["message"]) {
 					alert(data["message"]);
 					return;
