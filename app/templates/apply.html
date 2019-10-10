@@ -10,20 +10,20 @@
 	<h1>{{ self.title() }}</h1>
 
 	{# wtf.quick_form(form) #}
-	<form action="" method="post" class="form" role="form">
+	<form action method="post" class="form" role="form">
 		{{ form.csrf_token }}
-		<div class="form-group  required"><label class="control-label" for="name">Name in native language (eg. 张三, as written on your campus card)</label>
-			<input class="form-control" id="name" name="name" required type="text" value>
+		<div class="form-group required"><label class="control-label" for="name">姓名 (请与校园卡保持一致)</label>
+			<input class="form-control" id="name" name="name" required type="text" value placeholder="John Doe">
 		</div>
-		<div class="form-group  required"><label class="control-label" for="studentno">Student / Staff No. (eg. PB18000001)</label>
-			<input class="form-control" id="studentno" name="studentno" required type="text" value>
+		<div class="form-group required"><label class="control-label" for="studentno">学号 / 工号 (例如 PB19000001)</label>
+			<input class="form-control" id="studentno" name="studentno" required type="text" value placeholder="Student ID / Staff ID">
 		</div>
-		<div class="form-group  required"><label class="control-label" for="phone">Phone</label>
-			<input class="form-control" id="phone" name="phone" required type="text" value>
+		<div class="form-group required"><label class="control-label" for="phone">手机号 (仅用于紧急联系)</label>
+			<input class="form-control" id="phone" name="phone" required type="text" value placeholder="Phone number">
 		</div>
-        <div class="form-group  required"><label class="control-label" for="reason">Apply reason (please specify the criteria which you meet)</label>
-          <textarea class="form-control" id="reason" name="reason" required></textarea>
-        </div>
+		<div class="form-group required"><label class="control-label" for="reason">申请理由 (请<b>仔细</b>阅读章程并按要求填写)</label>
+			<textarea class="form-control" id="reason" name="reason" required placeholder="Which criterion do you meet? ..."></textarea>
+		</div>
 
 		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
 
@@ -46,7 +46,7 @@
 							</label>
 						</div>
 						<input class="btn btn-primary" id="submit_btn" name="submit_btn" type="submit" value="Apply">
-						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 					</div>
 				</div>
 			</div>
@@ -55,10 +55,10 @@
 
 	<h1 id="linuxlight">Linux 用户协会轻量级 (Light) 网络加速服务章程</h1>
 	{% include "constitution.html" %}
-
 </div>
 {% endblock %}
+
 {% block scripts %}
-{{super()}}
-<script type="text/javascript" src="{{url_for('static',filename='js/apply.js')}}"></script>
+{{ super() }}
+<script type="text/javascript" src="{{ url_for('static',filename='js/apply.js') }}"></script>
 {% endblock %}
