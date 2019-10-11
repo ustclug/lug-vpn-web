@@ -342,6 +342,14 @@ def check_with_lib(id):
     return jsonify(fetch_from_lib_api(user.studentno))
 
 
+@app.route('/manualcheck/<str:studentno>', methods=['GET', 'POST'])
+@login_required
+def manual_check_with_lib(studentno):
+    if not current_user.admin:
+        return redirect(url_for('index'))
+    return jsonify(fetch_from_lib_api(studentno))
+
+
 @app.route('/changevpnpassword/', methods=['POST'])
 @login_required
 def changevpnpassword():
