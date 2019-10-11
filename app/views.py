@@ -110,8 +110,9 @@ def apply():
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
-            elif not app.config['DEBUG'] and not check_apply_info(current_user.email, name, studentno):
-                flash('Incorrect information provided', 'error')
+            # check_apply_info() is not imported
+            # elif not app.config['DEBUG'] and not check_apply_info(current_user.email, name, studentno):
+            #     flash('Incorrect information provided', 'error')
             else:
                 if current_user.status == 'pass':
                     current_user.renewing = True
