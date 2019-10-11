@@ -24,7 +24,7 @@
       Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
-			<a class="btn btn-sm btn-primary" type="button" href="#" onclick="checkWithLibrary('{{ u.id }}')">Check</a>
+			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}')">Check</a>
       </p>
     </li>
     {% endfor %}
@@ -38,30 +38,30 @@
 <script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 <script type="text/javascript">
-	function checkWithLibrary(id) {
-		$.ajax({
-			url: "/check/" + id,
-			success: function(response) {
-				var data = response;
-				if (data["message"]) {
-					alert(data["message"]);
-					return;
-				}
-				if (data["status"] !== "ok") {
-					alert("Bad status: " + data["status"]);
-					return;
-				}
-				$("#name-" + id).text(data["name"]);
-				$("#email-" + id).text(data["email"]);
-				$("#role-" + id).text(data["type"]);
+function checkWithLibrary(id) {
+	$.ajax({
+		url: "/check/" + id,
+		success: function(response) {
+			var data = response;
+			if (data["message"]) {
+				alert(data["message"]);
+				return;
 			}
-		});
-	}
-  function manualCheckWithLibrary(studentno) {
-		$.ajax({
-			url: "/manualcheck/" + studentno,
-			success: (response) => console.log(response)
-		});
-	}
+			if (data["status"] !== "ok") {
+				alert("Bad status: " + data["status"]);
+				return;
+			}
+			$("#name-" + id).text(data["name"]);
+			$("#email-" + id).text(data["email"]);
+			$("#role-" + id).text(data["type"]);
+		}
+	});
+}
+function manualCheckWithLibrary(studentno) {
+	$.ajax({
+		url: "/manualcheck/" + studentno,
+		success: (response) => console.log(response)
+	});
+}
 </script>
 {% endblock %}
