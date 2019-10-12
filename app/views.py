@@ -24,6 +24,11 @@ def index():
                            renewal=renewal, applying_count=applying_count, escaped_email=escaped_email,)
 
 
+@app.route('/constitution/')
+def view_constitution():
+    return render_template('view_constitution.html')
+
+
 @app.route('/register/', methods=['POST', 'GET'])
 def register():
     form = RegisterForm()
