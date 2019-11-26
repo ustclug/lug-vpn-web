@@ -1,0 +1,16 @@
+<ul class="nav nav-tabs mb-3" id="constitutionGroup" role="tablist">
+	<li class="nav-item active">
+		<a class="nav-link" id="cnChinese-tab" data-toggle="tab" href="#constitutionChinese" role="tab" aria-controls="constitutionChinese" aria-expanded="true">中文</a>
+	</li>
+	<li class="nav-item">
+		<a class="nav-link" id="cnEnglish-tab" data-toggle="tab" href="#constitutionEnglish" role="tab" aria-controls="constitutionEnglish" aria-expanded="false">English</a>
+	</li>
+</ul>
+<div class="tab-content" id="constitutionContent">
+	<div class="tab-pane fade active in" id="constitutionChinese" role="tabpanel" aria-labelledby="cnChinese-tab">
+		{% include "constitution-zh.html" %}
+	</div>
+	<div class="tab-pane fade" id="constitutionEnglish" role="tabpanel" aria-labelledby="cnEnglish-tab">
+		{% include "constitution-en.html" %}
+	</div>
+</div>
