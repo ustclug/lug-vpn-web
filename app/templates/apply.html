@@ -9,36 +9,27 @@
 <div class="container">
 	<h1>{{ self.title() }}</h1>
 
-	{{ wtf.quick_form(form) }}
+	{{ wtf.quick_form(form, id="applyForm") }}
 
-	{#
-		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
-
-		<div class="modal fade" id="specialNoticeModal" tabindex="-1" role="dialog" aria-labelledby="specialNoticeModalLabel" aria-hidden="true">
-			<div class="modal-dialog" role="document">
-				<div class="modal-content">
-					<div class="modal-header bg-danger" style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
-						<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-							<span aria-hidden="true">&times;</span>
-						</button>
-						<h3 class="modal-title" id="specialNoticeModalLabel">请仔细阅读此注意事项</h3>
-					</div>
-					<div class="modal-body">
-						{% include "special_notice.html" %}
-					</div>
-					<div class="modal-footer">
-						<div class="checkbox">
-							<label>
-								<input id="agree" name="agree" type="checkbox" value="y"> 我已阅读并同意服务章程和此注意事项
-							</label>
-						</div>
-						<input class="btn btn-primary" id="submit_btn" name="submit_btn" type="submit" value="Apply">
-						<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-					</div>
+	<div class="modal fade" id="specialNoticeModal" tabindex="-1" role="dialog" aria-labelledby="specialNoticeModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header bg-danger" style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h3 class="modal-title" id="specialNoticeModalLabel">请仔细阅读此注意事项</h3>
+				</div>
+				<div class="modal-body">
+					{% include "special_notice.html" %}
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="showNotice" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
 				</div>
 			</div>
 		</div>
-	#}
+	</div>
 </div>
 <div class="container" style="margin-top: 1em;">
 	{% include "constitution.html" %}
@@ -47,5 +38,32 @@
 
 {% block scripts %}
 {{ super() }}
-<script type="text/javascript" src="{{ url_for('static',filename='js/apply.js') }}"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+  // Credit: https://stackoverflow.com/a/698440/5958455
+  function swapNodes(a, b) {
+    var aparent = a.parentNode;
+    var asibling = a.nextSibling === b ? a : a.nextSibling;
+    b.parentNode.insertBefore(a, b);
+    aparent.insertBefore(b, asibling);
+  }
+
+  // Swap the "show modal" and "submit form" buttons
+  swapNodes(document.getElementById('submit_btn'), document.getElementById('showNotice'));
+
+  // We also need to move the modal inside the form for the submit button to work
+  document.getElementById('applyForm').appendChild(document.getElementById('specialNoticeModal'));
+
+  // For UX reasons, move the "agree ToS" checkbox inside the modal
+  var submitButton = document.getElementById('submit_btn');
+  submitButton.parentNode.insertBefore(document.getElementById('agreeConstitution').parentNode.parentNode, submitButton);
+
+  $('form').on('submit', function (e) {
+    e.preventDefault();
+    $('#submit_btn').attr("disabled", true);
+    $('#submit_btn').attr("value", "Please wait...");
+    this.submit();
+  });
+});
+</script>
 {% endblock %}

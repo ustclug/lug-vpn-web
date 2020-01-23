@@ -105,7 +105,7 @@ def login():
 def apply():
     if current_user.status not in ['none', 'reject', 'applying', 'pass']:
         abort(403)
-    form = ApplyForm(request.form, obj=current_user)
+    form = ApplyForm(request.form, obj=current_user, id='applyForm')
     if request.method == 'POST':
         if form.validate_on_submit():
             name = form['name'].data
