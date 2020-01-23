@@ -31,7 +31,7 @@ class ApplyForm(FlaskForm):
     studentno = StringField('Student/Staff No. (eg. PB18000001)', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reasonClass = SelectField('Qualification', [InputRequired()], choices=APPLY_REASONS)
-    reasonText = TextAreaField('对于星号 (*) 标记的选项，请在下面指出详情，以供 LUG 核实', [Optional()])
+    reasonText = TextAreaField('For asterisk-marked reasons, detail is required', [Optional()])
     agree = BooleanField('I agree to the following constitution')
     submit_btn = SubmitField('Apply')
 
