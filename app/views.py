@@ -112,9 +112,9 @@ def apply():
             studentno = form['studentno'].data
             phone = form['phone'].data
             reason = form['reasonClass'].data
+            reason = dict(APPLY_REASONS).get(form['reasonClass'].data, "Unknown reason {}".format(reason))
             if form['reasonText'].data.strip():
-                reason += "\n" + form['reasonText'].data.strip()
-            print(reason)
+                reason = reason.rstrip() + " / " + form['reasonText'].data.strip()
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')

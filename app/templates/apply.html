@@ -9,30 +9,9 @@
 <div class="container">
 	<h1>{{ self.title() }}</h1>
 
-	{# wtf.quick_form(form) #}
-	<form action method="post" class="form" role="form">
-		{{ form.csrf_token }}
-		<div class="form-group required"><label class="control-label" for="name">姓名 (请与校园卡保持一致)</label>
-			<input class="form-control" id="name" name="name" required type="text" value placeholder="John Doe">
-		</div>
-		<div class="form-group required"><label class="control-label" for="studentno">学号 / 工号 (例如 PB19000001 / 12345)</label>
-			<input class="form-control" id="studentno" name="studentno" required type="text" value placeholder="Student ID / Staff ID">
-		</div>
-		<div class="form-group required"><label class="control-label" for="phone">手机号 (仅用于紧急联系)</label>
-			<input class="form-control" id="phone" name="phone" required type="text" value placeholder="Phone number">
-		</div>
-		<div class="form-group required"><label class="control-label" for="reasonClass">符合的申请条件</label>
-			<select class="form-control" id="reasonClass">
-				<option>本年度内参加小聚或其他 LUG 举办的活动 (*)</option>
-				<option>主讲过小聚或 Linux User Party (*)</option>
-				<option>撰写过新闻稿或向 LUG Planet 投稿，并被审核通过或采纳 (*)</option>
-				<option>参与过其他 LUG 社团活动或事务 (*)</option>
-				<option>是科大在职教工或博士后（请使用工号申请）</option>
-			</select>
-			<p>对于星号 (*) 标记的选项，请在下面指出详情，以供 LUG 核实。</p>
-			<textarea class="form-control" id="reasonText" name="reasonText" required placeholder="Additional information"></textarea>
-		</div>
+	{{ wtf.quick_form(form) }}
 
+	{#
 		<button type="button" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
 
 		<div class="modal fade" id="specialNoticeModal" tabindex="-1" role="dialog" aria-labelledby="specialNoticeModalLabel" aria-hidden="true">
@@ -59,7 +38,7 @@
 				</div>
 			</div>
 		</div>
-	</form>
+	#}
 
 	{% include "constitution.html" %}
 </div>
