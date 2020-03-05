@@ -48,6 +48,7 @@
                         {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
                     {% else %}
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+												<a class="btn btn-default btn-sm" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
                     {% endif %}
                     {{ util.form_button(url_for('renew',id=u.id),'Renew',class='btn btn-default btn-sm') }}
                     {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
