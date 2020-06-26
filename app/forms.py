@@ -4,6 +4,7 @@ from wtforms.validators import InputRequired, Optional, Email, EqualTo, Length
 
 
 APPLY_REASONS = [
+    ('invalid', "我不符合申请条件或资格"),
     ('participate', "本年度内参加小聚或其他 LUG 举办的活动 (*)"),
     ('lead', "主讲过小聚或 Linux User Party (*)"),
     ('article', "撰写过新闻稿或向 LUG Planet 投稿，并被审核通过或采纳 (*)"),
@@ -27,7 +28,7 @@ class LoginForm(FlaskForm):
 
 
 class ApplyForm(FlaskForm):
-    name = StringField('Name in native language (eg. 张三)', [InputRequired()])
+    name = StringField('Name as on your campus card (e.g. 张三)', [InputRequired()])
     studentno = StringField('Student/Staff No. (eg. PB18000001)', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reasonClass = SelectField('Qualification', [InputRequired()], choices=APPLY_REASONS)
