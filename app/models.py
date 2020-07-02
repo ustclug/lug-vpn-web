@@ -186,6 +186,14 @@ class User(db.Model, UserMixin):
     def get_users(cls):
         return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned')).order_by(cls.id).all()
 
+    def set_expiration(self, expiration, delete=False):
+        self.expiration = expiration
+        if VPNAccount.get_account_by_email(self.email):
+            if delete:
+                VPNAccount.delete(self.email)
+            else:
+                VPNAccount.update_expiration(self.email, expiration)
+
     def pass_apply(self):
         self.status = 'pass'
         self.expiration = next_school_year_end()
@@ -193,8 +201,7 @@ class User(db.Model, UserMixin):
         self.save()
 
     def renew(self):
-        self.expiration = next_school_year_end()
-        VPNAccount.update_expiration(self.email, self.expiration)
+        self.set_expiration(next_school_year_end())
         self.save()
 
     def pass_renewal(self):
@@ -202,14 +209,12 @@ class User(db.Model, UserMixin):
         self.renewing = False
         self.save()
 
-    def reject_apply(self, reason=''):
-        self.status = 'reject'
+    def reject(self, reason='', expiration=None, force=False):
         self.rejectreason = reason
-        self.save()
-
-    def reject_renewal(self, reason=''):
-        self.rejectreason = reason
+        self.set_expiration(expiration or this_school_year_end(), delete=force)
         self.renewing = False
+        if force or self.status != 'pass':
+            self.status = 'reject'
         self.save()
 
     def ban(self, reason=''):

@@ -35,6 +35,10 @@ def next_school_year_end():
         return datetime.date(today.year + 1, 9, 20)
 
 
+def this_school_year_end():
+    return next_school_year_end() - datetime.timedelta(365)  # Ignore leap years
+
+
 def fetch_from_lib_api(studentno):
     params = {"id": studentno}
     url = "http://api.lib.ustc.edu.cn:9380/get_info_from_id.php"

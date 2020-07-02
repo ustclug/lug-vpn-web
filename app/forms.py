@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, BooleanField, HiddenField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, DateField, BooleanField, HiddenField
 from wtforms.validators import InputRequired, Optional, Email, EqualTo, Length
 
 
@@ -65,6 +65,8 @@ class CreateForm(FlaskForm):
 
 class RejectForm(FlaskForm):
     rejectreason = TextAreaField('Reject reason', [InputRequired()])
+    expiration = DateField('Expiration date', [Optional()])
+    force = BooleanField('Force (Cancel existing service)', [Optional()])
     submit = SubmitField('Reject')
 
 

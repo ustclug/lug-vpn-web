@@ -66,7 +66,7 @@ def confirm():
         return render_template('confirm_error.html')
     try:
         email = ts.loads(token, salt=app.config['SECRET_KEY'] + "email-confirm-key", max_age=86400)
-    except:
+    except Exception:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
     user = User.get_user_by_email(email)
@@ -236,16 +236,19 @@ def reject(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    form = RejectForm(rejectreason=user.rejectreason)
+    form = RejectForm(rejectreason=user.rejectreason, expiration=user.expiration, force=False)
     if request.method == 'POST':
         if form.validate_on_submit():
             rejectreason = form['rejectreason'].data
+            expiration = form['expiration'].data
+            force = form['force'].data
             html = 'Reason:<br>' + rejectreason
+            if not expiration:
+                expiration = datetime.date.today()
+            user.reject(rejectreason, expiration, force=force)
             if user.renewing:
-                user.reject_renewal(rejectreason)
                 send_mail('Your Light renewal has been rejected', html, user.email)
             else:
-                user.reject_apply(rejectreason)
                 send_mail('Your Light application has been rejected', html, user.email)
             return redirect(url_for('manage_applications'))
     return render_template('reject.html', form=form, email=user.email)
@@ -417,7 +420,7 @@ def resetpassword():
         return render_template('confirm_error.html')
     try:
         email = ts.loads(token, salt=app.config['SECRET_KEY'] + "recover-password-key", max_age=86400)
-    except:
+    except Exception:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
     user = User.get_user_by_email(email)
