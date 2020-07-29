@@ -259,7 +259,7 @@ class User(db.Model, UserMixin):
             where 
                 ((month(radius.radacct.acctstarttime) = month(now())) and 
                 (year(radius.radacct.acctstarttime) = year(now()))) and 
-                radius.radacct.username = %s
+                radius.radacct.username = %s;
         """, self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
@@ -272,7 +272,7 @@ class User(db.Model, UserMixin):
             where 
                 ((month(radius.radacct.acctstarttime) = month(now(),interval 1 month)) and 
                 (year(radius.radacct.acctstarttime) = year(now(),interval 1 month))) and 
-                radius.radacct.username = %s
+                radius.radacct.username = %s;
         """, self.email).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
