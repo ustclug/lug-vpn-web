@@ -250,12 +250,30 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute('select TrafficSum from monthtraffic where UserName = %s', self.email).first()
-        return sizeof_fmt(float(r[0]) if r else 0)
+        r = db.engine.execute("""
+            select
+                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
+            from
+                radius.radacct
+            where
+                ((month(radius.radacct.acctstarttime) = month(now())) and
+                (year(radius.radacct.acctstarttime) = year(now()))) and
+                radius.radacct.username = %s;
+        """, self.email).first()
+        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     def last_month_traffic(self):
-        r = db.engine.execute('select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
-        return sizeof_fmt(float(r[0]) if r else 0)
+        r = db.engine.execute("""
+            select
+                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
+            from
+                radius.radacct
+            where
+                ((month(radius.radacct.acctstarttime) = month(now() - interval 1 month)) and
+                (year(radius.radacct.acctstarttime) = year(now() - interval 1 month))) and
+                radius.radacct.username = %s;
+        """, self.email).first()
+        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     @classmethod
     def all_month_traffic(cls):
@@ -276,8 +294,8 @@ class User(db.Model, UserMixin):
             from
                 radius.radacct
             where
-                month(radius.radacct.acctstarttime) = month(date_sub(now(),interval 1 month)) and
-                year(radius.radacct.acctstarttime) = year(date_sub(now(),interval 1 month)) and
+                month(radius.radacct.acctstarttime) = month(date_sub(now(), interval 1 month)) and
+                year(radius.radacct.acctstarttime) = year(date_sub(now(), interval 1 month)) and
                 radius.radacct.username = %s
             group by
                 day(radius.radacct.acctstarttime);
