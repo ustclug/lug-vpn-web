@@ -23,9 +23,7 @@ cur.execute("""
             ((month(radius.radacct.acctstarttime) = month(date_sub(now(),interval 1 month))) and
             (year(radius.radacct.acctstarttime) = year(date_sub(now(),interval 1 month))))
         group by
-            radius.radacct.username
-        order by
-            (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets)));
+            radius.radacct.username;
     """)
 cur.execute("""
         CREATE OR REPLACE VIEW radius.monthtraffic AS
@@ -38,9 +36,7 @@ cur.execute("""
             ((month(radius.radacct.acctstarttime) = month(now())) and
             (year(radius.radacct.acctstarttime) = year(now())))
         group by
-            radius.radacct.username
-        order by
-            (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets)));
+            radius.radacct.username;
         """)
 
 db.close()
