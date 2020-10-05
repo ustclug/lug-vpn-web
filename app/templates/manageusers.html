@@ -9,6 +9,32 @@
   <h1>{{ self.title() }}</h1>
   <a class="btn btn-default" type="button" href="{{ url_for('index') }}">Back</a>
   <div class="row">
+    <h3>Rejected Users ({{rejected_users|length}})</h3>
+    <table class="table" id="rejected_users">
+        <thead>
+            <tr>
+                <th>Student NO.</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Reject reason</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in rejected_users %}
+            <tr>
+                <td>{{u.studentno}}</td>
+                <td>{{u.name}}</td>
+                <td>{{u.email}}</td>
+                <td>{{u.rejectreason}}</td>
+                <td>
+                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
     <h3>
         Active Users
         ({{users|length}})
@@ -52,32 +78,6 @@
                     {% endif %}
                     {{ util.form_button(url_for('renew',id=u.id),'Renew',class='btn btn-default btn-sm') }}
                     {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <h3>Rejected Users ({{rejected_users|length}})</h3>
-    <table class="table" id="rejected_users">
-        <thead>
-            <tr>
-                <th>Student NO.</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Reject reason</th>
-                <th>Operation</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for u in rejected_users %}
-            <tr>
-                <td>{{u.studentno}}</td>
-                <td>{{u.name}}</td>
-                <td>{{u.email}}</td>
-                <td>{{u.rejectreason}}</td>
-                <td>
-                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
-                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
                 </td>
             </tr>
         {% endfor %}
