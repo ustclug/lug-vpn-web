@@ -32,7 +32,7 @@ class ApplyForm(FlaskForm):
     studentno = StringField('Student/Staff No. (eg. PB18000001)', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
     reasonClass = SelectField('Qualification', [InputRequired()], choices=APPLY_REASONS)
-    reasonText = TextAreaField('For asterisk-marked reasons, detail is required', [Optional()])
+    reasonText = TextAreaField('For asterisk-marked reasons, please provide details below', [Optional()], render_kw={"placeholder": "Enter any extra information here"})
     agree = BooleanField('I have read and agree to the Terms of Service and the Constitution', id='agreeConstitution')
     submit_btn = SubmitField('Apply')
 
