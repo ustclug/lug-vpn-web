@@ -24,6 +24,7 @@
       Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
+			<a class="btn btn-sm btn-danger" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
 			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}')">Check</a>
       </p>
     </li>
