@@ -1,7 +1,19 @@
 import random
 import string
 import datetime
+import hashlib
+from base64 import b64encode
 
+def hash_passwd_with_salt(passwd, salt):
+    ctx = hashlib.sha256(passwd)
+    ctx.update(salt)
+    #hash = b"{SSHA256}" + b64encode(ctx.digest() + salt)
+    hash_clean = b64encode(ctx.digest() + salt)
+    return hash_clean
+
+def hash_passwd(passwd):
+    salt = random_string(8)
+    return hash_passwd_with_salt(passwd.encode('utf-8'),salt.encode('utf-8'))
 
 def random_string(N):
     return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for i in range(N))
