@@ -68,7 +68,7 @@ class VPNAccount(db.Model):
     def add(cls, email, password, expiration):
         account = cls.get_account_by_email(email)
         if not account:
-            account = cls(email, hash_passwd(password))
+            account = cls(email, hash_passwd(password.encode('utf-8')))
             account.save()
             if not Group.get_group_by_email(email):
                 group = Group(email)
@@ -107,7 +107,7 @@ class VPNAccount(db.Model):
         if not account:
             raise Exception('account not found')
         else:
-            account.value = hash_passwd(newpass)
+            account.value = hash_passwd(newpass.encode('utf-8'))
         account.save()
 
 
