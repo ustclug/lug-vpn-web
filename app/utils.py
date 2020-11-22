@@ -12,8 +12,8 @@ def hash_passwd_with_salt(passwd, salt):
     return hash_clean
 
 def hash_passwd(passwd):
-    salt = random_string(8)
-    return hash_passwd_with_salt(passwd.encode('utf-8'),salt.encode('utf-8'))
+    salt = random_string(8).encode('utf-8')
+    return hash_passwd_with_salt(passwd,salt)
 
 def random_string(N):
     return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for i in range(N))
