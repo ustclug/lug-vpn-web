@@ -185,7 +185,7 @@
                         <li>打开App ”AnyConnect"</li>
                         <li>选择Connections -&gt; Add VPN Connection…</li>
                         <li>Decription输入自定义名称</li>
-                        <li>Server Address填写vpn.zlix.tech</li>
+                        <li>Server Address填写vpn.zlix.tech:13806</li>
                         <li>Advanced -&gt; Certificate 选择 Disable</li>
                         <li>保存VPN配置并返回首页</li>
                         <li>连接VPN，根据提示输入用户名密码</li>
@@ -213,21 +213,11 @@
                         <li>使用TunnelBlick连接到OpenVPN服务器（需要输入登录凭证）</li>
                     </ol>
 
-                    <h5>PPTP (10.11 EI Capitan or earlier)</h5>
-                    <ol>
-                        <li>打开-&gt;System Preferences-&gt;Network</li>
-                        <li>点击左侧的+号，新增一个网络接口</li>
-                        <li>Interface选择VPN；VPN Type选择PPTP；点击Create</li>
-                        <li>在左侧点击刚才创建的网络接口；Server Address填写vpn.zlix.tech；Account name填写用户名</li>
-                        <li>点击Authentication Settings；User Authentication单选框选择Password，并输入您的密码；点击OK。</li>
-                        <li>点击Advanced；<strong>勾选Send all traffic over VPN connection</strong></li>
-                    </ol>
-
                     <h5>AnyConnect</h5>
                     <ol>
                         <li>下载并安装<a href="https://ftp.ustclug.org/software/anyconnect/">AnyConnect Client</a></li>
                         <li>打开“Cisco AnyConnect Secure Mobility Client”</li>
-                        <li>VPN填入 vpn.zlix.tech</li>
+                        <li>VPN填入 vpn.zlix.tech:13806</li>
                         <li>点击Connect按钮</li>
                         <li>依照提示输入用户名密码</li>
                     </ol>
@@ -267,7 +257,7 @@
                         <li>打开“AnyConnect”</li>
                         <li>选择Connection -&gt; Add VPN Connection…</li>
                         <li>Decription输入自定义名称</li>
-                        <li>Server Address填写vpn.zlix.tech</li>
+                        <li>Server Address填写vpn.zlix.tech:13806</li>
                         <li>Advanced -&gt; Certificate 选择 Disable</li>
                         <li>保存VPN配置并返回首页</li>
                         <li>点击右上角，选择Settings</li>
@@ -297,7 +287,7 @@
                         <li>下载并安装 <a href="https://ftp.ustclug.org/software/anyconnect/anyconnect-win-4.4.03034-core-vpn-predeploy-k9.msi">AnyConnect
                                 Client</a></li>
                         <li>打开 “Cisco AnyConnect Secure Mobility Client”</li>
-                        <li>VPN 填入 vpn.zlix.tech</li>
+                        <li>VPN 填入 vpn.zlix.tech:13806</li>
                         <li>点击 Connect</li>
                         <li>依照提示输入用户名密码</li>
                     </ol>
@@ -309,36 +299,6 @@
                         <li>右下角会多出来一个图标，右键，import file，选择下载好的配置文件并导入</li>
                         <li>导入完成后，再次右键，点击connect，按照提示输入用户名和密码</li>
                         <li>enjoy</li>
-                    </ol>
-
-                    <h5>PPTP (Windows10)</h5>
-                    <ol type="1">
-                        <li>打开start（开始菜单）-&gt;Settings（设置）</li>
-                        <li>选择Network &amp; Internet -&gt; VPN</li>
-                        <li>点击Add a VPN connection</li>
-                        <li>VPN Provider 选择 “Windows (built-in)”</li>
-                        <li>Server name or address 输入所需服务器地址</li>
-                        <li>Connection Name填写任意名称</li>
-                        <li>VPN Type选择PPTP</li>
-                        <li>在下方填写用户名和密码（也可以连接时输入），点击Save</li>
-                        <li>保存后在Settings -&gt; Network &amp; Internet -&gt; VPN 下即可点选刚添加的VPN连接。</li>
-                    </ol>
-
-                    <h5>PPTP (Windows 7)</h5>
-                    <ol type="1">
-                        <li>右键点击右下角任务栏的网络连接图标，选择 Open Network and Sharing Center</li>
-                        <li>点击 Set up a new connection or network</li>
-                        <li>选择 Connect to a workplace</li>
-                        <li>选择 Use my Internet connection (VPN)</li>
-                        <li>Internet name 输入所需服务器地址</li>
-                        <li>Destination name 填写任意名称</li>
-                        <li>勾选Don’t connect now; just set it up so I can connect later，点击下一步</li>
-                        <li>在下一步填写用户名和密码，点击Create创建连接</li>
-                        <li>点击Close关闭窗口，暂时不要连接</li>
-                        <li>在Network and Sharing Center 中点击左侧的Change Adapter Settings</li>
-                        <li>在Adapter页面中可以看到刚刚添加的连接，右键点击-&gt;Properties</li>
-                        <li>在Security选项卡下，Type of VPN 选择PPTP，Data Encryption选择Optional Encryption，点击OK完成设置</li>
-                        <li>右键点击连接图标可以连接和断开VPN</li>
                     </ol>
                 </div>
             </div>
