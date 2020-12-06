@@ -25,7 +25,7 @@
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
 			<a class="btn btn-sm btn-danger" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
-			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}')">Check</a>
+			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}', true)">Check</a>
       </p>
     </li>
     {% endfor %}
@@ -39,17 +39,31 @@
 <script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 <script type="text/javascript">
-function checkWithLibrary(id) {
+// Trigger checkWithLibrary for all applications after page loaded.
+$(window).on('load', () => {
+  {% for u in applying_users %}
+    checkWithLibrary({{ u.id }}, false);
+  {% endfor %}
+});
+function checkWithLibrary(id, toAlert) {
 	$.ajax({
 		url: "/check/" + id,
 		success: function(response) {
 			var data = response;
 			if (data["message"]) {
-				alert(data["message"]);
+			  if (toAlert) {
+          alert(data["message"]);
+        } else {
+			    console.log(data["message"]);
+        }
 				return;
 			}
 			if (data["status"] !== "ok") {
-				alert("Bad status: " + data["status"]);
+			  if (toAlert) {
+          alert("Bad status: " + data["status"]);
+        } else {
+			    console.log("Bad status: " + data["status"]);
+        }
 				return;
 			}
 			$("#name-" + id).text(data["name"]);
