@@ -41,7 +41,7 @@ def this_school_year_end():
 
 def fetch_from_lib_api(studentno):
     params = {"id": studentno}
-    url = "http://api.lib.ustc.edu.cn:9380/get_info_from_id.php"
+    url = "http://api.lib.ustc.edu.cn/get_info_from_id.php"
     response = requests.get(url, params=params)
     if response.status_code != 200:
         return {'message': "query failed"}
