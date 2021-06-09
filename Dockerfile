@@ -3,7 +3,7 @@ WORKDIR /srv/lugvpn-web
 
 COPY requirements.txt ./
 RUN apk update && \
-    apk add mariadb-client-libs tzdata && \
+    apk add mariadb-connector-c tzdata && \
     apk add --virtual x-build-deps python3-dev build-base mariadb-dev && \
     pip3 install -r requirements.txt && \
     apk del --purge x-build-deps && \
