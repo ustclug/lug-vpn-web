@@ -1,16 +1,14 @@
-FROM smartentry/alpine:3.11
-
-MAINTAINER Yifan Gao <docker@yfgao.com>
-
-COPY docker $ASSETS_DIR
-
-COPY . /srv/lugvpn-web
-
-RUN smartentry.sh build
-
-EXPOSE 5000/tcp
-
+FROM library/python:3.9-alpine
 WORKDIR /srv/lugvpn-web
 
-CMD ["python3", "run.py"]
+COPY requirements.txt ./
+RUN apk update && \
+    apk add mariadb-client-libs tzdata && \
+    apk add --virtual x-build-deps python3-dev build-base mariadb-dev && \
+    pip3 install -r requirements.txt && \
+    apk del --purge x-build-deps && \
+    rm -rf /var/cache/apk/*
 
+COPY . /srv/lugvpn-web
+EXPOSE 5000/tcp
+CMD ["./docker-startup.sh"]
