@@ -1,0 +1,26 @@
+name: Build
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker image
+        run: docker build -t build-image .
+      - name: Push to Docker Hub
+        if: "github.repository == 'ustclug/lug-vpn-web'"
+        run: |
+          case "$GITHUB_REF" in
+            refs/heads/production)
+              TAG=latest;;
+            refs/heads/light)
+              TAG=light;;
+            *)
+              echo "Branch not recognized" >&2
+              exit;;
+          esac
+
+          IMAGE=ustclug/lug-vpn-web:"$TAG"
+          docker tag build-image "$IMAGE"
+          docker login -u "${{ secrets.DOCKER_USER }}" -p "${{ secrets.DOCKER_PASS }}"
+          docker push "$IMAGE"
