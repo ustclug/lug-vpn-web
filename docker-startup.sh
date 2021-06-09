@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 : ${TZ:=Asia/Shanghai}
 ln -sfn /usr/share/zoneinfo/"$TZ" /etc/localtime
