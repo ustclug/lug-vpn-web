@@ -5,10 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build Docker image
-        run: docker build -t build-image .
-      - name: Push to Docker Hub
-        if: "github.repository == 'ustclug/lug-vpn-web'"
+      - name: Set Docker image tag version
+        id: image-name
         run: |
           case "$GITHUB_REF" in
             refs/heads/production)
@@ -20,7 +18,18 @@ jobs:
               exit;;
           esac
 
-          IMAGE=ustclug/lug-vpn-web:"$TAG"
+          : ${TAG:=latest}
+          echo "::set-output name=tag::$TAG"
+          echo "::set-output name=name::ustclug/lug-vpn-web:$TAG"
+      - name: Build Docker image
+        run: |
+          IMAGE="${{ steps.image-name.outputs.name }}"
+          docker pull "$IMAGE"
+          docker build --cache-from "$IMAGE" -t build-image .
+      - name: Push to Docker Hub
+        if: "github.repository == 'ustclug/lug-vpn-web'"
+        run: |
+          IMAGE="${{ steps.image-name.outputs.name }}"
           docker tag build-image "$IMAGE"
           docker login -u "${{ secrets.DOCKER_USER }}" -p "${{ secrets.DOCKER_PASS }}"
           docker push "$IMAGE"
