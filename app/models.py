@@ -1,4 +1,4 @@
-from app import db
+from app import db, redis_conn, influxdb_conn
 from flask_login import UserMixin
 from app.utils import *
 import hashlib
@@ -188,6 +188,7 @@ class User(db.Model, UserMixin):
 
     def set_expiration(self, expiration, delete=False):
         self.expiration = expiration
+        redis_conn.hset(f"user:{self.email}", "Expiration", expiration)
         if VPNAccount.get_account_by_email(self.email):
             if delete:
                 VPNAccount.delete(self.email)
@@ -251,81 +252,50 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute("""
-            select
-                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
-            from
-                radius.radacct
-            where
-                ((month(radius.radacct.acctstarttime) = month(now())) and
-                (year(radius.radacct.acctstarttime) = year(now()))) and
-                radius.radacct.username = %s;
-        """, self.email).first()
+        month_start, month_end = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {month_start} AND time <= {month_end}
+        """, bind_params={'email': self.email})
+        # TODO
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     def last_month_traffic(self):
-        r = db.engine.execute("""
-            select
-                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
-            from
-                radius.radacct
-            where
-                ((month(radius.radacct.acctstarttime) = month(now() - interval 1 month)) and
-                (year(radius.radacct.acctstarttime) = year(now() - interval 1 month))) and
-                radius.radacct.username = %s;
-        """, self.email).first()
+        last_month_start, last_month_end = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {last_month_start} AND time <= {last_month_end}
+        """, bind_params={'email': self.email})
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     @classmethod
     def all_month_traffic(cls):
-        r = db.engine.execute('select * from monthtraffic')
+        month_start, month_end = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE time >= {month_start} AND time <= {month_end} GROUP BY "user"
+        """)
         return {row[0]: row[1] for row in r}
 
     @classmethod
     def all_last_month_traffic(cls):
-        r = db.engine.execute('select * from lastmonthtraffic')
+        last_month_start, last_month_end = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE time >= {last_month_start} AND time <= {last_month_end} GROUP BY "user"
+        """)
         return {row[0]: row[1] for row in r}
 
     def last_month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
-                radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(date_sub(now(), interval 1 month)) and
-                year(radius.radacct.acctstarttime) = year(date_sub(now(), interval 1 month)) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
-        lastmonth = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
-        days = calendar.monthrange(lastmonth.year, lastmonth.month)[1]
-        traffic = [(i, 0, 0) for i in range(1, days + 1)]
-        for row in r:
-            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        last_month_start, last_month_end = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {last_month_start} AND time <= {last_month_end} GROUP BY time(1d)
+        """, bind_params={'email': self.email})
+        # TODO: no upload/download diff?
+        traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
         return traffic
 
+
     def month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
-                radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(now()) and
-                year(radius.radacct.acctstarttime) = year(now()) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
-        now = datetime.datetime.now()
-        days = calendar.monthrange(now.year, now.month)[1]
-        traffic = [(i, 0, 0) for i in range(1, days + 1)]
-        for row in r:
-            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        month_start, month_end = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {month_start} AND time <= {month_end} GROUP BY time(1d)
+        """, bind_params={'email': self.email})
+        traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
         return traffic
