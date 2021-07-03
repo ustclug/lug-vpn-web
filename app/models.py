@@ -4,57 +4,66 @@ from app.utils import *
 import hashlib
 import datetime
 import calendar
+from dataclasses import dataclass
 
 
-class Group(db.Model):
-    __tablename__ = 'radusergroup'
-    username = db.Column(db.String(64), primary_key=True)
-    groupname = db.Column(db.String(64))
-    priority = db.Column(db.Integer)
+# class Group(db.Model):
+#     __tablename__ = 'radusergroup'
+#     username = db.Column(db.String(64), primary_key=True)
+#     groupname = db.Column(db.String(64))
+#     priority = db.Column(db.Integer)
 
-    def __init__(self, email, group='normal', priority=1):
-        self.username = email
-        self.groupname = group
-        self.priority = priority
+#     def __init__(self, email, group='normal', priority=1):
+#         self.username = email
+#         self.groupname = group
+#         self.priority = priority
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
+#     def save(self):
+#         db.session.add(self)
+#         db.session.commit()
 
-    @classmethod
-    def get_group_by_email(cls, email):
-        return cls.query.filter_by(username=email).first()
-
-
-class Record(db.Model):
-    __tablename__ = 'radacct'
-    radacctid = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
-    acctstarttime = db.Column(db.DateTime())
-    acctstoptime = db.Column(db.DateTime())
-    callingstationid = db.Column(db.String(50))
-    acctinputoctets = db.Column(db.BigInteger)
-    acctoutputoctets = db.Column(db.BigInteger)
-    framedipaddress = db.Column(db.String(15))
+#     @classmethod
+#     def get_group_by_email(cls, email):
+#         return cls.query.filter_by(username=email).first()
 
 
+# class Record(db.Model):
+#     __tablename__ = 'radacct'
+#     radacctid = db.Column(db.Integer, primary_key=True)
+#     username = db.Column(db.String(64))
+#     acctstarttime = db.Column(db.DateTime())
+#     acctstoptime = db.Column(db.DateTime())
+#     callingstationid = db.Column(db.String(50))
+#     acctinputoctets = db.Column(db.BigInteger)
+#     acctoutputoctets = db.Column(db.BigInteger)
+#     framedipaddress = db.Column(db.String(15))
+
+@dataclass
+class Record:
+    username: str
+    datetime: datetime.datetime
+    bytes: int
+    client_addr: str
+
+
+@dataclass
 class VPNAccount(db.Model):
-    __tablename__ = 'radcheck'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
-    attribute = db.Column(db.String(64))
-    op = db.Column(db.CHAR(2), default='==')
-    value = db.Column(db.String(253))
+    username: str
+    # attribute = db.Column(db.String(64))
+    # op = db.Column(db.CHAR(2), default='==')
+    expiration: str
+    clear_password: str
 
     def __init__(self, username, value, is_expiration=False):
         self.username = username
-        self.value = value
-        self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
-        self.op = ':='
+        # self.value = value
+        # self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
+        # self.op = ':='
 
     def save(self):
-        db.session.add(self)
-        db.session.commit()
+        pass
+        # db.session.add(self)
+        # db.session.commit()
 
     @classmethod
     def get_account_by_email(cls, email):
@@ -70,9 +79,9 @@ class VPNAccount(db.Model):
         if not account:
             account = cls(email, password)
             account.save()
-            if not Group.get_group_by_email(email):
-                group = Group(email)
-                group.save()
+            # if not Group.get_group_by_email(email):
+            #     group = Group(email)
+            #     group.save()
             cls.update_expiration(email, expiration)
         else:
             raise Exception('account already exist')
@@ -94,9 +103,9 @@ class VPNAccount(db.Model):
             expiration = cls.get_expiration_by_email(email)
             if expiration:
                 db.session.delete(expiration)
-            group = Group.get_group_by_email(email)
-            if group:
-                db.session.delete(group)
+            # group = Group.get_group_by_email(email)
+            # if group:
+            #     db.session.delete(group)
             db.session.commit()
         else:
             raise Exception('account not found')
@@ -242,9 +251,11 @@ class User(db.Model, UserMixin):
         return cls.query.get(id)
 
     def get_record(self):
+        # TODO
         return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).first()
 
     def get_records(self, n):
+        # TODO
         return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).limit(n)
 
     def generate_vpn_password(self):
@@ -256,7 +267,6 @@ class User(db.Model, UserMixin):
         r = influxdb_conn.query(f"""
         SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {month_start} AND time <= {month_end}
         """, bind_params={'email': self.email})
-        # TODO
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     def last_month_traffic(self):
