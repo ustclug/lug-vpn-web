@@ -1,112 +1,89 @@
+from typing import List
 from app import db, redis_conn, influxdb_conn
 from flask_login import UserMixin
 from app.utils import *
 import hashlib
 import datetime
-import calendar
 from dataclasses import dataclass
 
 
-# class Group(db.Model):
-#     __tablename__ = 'radusergroup'
-#     username = db.Column(db.String(64), primary_key=True)
-#     groupname = db.Column(db.String(64))
-#     priority = db.Column(db.Integer)
-
-#     def __init__(self, email, group='normal', priority=1):
-#         self.username = email
-#         self.groupname = group
-#         self.priority = priority
-
-#     def save(self):
-#         db.session.add(self)
-#         db.session.commit()
-
-#     @classmethod
-#     def get_group_by_email(cls, email):
-#         return cls.query.filter_by(username=email).first()
-
-
-# class Record(db.Model):
-#     __tablename__ = 'radacct'
-#     radacctid = db.Column(db.Integer, primary_key=True)
-#     username = db.Column(db.String(64))
-#     acctstarttime = db.Column(db.DateTime())
-#     acctstoptime = db.Column(db.DateTime())
-#     callingstationid = db.Column(db.String(50))
-#     acctinputoctets = db.Column(db.BigInteger)
-#     acctoutputoctets = db.Column(db.BigInteger)
-#     framedipaddress = db.Column(db.String(15))
-
 @dataclass
 class Record:
+    """
+    The record stored in influxdb
+    """
     username: str
     datetime: datetime.datetime
     bytes: int
+    target: str
+    duration: int
     client_addr: str
+
+    @classmethod
+    def get_records(cls, username: str, n: int) -> List["Record"]:
+        # TODO:
+        # records are directly shown in user page
+        # needs to be fixed
+        if not isinstance(n, int):
+            raise ValueError(f"{n} is not an integer.")
+        x = influxdb_conn.query(f'select sum("bytes") as bytes, sum("duration") as intervals from "light" where ("user" = $username) order by desc limit {n}', bind_params={
+            'username': username
+        })
+        print(x)
+        return []
 
 
 @dataclass
-class VPNAccount(db.Model):
+class VPNAccount:
+    """
+    The account stored in Redis.
+    """
     username: str
-    # attribute = db.Column(db.String(64))
-    # op = db.Column(db.CHAR(2), default='==')
     expiration: str
     clear_password: str
 
-    def __init__(self, username, value, is_expiration=False):
+    def __init__(self, username, expiration, clear_password):
         self.username = username
-        # self.value = value
-        # self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
-        # self.op = ':='
-
-    def save(self):
-        pass
-        # db.session.add(self)
-        # db.session.commit()
+        self.expiration = expiration
+        self.clear_password = clear_password
 
     @classmethod
-    def get_account_by_email(cls, email):
-        return cls.query.filter_by(username=email).filter_by(attribute='Cleartext-Password').first()
+    def get_account_by_email(cls, email) -> "VPNAccount":
+        vpnuser_info: dict = redis_conn.hgetall(f'user:{email}')
+        if not vpnuser_info:
+            return None
+        return VPNAccount(
+            username=email,
+            expiration=vpnuser_info['Expiration'],
+            clear_password=vpnuser_info['Cleartext-Password']
+        )
 
     @classmethod
-    def get_expiration_by_email(cls, email):
-        return cls.query.filter_by(username=email).filter_by(attribute='Expiration').first()
+    def get_expiration_by_email(cls, email) -> int:
+        vpnuser_info: dict = redis_conn.hgetall(f'user:{email}')
+        if not vpnuser_info:
+            return None
+        return vpnuser_info['Expiration']
 
     @classmethod
     def add(cls, email, password, expiration):
         account = cls.get_account_by_email(email)
         if not account:
-            account = cls(email, password)
-            account.save()
-            # if not Group.get_group_by_email(email):
-            #     group = Group(email)
-            #     group.save()
+            redis_conn.hset(f'user:{email}', 'Cleartext-Password', password)
+            redis_conn.hset(f'user:{email}', 'Data-Plan', 21474836480)  # 20GiB
             cls.update_expiration(email, expiration)
         else:
             raise Exception('account already exist')
 
     @classmethod
     def update_expiration(cls, email, expiration):
-        expiration_row = cls.get_expiration_by_email(email)
-        if not expiration_row:
-            expiration_row = cls(email, expiration.strftime('%d %b %Y'), True)
-        else:
-            expiration_row.value = expiration.strftime('%d %b %Y')
-        expiration_row.save()
+        redis_conn.hset(f'user:{email}', 'Expiration', expiration.strftime('%s'))
 
     @classmethod
     def delete(cls, email):
         account = cls.get_account_by_email(email)
         if account:
-            db.session.delete(account)
-            expiration = cls.get_expiration_by_email(email)
-            if expiration:
-                db.session.delete(expiration)
-            # group = Group.get_group_by_email(email)
-            # if group:
-            #     db.session.delete(group)
-            db.session.commit()
+            redis_conn.delete(f'user:{email}')
         else:
             raise Exception('account not found')
 
@@ -116,8 +93,7 @@ class VPNAccount(db.Model):
         if not account:
             raise Exception('account not found')
         else:
-            account.value = newpass
-        account.save()
+            redis_conn.hset(f'user:{email}', 'Cleartext-Password', newpass)
 
 
 class User(db.Model, UserMixin):
@@ -197,7 +173,7 @@ class User(db.Model, UserMixin):
 
     def set_expiration(self, expiration, delete=False):
         self.expiration = expiration
-        redis_conn.hset(f"user:{self.email}", "Expiration", expiration)
+        redis_conn.hset(f"user:{self.email}", "Expiration", expiration.strftime("%s"))
         if VPNAccount.get_account_by_email(self.email):
             if delete:
                 VPNAccount.delete(self.email)
@@ -243,20 +219,15 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     @classmethod
-    def get_user_by_email(cls, email):
+    def get_user_by_email(cls, email) -> 'User':
         return cls.query.filter_by(email=email).first()
 
     @classmethod
     def get_user_by_id(cls, id):
         return cls.query.get(id)
 
-    def get_record(self):
-        # TODO
-        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).first()
-
     def get_records(self, n):
-        # TODO
-        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).limit(n)
+        return Record.get_records(username=self.email, n=n)
 
     def generate_vpn_password(self):
         self.vpnpassword = random_string(8)
@@ -265,14 +236,14 @@ class User(db.Model, UserMixin):
     def month_traffic(self):
         month_start, month_end = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {month_start} AND time <= {month_end}
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {month_start} AND time <= {month_end}
         """, bind_params={'email': self.email})
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
     def last_month_traffic(self):
         last_month_start, last_month_end = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {last_month_start} AND time <= {last_month_end}
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {last_month_start} AND time <= {last_month_end}
         """, bind_params={'email': self.email})
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
 
@@ -280,7 +251,7 @@ class User(db.Model, UserMixin):
     def all_month_traffic(cls):
         month_start, month_end = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE time >= {month_start} AND time <= {month_end} GROUP BY "user"
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= {month_start} AND time <= {month_end} GROUP BY "user"
         """)
         return {row[0]: row[1] for row in r}
 
@@ -288,14 +259,14 @@ class User(db.Model, UserMixin):
     def all_last_month_traffic(cls):
         last_month_start, last_month_end = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE time >= {last_month_start} AND time <= {last_month_end} GROUP BY "user"
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= {last_month_start} AND time <= {last_month_end} GROUP BY "user"
         """)
         return {row[0]: row[1] for row in r}
 
     def last_month_traffic_by_day(self):
         last_month_start, last_month_end = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {last_month_start} AND time <= {last_month_end} GROUP BY time(1d)
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {last_month_start} AND time <= {last_month_end} GROUP BY time(1d)
         """, bind_params={'email': self.email})
         # TODO: no upload/download diff?
         traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
@@ -305,7 +276,7 @@ class User(db.Model, UserMixin):
     def month_traffic_by_day(self):
         month_start, month_end = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum('bytes') AS bytes WHERE ("user" = '$email') AND time >= {month_start} AND time <= {month_end} GROUP BY time(1d)
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {month_start} AND time <= {month_end} GROUP BY time(1d)
         """, bind_params={'email': self.email})
         traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
         return traffic
