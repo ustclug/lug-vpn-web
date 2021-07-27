@@ -52,15 +52,19 @@ def fetch_from_lib_api(studentno):
 
 
 def get_month_timestamps(ptr=datetime.datetime.today()):
-    first_day = datetime.datetime(ptr.year, ptr.month, 1)
-    next_month_someday = first_day + datetime.timedelta(days=32)
-    end_day = datetime.datetime(next_month_someday.year, next_month_someday.month, 1) - \
-        datetime.timedelta(seconds=1)
-    return first_day.timestamp(), end_day.timestamp()
+    first_day_datetime = datetime.datetime(ptr.year, ptr.month, 1)
+    next_month_someday = first_day_datetime + datetime.timedelta(days=32)
+    next_first_day_datetime = datetime.datetime(next_month_someday.year, next_month_someday.month, 1)
+    first_day = first_day_datetime.strftime("%Y-%m-%d")
+    next_first_day = next_first_day_datetime.strftime("%Y-%m-%d")
+    return first_day, next_first_day
 
 
 def get_last_month_timestamps():
     today = datetime.datetime.today()
-    last_month_day = datetime.datetime(today.year, today.month, 1) - \
-        datetime.timedelta(days=1)
-    return get_month_timestamps(ptr=last_month_day)
+    first_day_datetime = datetime.datetime(today.year, today.month, 1)
+    last_month_day = first_day_datetime - datetime.timedelta(days=1)
+    last_month_first_day_datetime = datetime.datetime(last_month_day.year, last_month_day.month, 1)
+    last_month_first_day = last_month_first_day_datetime.strftime("%Y-%m-%d")
+    first_day = first_day_datetime.strftime("%Y-%m-%d")
+    return last_month_first_day, first_day

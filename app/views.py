@@ -447,19 +447,17 @@ def resetpassword():
 def traffic():
     if request.args.get('id'):
         if current_user.admin:
-            user = User.get_user_by_id(request.args.get('id'))
+            user: User = User.get_user_by_id(request.args.get('id'))
         else:
             abort(403)
     else:
-        user = current_user
+        user: User = current_user
     last_month_traffic = user.last_month_traffic_by_day()
     month_traffic = user.month_traffic_by_day()
-    last_month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in last_month_traffic]
-    last_month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in last_month_traffic]
-    month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in month_traffic]
-    month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in month_traffic]
-    return json.dumps({'last_month_upload': last_month_upload, 'last_month_download': last_month_download,
-                       'month_upload': month_upload, 'month_download': month_download})
+    last_month = [{'x': day, 'y': float(traf) / 1048576} for day, traf in last_month_traffic]
+    month = [{'x': day, 'y': float(traf) / 1048576} for day, traf in month_traffic]
+    return json.dumps({'last_month': last_month,
+                       'month': month})
 
 
 @app.route('/profile/<int:id>')

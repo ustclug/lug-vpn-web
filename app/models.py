@@ -6,6 +6,7 @@ import hashlib
 import datetime
 from dataclasses import dataclass
 from dateutil import parser as isodate_parser  # handling ISO 8601 datetime str
+from collections import defaultdict
 
 
 @dataclass
@@ -255,49 +256,58 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        month_start, month_end = get_month_timestamps()
+        month_start, next_month_start = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {month_start} AND time <= {month_end}
-        """, bind_params={'email': self.email})
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $month_start AND time < $next_month_start
+        """, bind_params={'email': self.email, 'month_start': month_start, 'next_month_start': next_month_start}).get_points()
+        bytes = sum([i['bytes'] for i in r])
+        return sizeof_fmt(float(bytes))
 
     def last_month_traffic(self):
-        last_month_start, last_month_end = get_last_month_timestamps()
+        last_month_start, month_start = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {last_month_start} AND time <= {last_month_end}
-        """, bind_params={'email': self.email})
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $last_month_start AND time < $month_start
+        """, bind_params={'email': self.email, 'last_month_start': last_month_start, 'month_start': month_start}).get_points()
+        bytes = sum([i['bytes'] for i in r])
+        return sizeof_fmt(float(bytes))
 
     @classmethod
     def all_month_traffic(cls):
-        month_start, month_end = get_month_timestamps()
+        month_start, next_month_start = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE time >= {month_start} AND time <= {month_end} GROUP BY "user"
-        """).get_points()
-        return {row[0]: row[1] for row in r}
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= $month_start AND time < $next_month_start GROUP BY "user"
+        """, bind_params={'month_start': month_start, 'next_month_start': next_month_start})
+        data = defaultdict(int)
+        for key in r.keys():
+            for i in r[key]:
+                data[key[1]['user']] += i['bytes']
+        return dict(data)
 
     @classmethod
     def all_last_month_traffic(cls):
-        last_month_start, last_month_end = get_last_month_timestamps()
+        last_month_start, month_start = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE time >= {last_month_start} AND time <= {last_month_end} GROUP BY "user"
-        """).get_points()
-        return {row[0]: row[1] for row in r}
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= $last_month_start AND time < $month_start GROUP BY "user"
+        """, bind_params={'last_month_start': last_month_start, 'month_start': month_start})
+        data = defaultdict(int)
+        for key in r.keys():
+            for i in r[key]:
+                data[key[1]['user']] += i['bytes']
+        return dict(data)
 
     def last_month_traffic_by_day(self):
-        last_month_start, last_month_end = get_last_month_timestamps()
+        last_month_start, month_start = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {last_month_start} AND time <= {last_month_end} GROUP BY time(1d)
-        """, bind_params={'email': self.email}).get_points()
-        # TODO: no upload/download diff?
-        traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $last_month_start AND time < $month_start GROUP BY time(1d)
+        """, bind_params={'email': self.email, 'last_month_start': last_month_start, 'month_start': month_start}).get_points()
+        traffic = [(item['time'], item['bytes']) for item in r if item['bytes'] is not None]
         return traffic
 
 
     def month_traffic_by_day(self):
-        month_start, month_end = get_month_timestamps()
+        month_start, next_month_start = get_month_timestamps()
         r = influxdb_conn.query(f"""
-        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {month_start} AND time <= {month_end} GROUP BY time(1d)
-        """, bind_params={'email': self.email}).get_points()
-        traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $month_start AND time < $next_month_start GROUP BY time(1d)
+        """, bind_params={'email': self.email, 'month_start': month_start, 'next_month_start': next_month_start}).get_points()
+        traffic = [(item['time'], item['bytes']) for item in r if item['bytes'] is not None]
         return traffic
