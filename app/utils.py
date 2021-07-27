@@ -58,6 +58,7 @@ def get_month_timestamps(ptr=datetime.datetime.today()):
         datetime.timedelta(seconds=1)
     return first_day.timestamp(), end_day.timestamp()
 
+
 def get_last_month_timestamps():
     today = datetime.datetime.today()
     last_month_day = datetime.datetime(today.year, today.month, 1) - \

@@ -5,6 +5,7 @@ from app.utils import *
 import hashlib
 import datetime
 from dataclasses import dataclass
+from dateutil import parser as isodate_parser  # handling ISO 8601 datetime str
 
 
 @dataclass
@@ -13,11 +14,25 @@ class Record:
     The record stored in influxdb
     """
     username: str
-    datetime: datetime.datetime
+    dt: datetime.datetime
     bytes: int
     target: str
-    duration: int
+    duration: float
     client_addr: str
+
+    def __init__(self, username, dt, bytes, target, duration, client_addr):
+        self.username = username
+        self.dt = dt
+        self.bytes = int(bytes)
+        self.target = target
+        self.duration = duration
+        self.client_addr = client_addr
+
+        if 'Z' in self.dt:
+            # ISO 8601
+            self.dt = isodate_parser.parse(self.dt)
+        if isinstance(self.dt, datetime.datetime):
+            self.dt = self.dt.strftime("%Y/%m/%d %H:%M:%S")
 
     @classmethod
     def get_records(cls, username: str, n: int) -> List["Record"]:
@@ -26,11 +41,17 @@ class Record:
         # needs to be fixed
         if not isinstance(n, int):
             raise ValueError(f"{n} is not an integer.")
-        x = influxdb_conn.query(f'select sum("bytes") as bytes, sum("duration") as intervals from "light" where ("user" = $username) order by desc limit {n}', bind_params={
+        res = influxdb_conn.query(f'select * from "light" where ("user" = $username) order by desc limit {n}', bind_params={
             'username': username
-        })
-        print(x)
-        return []
+        }).get_points()
+        return [Record(
+            username=i['user'],
+            dt=i['time'],
+            bytes=i['bytes'],
+            target=i['target'],
+            duration=i['duration'],
+            client_addr=i['client_addr']
+        ) for i in res]
 
 
 @dataclass
@@ -252,7 +273,7 @@ class User(db.Model, UserMixin):
         month_start, month_end = get_month_timestamps()
         r = influxdb_conn.query(f"""
         SELECT sum("bytes") AS bytes FROM light WHERE time >= {month_start} AND time <= {month_end} GROUP BY "user"
-        """)
+        """).get_points()
         return {row[0]: row[1] for row in r}
 
     @classmethod
@@ -260,14 +281,14 @@ class User(db.Model, UserMixin):
         last_month_start, last_month_end = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
         SELECT sum("bytes") AS bytes FROM light WHERE time >= {last_month_start} AND time <= {last_month_end} GROUP BY "user"
-        """)
+        """).get_points()
         return {row[0]: row[1] for row in r}
 
     def last_month_traffic_by_day(self):
         last_month_start, last_month_end = get_last_month_timestamps()
         r = influxdb_conn.query(f"""
         SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {last_month_start} AND time <= {last_month_end} GROUP BY time(1d)
-        """, bind_params={'email': self.email})
+        """, bind_params={'email': self.email}).get_points()
         # TODO: no upload/download diff?
         traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
         return traffic
@@ -277,6 +298,6 @@ class User(db.Model, UserMixin):
         month_start, month_end = get_month_timestamps()
         r = influxdb_conn.query(f"""
         SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= {month_start} AND time <= {month_end} GROUP BY time(1d)
-        """, bind_params={'email': self.email})
+        """, bind_params={'email': self.email}).get_points()
         traffic = [(i, row[1], row[1]) for i, row in enumerate(r)]
         return traffic
