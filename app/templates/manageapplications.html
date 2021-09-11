@@ -23,6 +23,7 @@
       Apply time: {{u.applytime}}<br>
       Renewal: {{u.renewing}}<br></p>
       {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
+      {{ util.form_button(url_for('pass_',id=u.id,is_long=True),'Pass Long',class='btn btn-sm btn-success') }}
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
       </p>
     </li>

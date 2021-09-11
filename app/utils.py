@@ -15,11 +15,11 @@ def sizeof_fmt(num, suffix='B'):
     return "%.2f %s%s" % (num, 'Yi', suffix)
 
 
-def next_semester_end():
+def next_semester_end(extra_years=0):
     today = datetime.date.today()
     if today.month < 3:
-        return datetime.date(today.year, 9, 1) + datetime.timedelta(days=-1)
+        return datetime.date(today.year + extra_years, 9, 1) + datetime.timedelta(days=-1)
     elif today.month < 9:
-        return datetime.date(today.year + 1, 3, 1) + datetime.timedelta(days=-1)
+        return datetime.date(today.year + extra_years + 1, 3, 1) + datetime.timedelta(days=-1)
     else:
-        return datetime.date(today.year + 1, 9, 1) + datetime.timedelta(days=-1)
+        return datetime.date(today.year + extra_years + 1, 9, 1) + datetime.timedelta(days=-1)

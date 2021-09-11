@@ -186,19 +186,23 @@ class User(db.Model, UserMixin):
     def get_users(cls):
         return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned')).order_by(cls.id).all()
 
-    def pass_apply(self):
+    def pass_apply(self, is_long=False):
         self.status = 'pass'
         self.expiration = next_semester_end()
+        if is_long:
+            self.expiration = next_semester_end(3)
         self.enable_vpn()
         self.save()
 
-    def renew(self):
+    def renew(self, is_long=False):
         self.expiration = next_semester_end()
+        if is_long:
+            self.expiration = next_semester_end(3)
         VPNAccount.update_expiration(self.email, self.expiration)
         self.save()
 
-    def pass_renewal(self):
-        self.renew()
+    def pass_renewal(self, is_long=False):
+        self.renew(is_long=is_long)
         self.renewing = False
         self.save()
 
