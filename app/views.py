@@ -199,12 +199,12 @@ def create():
 
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
-def pass_(id):
+def pass_(id, is_long=False):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
     if user.status in ['applying', 'reject']:
-        user.pass_apply()
+        user.pass_apply(is_long=is_long)
         html = 'Username: ' + user.email + \
                '<br>Password: ' + user.vpnpassword + \
                '<br>Please login to <a href="' + \
@@ -212,7 +212,7 @@ def pass_(id):
                '">VPN apply website</a> for detail.'
         send_mail('Your VPN application has passed', html, user.email)
     elif user.renewing:
-        user.pass_renewal()
+        user.pass_renewal(is_long=is_long)
         html = 'Your VPN renewal has passed<br>Please login to VPN apply website for detail.'
         send_mail('Your VPN renewal has passed', html, user.email)
     return redirect(url_for('manage_applications'))
@@ -280,7 +280,7 @@ def renew(id):
 def renewlong(id):
     if current_user.admin:
         user = User.get_user_by_id(id)
-        user.renewlong()
+        user.renew(True)
     return redirect(url_for('manage_users'))
 
 
