@@ -199,10 +199,11 @@ def create():
 
 @app.route('/pass/<int:id>', methods=['POST'])
 @login_required
-def pass_(id, is_long=False):
+def pass_(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
+    is_long = request.args.get('is_long', False)
     if user.status in ['applying', 'reject']:
         user.pass_apply(is_long=is_long)
         html = 'Username: ' + user.email + \
