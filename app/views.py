@@ -275,6 +275,15 @@ def renew(id):
     return redirect(url_for('manage_users'))
 
 
+@app.route('/renewlong/<int:id>', methods=['POST'])
+@login_required
+def renewlong(id):
+    if current_user.admin:
+        user = User.get_user_by_id(id)
+        user.renewlong()
+    return redirect(url_for('manage_users'))
+
+
 @app.route('/setadmin/<int:id>', methods=['POST'])
 @login_required
 def setadmin(id):

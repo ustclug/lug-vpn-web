@@ -197,6 +197,11 @@ class User(db.Model, UserMixin):
         VPNAccount.update_expiration(self.email, self.expiration)
         self.save()
 
+    def renewlong(self):
+        self.expiration = next_semester_end(3)
+        VPNAccount.update_expiration(self.email, self.expiration)
+        self.save()
+
     def pass_renewal(self):
         self.renew()
         self.renewing = False
