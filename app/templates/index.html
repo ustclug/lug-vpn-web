@@ -183,37 +183,29 @@
 
     <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
-    <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>
+    <canvas id="last_month_traffic" style="height: 300px; width: 100%;"></canvas>
     <p>This month: {{user.month_traffic()}}</p>
-    <div id="month_traffic" style="height: 300px; width: 100%;"></div>
+    <canvas id="month_traffic" style="height: 300px; width: 100%;"></canvas>
 
     <h3>Log</h3>
     <table class="table">
         <thead>
             <tr>
-                <th>Start time</th>
-                <th>Stop time</th>
-                <th>Login IP</th>
-                <th>Intranet IP</th>
-                <th>Upload traffic</th>
-                <th>Download traffic</th>
+                <th>Time</th>
+                <th>Duration</th>
+                <th>Client IP</th>
+                <th>Target</th>
+                <th>Traffic</th>
             </tr>
         </thead>
         <tbody>
         {% for r in records %}
             <tr>
-                <td>{{r.acctstarttime}}</td>
-                <td>
-                    {%if r.acctstoptime%}
-                        {{r.acctstoptime}}
-                    {%elif r.acctstarttime%}
-                        Still login
-                    {%endif%}
-                </td>
-                <td>{{r.callingstationid}}</td>
-                <td>{{r.framedipaddress}}</td>
-                <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
-                <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
+                <td>{{r.dt}}</td>
+                <td>{{r.duration}}</td>
+                <td>{{r.client_addr}}</td>
+                <td>{{r.target}}</td>
+                <td>{{sizeof_fmt(r.bytes)}}</td>
             </tr>
         {% endfor %}
         </tbody>
@@ -237,7 +229,7 @@
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<script type="text/javascript" src="{{url_for('static',filename='js/jquery.canvasjs.min.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/chart.min.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/traffic.js')}}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/index.js')}}"></script>
 {% endblock %}

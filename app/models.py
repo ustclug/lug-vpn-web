@@ -1,103 +1,111 @@
-from app import db
+from typing import List
+from app import db, redis_conn, influxdb_conn
 from flask_login import UserMixin
 from app.utils import *
 import hashlib
 import datetime
-import calendar
+from dataclasses import dataclass
+from dateutil import parser as isodate_parser  # handling ISO 8601 datetime str
+from collections import defaultdict
 
 
-class Group(db.Model):
-    __tablename__ = 'radusergroup'
-    username = db.Column(db.String(64), primary_key=True)
-    groupname = db.Column(db.String(64))
-    priority = db.Column(db.Integer)
+@dataclass
+class Record:
+    """
+    The record stored in influxdb
+    """
+    username: str
+    dt: datetime.datetime
+    bytes: int
+    target: str
+    duration: float
+    client_addr: str
 
-    def __init__(self, email, group='normal', priority=1):
-        self.username = email
-        self.groupname = group
-        self.priority = priority
-
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
-
-    @classmethod
-    def get_group_by_email(cls, email):
-        return cls.query.filter_by(username=email).first()
-
-
-class Record(db.Model):
-    __tablename__ = 'radacct'
-    radacctid = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
-    acctstarttime = db.Column(db.DateTime())
-    acctstoptime = db.Column(db.DateTime())
-    callingstationid = db.Column(db.String(50))
-    acctinputoctets = db.Column(db.BigInteger)
-    acctoutputoctets = db.Column(db.BigInteger)
-    framedipaddress = db.Column(db.String(15))
-
-
-class VPNAccount(db.Model):
-    __tablename__ = 'radcheck'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64))
-    attribute = db.Column(db.String(64))
-    op = db.Column(db.CHAR(2), default='==')
-    value = db.Column(db.String(253))
-
-    def __init__(self, username, value, is_expiration=False):
+    def __init__(self, username, dt, bytes, target, duration, client_addr):
         self.username = username
-        self.value = value
-        self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
-        self.op = ':='
+        self.dt = dt
+        self.bytes = int(bytes)
+        self.target = target
+        self.duration = duration
+        self.client_addr = client_addr
 
-    def save(self):
-        db.session.add(self)
-        db.session.commit()
+        if 'Z' in self.dt:
+            # ISO 8601
+            self.dt = isodate_parser.parse(self.dt)
+        if isinstance(self.dt, datetime.datetime):
+            self.dt = self.dt.strftime("%Y/%m/%d %H:%M:%S")
 
     @classmethod
-    def get_account_by_email(cls, email):
-        return cls.query.filter_by(username=email).filter_by(attribute='Cleartext-Password').first()
+    def get_records(cls, username: str, n: int) -> List["Record"]:
+        # TODO:
+        # records are directly shown in user page
+        # needs to be fixed
+        if not isinstance(n, int):
+            raise ValueError(f"{n} is not an integer.")
+        res = influxdb_conn.query(f'select * from "light" where ("user" = $username) order by desc limit {n}', bind_params={
+            'username': username
+        }).get_points()
+        return [Record(
+            username=i['user'],
+            dt=i['time'],
+            bytes=i['bytes'],
+            target=i['target'],
+            duration=i['duration'],
+            client_addr=i['client_addr']
+        ) for i in res]
+
+
+@dataclass
+class VPNAccount:
+    """
+    The account stored in Redis.
+    """
+    username: str
+    expiration: str
+    clear_password: str
+
+    def __init__(self, username, expiration, clear_password):
+        self.username = username
+        self.expiration = expiration
+        self.clear_password = clear_password
 
     @classmethod
-    def get_expiration_by_email(cls, email):
-        return cls.query.filter_by(username=email).filter_by(attribute='Expiration').first()
+    def get_account_by_email(cls, email) -> "VPNAccount":
+        vpnuser_info: dict = redis_conn.hgetall(f'user:{email}')
+        if not vpnuser_info:
+            return None
+        return VPNAccount(
+            username=email,
+            expiration=vpnuser_info['Expiration'],
+            clear_password=vpnuser_info['Cleartext-Password']
+        )
+
+    @classmethod
+    def get_expiration_by_email(cls, email) -> int:
+        vpnuser_info: dict = redis_conn.hgetall(f'user:{email}')
+        if not vpnuser_info:
+            return None
+        return vpnuser_info['Expiration']
 
     @classmethod
     def add(cls, email, password, expiration):
         account = cls.get_account_by_email(email)
         if not account:
-            account = cls(email, password)
-            account.save()
-            if not Group.get_group_by_email(email):
-                group = Group(email)
-                group.save()
+            redis_conn.hset(f'user:{email}', 'Cleartext-Password', password)
+            redis_conn.hset(f'user:{email}', 'Data-Plan', 21474836480)  # 20GiB
             cls.update_expiration(email, expiration)
         else:
             raise Exception('account already exist')
 
     @classmethod
     def update_expiration(cls, email, expiration):
-        expiration_row = cls.get_expiration_by_email(email)
-        if not expiration_row:
-            expiration_row = cls(email, expiration.strftime('%d %b %Y'), True)
-        else:
-            expiration_row.value = expiration.strftime('%d %b %Y')
-        expiration_row.save()
+        redis_conn.hset(f'user:{email}', 'Expiration', expiration.strftime('%s'))
 
     @classmethod
     def delete(cls, email):
         account = cls.get_account_by_email(email)
         if account:
-            db.session.delete(account)
-            expiration = cls.get_expiration_by_email(email)
-            if expiration:
-                db.session.delete(expiration)
-            group = Group.get_group_by_email(email)
-            if group:
-                db.session.delete(group)
-            db.session.commit()
+            redis_conn.delete(f'user:{email}')
         else:
             raise Exception('account not found')
 
@@ -107,8 +115,7 @@ class VPNAccount(db.Model):
         if not account:
             raise Exception('account not found')
         else:
-            account.value = newpass
-        account.save()
+            redis_conn.hset(f'user:{email}', 'Cleartext-Password', newpass)
 
 
 class User(db.Model, UserMixin):
@@ -188,6 +195,7 @@ class User(db.Model, UserMixin):
 
     def set_expiration(self, expiration, delete=False):
         self.expiration = expiration
+        redis_conn.hset(f"user:{self.email}", "Expiration", expiration.strftime("%s"))
         if VPNAccount.get_account_by_email(self.email):
             if delete:
                 VPNAccount.delete(self.email)
@@ -233,99 +241,73 @@ class User(db.Model, UserMixin):
         db.session.commit()
 
     @classmethod
-    def get_user_by_email(cls, email):
+    def get_user_by_email(cls, email) -> 'User':
         return cls.query.filter_by(email=email).first()
 
     @classmethod
     def get_user_by_id(cls, id):
         return cls.query.get(id)
 
-    def get_record(self):
-        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).first()
-
     def get_records(self, n):
-        return Record.query.filter_by(username=self.email).order_by(Record.radacctid.desc()).limit(n)
+        return Record.get_records(username=self.email, n=n)
 
     def generate_vpn_password(self):
         self.vpnpassword = random_string(8)
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute("""
-            select
-                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
-            from
-                radius.radacct
-            where
-                ((month(radius.radacct.acctstarttime) = month(now())) and
-                (year(radius.radacct.acctstarttime) = year(now()))) and
-                radius.radacct.username = %s;
-        """, self.email).first()
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        month_start, next_month_start = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $month_start AND time < $next_month_start
+        """, bind_params={'email': self.email, 'month_start': month_start, 'next_month_start': next_month_start}).get_points()
+        bytes = sum([i['bytes'] for i in r])
+        return sizeof_fmt(float(bytes))
 
     def last_month_traffic(self):
-        r = db.engine.execute("""
-            select
-                (sum((radius.radacct.acctinputoctets + radius.radacct.acctoutputoctets))) AS TrafficSum
-            from
-                radius.radacct
-            where
-                ((month(radius.radacct.acctstarttime) = month(now() - interval 1 month)) and
-                (year(radius.radacct.acctstarttime) = year(now() - interval 1 month))) and
-                radius.radacct.username = %s;
-        """, self.email).first()
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        last_month_start, month_start = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $last_month_start AND time < $month_start
+        """, bind_params={'email': self.email, 'last_month_start': last_month_start, 'month_start': month_start}).get_points()
+        bytes = sum([i['bytes'] for i in r])
+        return sizeof_fmt(float(bytes))
 
     @classmethod
     def all_month_traffic(cls):
-        r = db.engine.execute('select * from monthtraffic')
-        return {row[0]: row[1] for row in r}
+        month_start, next_month_start = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= $month_start AND time < $next_month_start GROUP BY "user"
+        """, bind_params={'month_start': month_start, 'next_month_start': next_month_start})
+        data = defaultdict(int)
+        for key in r.keys():
+            for i in r[key]:
+                data[key[1]['user']] += i['bytes']
+        return dict(data)
 
     @classmethod
     def all_last_month_traffic(cls):
-        r = db.engine.execute('select * from lastmonthtraffic')
-        return {row[0]: row[1] for row in r}
+        last_month_start, month_start = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE time >= $last_month_start AND time < $month_start GROUP BY "user"
+        """, bind_params={'last_month_start': last_month_start, 'month_start': month_start})
+        data = defaultdict(int)
+        for key in r.keys():
+            for i in r[key]:
+                data[key[1]['user']] += i['bytes']
+        return dict(data)
 
     def last_month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
-                radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(date_sub(now(), interval 1 month)) and
-                year(radius.radacct.acctstarttime) = year(date_sub(now(), interval 1 month)) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
-        lastmonth = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
-        days = calendar.monthrange(lastmonth.year, lastmonth.month)[1]
-        traffic = [(i, 0, 0) for i in range(1, days + 1)]
-        for row in r:
-            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        last_month_start, month_start = get_last_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $last_month_start AND time < $month_start GROUP BY time(1d)
+        """, bind_params={'email': self.email, 'last_month_start': last_month_start, 'month_start': month_start}).get_points()
+        traffic = [(item['time'], item['bytes']) for item in r if item['bytes'] is not None]
         return traffic
 
+
     def month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
-                radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(now()) and
-                year(radius.radacct.acctstarttime) = year(now()) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
-        now = datetime.datetime.now()
-        days = calendar.monthrange(now.year, now.month)[1]
-        traffic = [(i, 0, 0) for i in range(1, days + 1)]
-        for row in r:
-            traffic[int(row[0]) - 1] = (int(row[0]), row[1], row[2])
+        month_start, next_month_start = get_month_timestamps()
+        r = influxdb_conn.query(f"""
+        SELECT sum("bytes") AS bytes FROM light WHERE ("user" = $email) AND time >= $month_start AND time < $next_month_start GROUP BY time(1d)
+        """, bind_params={'email': self.email, 'month_start': month_start, 'next_month_start': next_month_start}).get_points()
+        traffic = [(item['time'], item['bytes']) for item in r if item['bytes'] is not None]
         return traffic
