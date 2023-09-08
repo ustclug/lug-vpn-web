@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set Docker image tag version
         id: image-name
         run: |
@@ -22,9 +22,9 @@ jobs:
               exit;;
           esac
 
-          : ${TAG:=latest}
-          echo "::set-output name=tag::$TAG"
-          echo "::set-output name=name::ustclug/lug-vpn-web:$TAG"
+          : ${TAG:=latest} > "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=ustclug/lug-vpn-web:$TAG" >> "$GITHUB_OUTPUT"
       - name: Build Docker image
         run: |
           IMAGE="${{ steps.image-name.outputs.name }}"
