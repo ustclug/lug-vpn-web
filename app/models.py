@@ -49,7 +49,7 @@ class VPNAccount(db.Model):
     def __init__(self, username, value, is_expiration=False):
         self.username = username
         self.value = value
-        self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
+        self.attribute = 'Expiration' if is_expiration else 'NT-Password'
         self.op = ':='
 
     def save(self):
@@ -58,7 +58,7 @@ class VPNAccount(db.Model):
 
     @classmethod
     def get_account_by_email(cls, email):
-        return cls.query.filter_by(username=email).filter_by(attribute='Cleartext-Password').first()
+        return cls.query.filter_by(username=email).filter_by(attribute='NT-Password').first()
 
     @classmethod
     def get_expiration_by_email(cls, email):
@@ -68,7 +68,7 @@ class VPNAccount(db.Model):
     def add(cls, email, password, expiration):
         account = cls.get_account_by_email(email)
         if not account:
-            account = cls(email, password)
+            account = cls(email, hash_nt_passwd(password.encode('utf-16le')))
             account.save()
             if not Group.get_group_by_email(email):
                 group = Group(email)
@@ -107,7 +107,7 @@ class VPNAccount(db.Model):
         if not account:
             raise Exception('account not found')
         else:
-            account.value = newpass
+            account.value = hash_nt_passwd(newpass.encode('utf-16le'))
         account.save()
 
 
@@ -185,6 +185,10 @@ class User(db.Model, UserMixin):
     @classmethod
     def get_users(cls):
         return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned')).order_by(cls.id).all()
+
+    def vpnpassword_invisible(self):
+        self.vpnpassword = "<secure>"
+        self.save()
 
     def pass_apply(self, is_long=False):
         self.status = 'pass'
