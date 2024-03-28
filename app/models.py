@@ -258,7 +258,7 @@ class User(db.Model, UserMixin):
                 radius.radacct
             where
                 radius.radacct.acctstarttime BETWEEN
-                DATE_FORMAT(NOW() ,'%Y-%m-01') AND
+                DATE_FORMAT(NOW() ,'%%Y-%%m-01') AND
                 LAST_DAY(NOW())
                 and radius.radacct.username = %s;
         """, self.email).first()
@@ -272,7 +272,7 @@ class User(db.Model, UserMixin):
                 radius.radacct
             where
                 radius.radacct.acctstarttime BETWEEN
-                DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01') AND
+                DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%%Y-%%m-01') AND
                 LAST_DAY(NOW() - INTERVAL 1 MONTH)
                 and radius.radacct.username = %s;
         """, self.email).first()
@@ -298,7 +298,7 @@ class User(db.Model, UserMixin):
                 radius.radacct
             where
                 radius.radacct.acctstarttime BETWEEN
-                DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01') AND
+                DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%%Y-%%m-01') AND
                 LAST_DAY(NOW() - INTERVAL 1 MONTH)
                 and radius.radacct.username = %s
             group by
