@@ -2,6 +2,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://radius:radius@localhost/radius?charse
 DEBUG = True
 SECRET_KEY = 'secret-key'
 SERVER_NAME = 'localhost:5000'
+SEND_FILE_MAX_AGE_DEFAULT = 3600
 
 MAIL_ENABLE = False
 MAIL_SERVER = 'localhost'
