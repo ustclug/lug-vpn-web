@@ -90,6 +90,8 @@ def login():
                 flash('Email not confirmed. Please recover your account at the bottom of this page.', 'error')
             else:
                 login_user(user)
+                if user.status == 'pass':
+                    user.vpnpassword_invisible()
                 return redirect(url_for('index'))
     return render_template('login.html', form=form)
 
@@ -146,6 +148,8 @@ def cancel():
 @app.route('/logout/', methods=['POST'])
 @login_required
 def logout():
+    if current_user.status == 'pass':
+        current_user.vpnpassword_invisible()
     logout_user()
     return redirect(url_for('login'))
 
