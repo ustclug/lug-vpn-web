@@ -1,7 +1,12 @@
 import random
 import string
 import datetime
+import hashlib
+from base64 import b64encode
 
+def hash_nt_passwd(passwd_utf16le):
+    nt_password = b64encode(hashlib.new('md4', passwd_utf16le).digest())
+    return nt_password
 
 def random_string(N):
     return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for i in range(N))
