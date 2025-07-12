@@ -46,15 +46,19 @@ class VPNAccount(db.Model):
     op = db.Column(db.CHAR(2), default='==')
     value = db.Column(db.String(253))
 
-    def __init__(self, username, value, is_expiration=False):
+    def __init__(self, username, value, is_expiration=False, is_traffic=False):
         self.username = username
         self.value = value
-        self.attribute = 'Expiration' if is_expiration else 'Cleartext-Password'
+        self.attribute = 'Expiration' if is_expiration else ('Max-Monthly-Traffic' if is_traffic else 'Cleartext-Password')
         self.op = ':='
 
     def save(self):
         db.session.add(self)
         db.session.commit()
+
+    @classmethod
+    def get_quota_by_email(cls, email):
+        return cls.query.filter_by(username=email).filter_by(attribute="Max-Monthly-Traffic").first()
 
     @classmethod
     def get_account_by_email(cls, email):
@@ -87,6 +91,21 @@ class VPNAccount(db.Model):
         expiration_row.save()
 
     @classmethod
+    def update_quota(cls, email, quota):
+        quota_row = cls.get_quota_by_email(email)
+        if quota_row and not quota:
+            db.session.delete(quota_row)
+            db.session.commit()
+            return
+        elif not quota:
+            return
+        elif not quota_row:
+            quota_row = cls(email, str(quota), False, True);
+        else:
+            quota_row.value = str(quota)
+        quota_row.save()
+
+    @classmethod
     def delete(cls, email):
         account = cls.get_account_by_email(email)
         if account:
@@ -97,6 +116,9 @@ class VPNAccount(db.Model):
             group = Group.get_group_by_email(email)
             if group:
                 db.session.delete(group)
+            quota = cls.get_quota_by_email(email)
+            if quota:
+                db.session.delete(quota)
             db.session.commit()
         else:
             raise Exception('account not found')
@@ -142,6 +164,16 @@ class User(db.Model, UserMixin):
             self.vpnpassword = VPNAccount.get_account_by_email(self.email).value
         self.active = True
         self.save()
+
+    def set_quota(self, quota):
+        if VPNAccount.get_account_by_email(self.email):
+            VPNAccount.update_quota(self.email, quota)
+
+    def get_quota(self):
+        v = VPNAccount.get_quota_by_email(self.email)
+        if v == None:
+            return None
+        return int(v.value)
 
     def set_password(self, password):
         self.salt = random_string(10)

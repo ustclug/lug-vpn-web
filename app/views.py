@@ -320,8 +320,11 @@ def edit(id):
             user.name = form['name'].data
             user.studentno = form['studentno'].data
             user.phone = form['phone'].data
+            user.set_quota(form['quota'].data)
             user.save()
             return redirect(url_for('manage_users'))
+    else:
+        form['quota'].data = user.get_quota()
     return render_template('edit.html', form=form, email=user.email)
 
 

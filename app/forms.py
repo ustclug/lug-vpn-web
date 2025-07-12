@@ -1,7 +1,19 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, BooleanField, HiddenField
+from wtforms import StringField, PasswordField, IntegerField, SubmitField, TextAreaField, BooleanField, HiddenField
 from wtforms.validators import InputRequired, Email, EqualTo, Length
 
+
+class OptionalIntegerField(IntegerField):
+    def process_formdata(self, valuelist):
+        if valuelist:
+            if valuelist[0].strip() == '':
+                self.data = None
+            else:
+                try:
+                    self.data = int(valuelist[0])
+                except (ValueError, TypeError):
+                    self.data = None;
+                    raise ValueError(self.gettext('Not a valid integer value'))
 
 class RegisterForm(FlaskForm):
     email = StringField('USTC Email', [InputRequired(), Email(), Length(max=63)])
@@ -71,4 +83,5 @@ class EditForm(FlaskForm):
     name = StringField('Name')
     studentno = StringField('Student/Staff No.')
     phone = StringField('Phone')
+    quota = OptionalIntegerField('Quota', filters=[lambda x: x or None], render_kw={"placeholder":"default"})
     submit = SubmitField('Save')
