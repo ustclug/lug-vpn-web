@@ -41,8 +41,14 @@
     <h3>
       <span class="label label-success">Your VPN application has passed</span>
     </h3>
+    {% if (user.get_quota() or 104857600) * 1024 < user.month_traffic() %}
+    <h3>
+      <span class="label label-warning">Quota Exeeded! Your service may be paused.</span>
+    </h3>
+    {% endif %}
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
+    <p>Usage/Quota: {{user.month_traffic()|filesizeformat(True)}}/{{((user.get_quota() or 104857600)*1024)|filesizeformat(True)}}</p>
     {{ util.form_button(url_for('changevpnpassword'),'Regenerate password',class='btn btn-sm btn-warning regen') }}
     <p></p>
     <p>Expiration date: <code>{{user.expiration}}</code></p>

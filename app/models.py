@@ -293,7 +293,7 @@ class User(db.Model, UserMixin):
                 LAST_DAY(NOW())
                 and radius.radacct.username = %s;
         """, self.email).first()
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        return float(r[0]) if r and r[0] else 0
 
     def last_month_traffic(self):
         r = db.engine.execute("""
@@ -307,7 +307,7 @@ class User(db.Model, UserMixin):
                 LAST_DAY(NOW() - INTERVAL 1 MONTH)
                 and radius.radacct.username = %s;
         """, self.email).first()
-        return sizeof_fmt(float(r[0]) if r and r[0] else 0)
+        return float(r[0]) if r and r[0] else 0
 
     @classmethod
     def all_month_traffic(cls):
