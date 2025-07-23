@@ -324,7 +324,7 @@ def edit(id):
             user.save()
             return redirect(url_for('manage_users'))
     else:
-        form['quota'].data = user.get_quota()
+        form['quota'].data = str(user.get_quota()) + 'KiB' if user.get_quota() else None
     return render_template('edit.html', form=form, email=user.email)
 
 

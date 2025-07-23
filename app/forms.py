@@ -1,18 +1,23 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, IntegerField, SubmitField, TextAreaField, BooleanField, HiddenField
 from wtforms.validators import InputRequired, Email, EqualTo, Length
+from re import fullmatch
 
 
-class OptionalIntegerField(IntegerField):
+class OptionalFilesizeField(StringField):
+    sizemultiplier = {"gib":1048576, "g":1048576, "mib":1024, "m":1024, "kib":1, "k":1}
+    
     def process_formdata(self, valuelist):
         if valuelist:
             if valuelist[0].strip() == '':
                 self.data = None
             else:
-                try:
-                    self.data = int(valuelist[0])
-                except (ValueError, TypeError):
-                    self.data = None;
+                value = valuelist[0].lower()
+                mm = fullmatch(r"^(\d+)((g|m|k)(ib)?)?$", value)
+                if mm:
+                    self.data = int(mm.group(1)) * (self.sizemultiplier[mm.group(2)] if mm.group(2) else 1)
+                else:
+                    self.data = None
                     raise ValueError(self.gettext('Not a valid integer value'))
 
 class RegisterForm(FlaskForm):
@@ -83,5 +88,5 @@ class EditForm(FlaskForm):
     name = StringField('Name')
     studentno = StringField('Student/Staff No.')
     phone = StringField('Phone')
-    quota = OptionalIntegerField('Quota', filters=[lambda x: x or None], render_kw={"placeholder":"default"})
+    quota = OptionalFilesizeField('Quota', filters=[lambda x: x or None], render_kw={"placeholder":"default: 100GiB"})
     submit = SubmitField('Save')
