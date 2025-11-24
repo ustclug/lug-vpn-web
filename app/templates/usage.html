@@ -60,6 +60,14 @@
     <li>Allow the VPN configuration request, which need your PIN code.</li>
     <li>Enjoy.</li>
 </ol>
+<h4 id="shell">Shell</h4>
+<ol type="1">
+    <li>Run commands (https):</li>
+    <li><code>export http_proxy="https://{{escaped_email}}:{{user.vpnpassword}}@light.ustclug.org:29980/"; export https_proxy=$http_proxy;</code></li>
+    <li>Or (http):</li>
+    <li><code>export http_proxy="http://{{escaped_email}}:{{user.vpnpassword}}@light.ustclug.org:29979/"; export https_proxy=$http_proxy;</code></li>
+    <li>Enjoy.</li>
+</ol>
 <h4 id="system-proxy-settings">System proxy settings</h4>
 <p>Please refer to <a href="https://us-somesky.rhcloud.com/gfw/pac-proxy-tutorial.html">the
         page</a>.</p>
