@@ -1,7 +1,11 @@
 SQLALCHEMY_DATABASE_URI = 'mysql+mysqldb://radius:radius@localhost/radius?charset=utf8'
 DEBUG = True
 SECRET_KEY = 'secret-key'
-SERVER_NAME = 'localhost:5000'
+# Optional: do NOT set this unless you need Flask to enforce a fixed host.
+# If set, it MUST match the incoming Host header, otherwise Flask returns 404.
+# SERVER_NAME = 'localhost:5000'
+# SERVER_NAME = 'internet.zlix.tech'
+SEND_FILE_MAX_AGE_DEFAULT = 3600
 
 MAIL_ENABLE = False
 MAIL_SERVER = 'localhost'

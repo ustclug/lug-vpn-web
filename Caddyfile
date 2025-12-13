@@ -1,0 +1,6 @@
+internet.zlix.tech {
+	tls internet@ustc.global
+	reverse_proxy web:5000
+}
+
+
