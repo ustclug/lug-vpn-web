@@ -151,8 +151,14 @@ docker compose --profile vpn --profile proxy up -d
 在 `.env` 中设置 `ACME_EMAIL`，然后执行：
 
 ```bash
-docker compose --profile acme run --rm acme-sh --register-account -m "$ACME_EMAIL"
+docker compose --profile acme run --rm acme-sh \
+  --register-account --server letsencrypt \
+  -m "$ACME_EMAIL"
 ```
+
+### 使用 Pebble 进行 ACME 测试（`acme-test`）
+
+Pebble 测试流程已移动到单独文档：`docs/acme-pebble.md`。
 
 ### 申请 + 安装（推荐：DNS-01）
 
@@ -161,12 +167,12 @@ docker compose --profile acme run --rm acme-sh --register-account -m "$ACME_EMAI
 ```bash
 # 1) 申请（按你的 DNS 服务商替换 --dns <plugin> 与相应凭据）
 docker compose --profile acme run --rm acme-sh \
-  --issue --dns <your_dns_plugin> \
+  --issue --server letsencrypt --dns <your_dns_plugin> \
   -d vpn.zlix.tech -d light.zlix.tech
 
 # 2) 安装：ocserv
 docker compose --profile acme run --rm acme-sh \
-  --install-cert -d vpn.zlix.tech \
+  --install-cert --server letsencrypt -d vpn.zlix.tech \
   --fullchain-file /target/ocserv-pki/public/server.crt \
   --key-file /target/ocserv-pki/private/server.key
 
@@ -176,7 +182,7 @@ docker compose --profile vpn restart ocserv
 
 # 3) 安装：light-server
 docker compose --profile acme run --rm acme-sh \
-  --install-cert -d light.zlix.tech \
+  --install-cert --server letsencrypt -d light.zlix.tech \
   --fullchain-file /target/light-ssl/server.crt \
   --key-file /target/light-ssl/server.key
 

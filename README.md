@@ -152,8 +152,14 @@ This repo provides an **`acme-sh` container** (profile `acme`) to issue and inst
 Set `ACME_EMAIL` in `.env`, then:
 
 ```bash
-docker compose --profile acme run --rm acme-sh --register-account -m "$ACME_EMAIL"
+docker compose --profile acme run --rm acme-sh \
+  --register-account --server letsencrypt \
+  -m "$ACME_EMAIL"
 ```
+
+### ACME testing with Pebble (`acme-test`)
+
+See `docs/acme-pebble.md`.
 
 ### Issue + install (recommended: DNS-01)
 
@@ -162,12 +168,12 @@ Because `caddy` binds **:80/:443**, DNS-01 is usually the simplest approach.
 ```bash
 # 1) Issue (replace --dns <plugin> and credentials per your DNS provider)
 docker compose --profile acme run --rm acme-sh \
-  --issue --dns <your_dns_plugin> \
+  --issue --server letsencrypt --dns <your_dns_plugin> \
   -d vpn.zlix.tech -d light.zlix.tech
 
 # 2) Install: ocserv
 docker compose --profile acme run --rm acme-sh \
-  --install-cert -d vpn.zlix.tech \
+  --install-cert --server letsencrypt -d vpn.zlix.tech \
   --fullchain-file /target/ocserv-pki/public/server.crt \
   --key-file /target/ocserv-pki/private/server.key
 
@@ -177,7 +183,7 @@ docker compose --profile vpn restart ocserv
 
 # 3) Install: light-server
 docker compose --profile acme run --rm acme-sh \
-  --install-cert -d light.zlix.tech \
+  --install-cert --server letsencrypt -d light.zlix.tech \
   --fullchain-file /target/light-ssl/server.crt \
   --key-file /target/light-ssl/server.key
 
