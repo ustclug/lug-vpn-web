@@ -92,3 +92,10 @@ ENV/
 
 # config
 config/default.py
+
+# SQL backup
+radius_dump.sql
+
+# env
+.env
+.env.*

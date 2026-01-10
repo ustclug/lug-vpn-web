@@ -1,16 +1,31 @@
-FROM smartentry/alpine:3.4-0.3.2
+# syntax=docker/dockerfile:1
 
-MAINTAINER Yifan Gao <docker@yfgao.com>
+FROM ghcr.io/astral-sh/uv:python3.13-alpine
 
-COPY docker $ASSETS_DIR
-
-COPY . /srv/lugvpn-web
-
-RUN smartentry.sh build
-
-EXPOSE 5000/tcp
+# Install system dependencies for mysqlclient
+RUN apk add --no-cache \
+    mariadb-connector-c \
+    tzdata \
+    && apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    mariadb-dev \
+    pkgconf
 
 WORKDIR /srv/lugvpn-web
 
-CMD ["python3", "run.py"]
+# Copy dependency files first for better layer caching
+COPY pyproject.toml uv.lock README.md ./
 
+# Install dependencies (without dev dependencies)
+RUN uv sync --frozen --no-dev \
+    && apk del .build-deps
+
+# Copy application code
+COPY app/ ./app/
+COPY run.py gunicorn.conf.py ./
+
+EXPOSE 5000/tcp
+
+# Use Gunicorn as production WSGI server
+CMD ["uv", "run", "gunicorn", "-c", "gunicorn.conf.py", "app:app"]

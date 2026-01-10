@@ -1,5 +1,6 @@
 from app import db
 from flask_login import UserMixin
+from sqlalchemy import text
 from app.utils import *
 import hashlib
 import datetime
@@ -194,40 +195,41 @@ class User(db.Model, UserMixin):
         self.save()
 
     def month_traffic(self):
-        r = db.engine.execute(
-            'select TrafficSum from monthtraffic where UserName = %s', self.email).first()
+        stmt = text("SELECT TrafficSum FROM monthtraffic WHERE UserName = :email")
+        r = db.session.execute(stmt, {"email": self.email}).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
     def last_month_traffic(self):
-        r = db.engine.execute(
-            'select TrafficSum from lastmonthtraffic where UserName = %s', self.email).first()
+        stmt = text("SELECT TrafficSum FROM lastmonthtraffic WHERE UserName = :email")
+        r = db.session.execute(stmt, {"email": self.email}).first()
         return sizeof_fmt(float(r[0]) if r else 0)
 
     @classmethod
     def all_month_traffic(cls):
-        r = db.engine.execute('select * from monthtraffic')
+        r = db.session.execute(text("SELECT * FROM monthtraffic"))
         return {row[0]: row[1] for row in r}
 
     @classmethod
     def all_last_month_traffic(cls):
-        r = db.engine.execute('select * from lastmonthtraffic')
+        r = db.session.execute(text("SELECT * FROM lastmonthtraffic"))
         return {row[0]: row[1] for row in r}
 
     def last_month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
+        stmt = text("""
+            SELECT
+                DAY(radius.radacct.acctstarttime) AS Day,
+                SUM(radius.radacct.acctinputoctets) AS Upload,
+                SUM(radius.radacct.acctoutputoctets) AS Download
+            FROM
                 radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(date_sub(now(),interval 1 month)) and
-                year(radius.radacct.acctstarttime) = year(date_sub(now(),interval 1 month)) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
+            WHERE
+                MONTH(radius.radacct.acctstarttime) = MONTH(DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND
+                YEAR(radius.radacct.acctstarttime) = YEAR(DATE_SUB(NOW(), INTERVAL 1 MONTH)) AND
+                radius.radacct.username = :email
+            GROUP BY
+                DAY(radius.radacct.acctstarttime)
+        """)
+        r = db.session.execute(stmt, {"email": self.email})
         lastmonth = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
         days = calendar.monthrange(lastmonth.year, lastmonth.month)[1]
         traffic = [(i, 0, 0) for i in range(1, days + 1)]
@@ -236,20 +238,21 @@ class User(db.Model, UserMixin):
         return traffic
 
     def month_traffic_by_day(self):
-        r = db.engine.execute("""
-            select
-                day(radius.radacct.acctstarttime) AS Day,
-                sum(radius.radacct.acctinputoctets) AS Upload,
-                sum(radius.radacct.acctoutputoctets) AS Download
-            from
+        stmt = text("""
+            SELECT
+                DAY(radius.radacct.acctstarttime) AS Day,
+                SUM(radius.radacct.acctinputoctets) AS Upload,
+                SUM(radius.radacct.acctoutputoctets) AS Download
+            FROM
                 radius.radacct
-            where
-                month(radius.radacct.acctstarttime) = month(now()) and
-                year(radius.radacct.acctstarttime) = year(now()) and
-                radius.radacct.username = %s
-            group by
-                day(radius.radacct.acctstarttime);
-        """, self.email)
+            WHERE
+                MONTH(radius.radacct.acctstarttime) = MONTH(NOW()) AND
+                YEAR(radius.radacct.acctstarttime) = YEAR(NOW()) AND
+                radius.radacct.username = :email
+            GROUP BY
+                DAY(radius.radacct.acctstarttime)
+        """)
+        r = db.session.execute(stmt, {"email": self.email})
         now = datetime.datetime.now()
         days = calendar.monthrange(now.year, now.month)[1]
         traffic = [(i, 0, 0) for i in range(1, days + 1)]

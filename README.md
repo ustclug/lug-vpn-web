@@ -268,4 +268,16 @@ Set `DOCKER_PLATFORM=linux/amd64` in `.env` to force emulation.
 
 ### Where is `config/default.py`?
 
-It is generated inside the `web` container at runtime by `docker-startup.sh`. On a non-Docker deployment, create it manually (start from `config/example.py`).
+Configuration is now loaded directly from environment variables by `app/config.py`. See `.env.example` for all available options.
+
+---
+
+## Development
+
+Install [uv](https://docs.astral.sh/uv/) and run:
+
+```bash
+uv sync                      # Install dependencies
+uv run pytest tests/ -v      # Run tests
+uv run python run.py         # Start dev server (requires MySQL)
+```

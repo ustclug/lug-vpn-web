@@ -6,7 +6,7 @@ services:
   # Edge: Caddy reverse proxy
   # ----------------------------
   caddy:
-    profiles: ["core"]
+    profiles: [ "core" ]
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
@@ -25,29 +25,28 @@ services:
   # Core: web + mysql + freeradius
   # ----------------------------
   web:
-    profiles: ["core"]
+    profiles: [ "core", "dev" ]
     build:
       context: .
     image: lugvpn-web:local
     restart: unless-stopped
-    # Use docker-startup.sh to generate config/default.py and wait for MySQL.
-    command: ["./docker-startup.sh"]
     environment:
-      # Used by docker-startup.sh to generate config/default.py
+      # Timezone (Alpine uses TZ directly)
       TZ: ${TZ:-Asia/Shanghai}
-      DEBUG: ${DEBUG:-True}
+      # Flask configuration (read by app/config.py)
+      DEBUG: ${DEBUG:-False}
       SECRET_KEY: ${SECRET_KEY:-change-me}
       # Optional. If set, MUST match the external Host header (otherwise Flask returns 404).
       SERVER_NAME: ${SERVER_NAME:-}
       SEND_FILE_MAX_AGE_DEFAULT: ${SEND_FILE_MAX_AGE_DEFAULT:-3600}
-
+      # Database connection
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
       MYSQL_PORT: ${MYSQL_PORT:-3306}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-radius}
       MYSQL_USER: ${MYSQL_USER:-radius}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-radius}
       MYSQL_CHARSET: ${MYSQL_CHARSET:-utf8}
-
+      # Mail
       MAIL_ENABLE: ${MAIL_ENABLE:-False}
       MAIL_SERVER: ${MAIL_SERVER:-mail}
       MAIL_PORT: ${MAIL_PORT:-25}
@@ -57,15 +56,25 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SENDER: ${MAIL_SENDER:-noreply@vpn.example.org}
       ADMIN_MAIL: ${ADMIN_MAIL:-vpn@example.org}
+      # Gunicorn
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-4}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
     ports:
       - "${WEB_PORT:-5000}:5000"
     networks:
       - appnet
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   mysql:
-    profiles: ["core"]
+    profiles: [ "core", "dev" ]
     image: mysql:5.7
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     restart: unless-stopped
@@ -76,18 +85,25 @@ services:
       MYSQL_USER: ${MYSQL_USER:-radius}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-radius}
     volumes:
-      - "${DATA_ROOT:-/srv/docker}/mysql/data:/var/lib/mysql"
-      - "${DATA_ROOT:-/srv/docker}/mysql/conf.d:/etc/mysql/conf.d"
+      - "mysql_data:/var/lib/mysql"
+      - "./radius_dump.sql:/docker-entrypoint-initdb.d/01-radius_dump.sql:ro"
+      - "./init-db.sql:/docker-entrypoint-initdb.d/02-init-db.sql:ro"
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     networks:
       - appnet
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-change-me}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   # ----------------------------
   # RADIUS
   # ----------------------------
   freeradius:
-    profiles: ["core"]
+    profiles: [ "core" ]
     image: ghcr.io/ustclug/docker-freeradius:nightly
     # Some images are amd64-only. On arm64 hosts, this forces emulation.
     platform: ${DOCKER_PLATFORM:-linux/amd64}
@@ -131,7 +147,7 @@ services:
   # - ${DATA_ROOT}/light/ssl  (proxy)
   # ----------------------------
   acme-sh:
-    profiles: ["acme"]
+    profiles: [ "acme" ]
     image: neilpang/acme.sh:latest
     restart: "no"
     environment:
@@ -149,7 +165,7 @@ services:
   # ACME test server: Pebble (testing only)
   # ----------------------------
   pebble:
-    profiles: ["acme-test"]
+    profiles: [ "acme-test" ]
     # Pebble images are published on GitHub Container Registry (GHCR).
     image: ghcr.io/letsencrypt/pebble:latest
     restart: unless-stopped
@@ -166,7 +182,7 @@ services:
   # VPN: ocserv
   # ----------------------------
   ocserv:
-    profiles: ["vpn"]
+    profiles: [ "vpn" ]
     image: gaoyifan/ocserv
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     restart: unless-stopped
@@ -193,7 +209,7 @@ services:
   # Proxy: "light-server"
   # ----------------------------
   light-server:
-    profiles: ["proxy"]
+    profiles: [ "proxy" ]
     image: ustclug/light-server
     platform: ${DOCKER_PLATFORM:-linux/amd64}
     restart: unless-stopped
@@ -211,5 +227,4 @@ services:
 volumes:
   caddy_data: {}
   caddy_config: {}
-
-
+  mysql_data: {}
