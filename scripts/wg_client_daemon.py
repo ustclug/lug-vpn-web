@@ -52,8 +52,8 @@ def listen_sse(server_url, token, wg_config, wg_dev, dry_run=False):
     log(f"Connecting to SSE stream at {url}")
     
     try:
-        # Use a longer timeout for the initial connection, but sseclient handles the stream
-        response = requests.get(url, stream=True, timeout=30)
+        # Use a 5-minute timeout for the stream
+        response = requests.get(url, stream=True, timeout=300)
         client = sseclient.SSEClient(response)
         
         for event in client.events():

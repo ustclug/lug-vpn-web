@@ -445,8 +445,14 @@ def server_config_event_stream():
         # Watch for changes in the database
         # Use simple polling of Max(updated_at) for robustness across Gunicorn workers
         last_updated = datetime.datetime.now()
+        last_heartbeat = time.time()
         
         while True:
+            # Heartbeat every 60 seconds
+            if time.time() - last_heartbeat > 60:
+                yield ": heartbeat\n\n"
+                last_heartbeat = time.time()
+
             with app.app_context():
                 # Check for any peer updates
                 latest_update = db.session.query(func.max(WireGuardPeer.updated_at)).scalar()
