@@ -432,7 +432,7 @@ def download_config(peer_number):
     if not peer:
         abort(404)
     response = make_response(peer.get_config())
-    response.headers['Content-Disposition'] = f'attachment; filename=peer{peer_number}.conf'
+    response.headers['Content-Disposition'] = f'attachment; filename=ustcaf-{peer_number}.conf'
     return response
 
 @app.route('/api/sse/server-config')

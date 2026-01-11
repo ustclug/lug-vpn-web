@@ -36,44 +36,53 @@ def get_public_key(private_key_str):
 
 def generate_client_config(private_key, address, dns=None):
     """Generate WireGuard client configuration."""
+    from wireguard_tools import WireguardConfig, WireguardPeer
     if dns is None:
         dns = Config.WG_DNS
     
     server_pub = get_public_key(Config.WG_SERVER_PRIVATE_KEY)
 
-    config = f"""[Interface]
-PrivateKey = {private_key}
-Address = {address}
-DNS = {dns}
+    config = WireguardConfig(private_key=private_key)
+    config.addresses.append(f"{address}/32")
+    if dns:
+        for d in dns.split(','):
+            config.dns_servers.append(d.strip())
 
-[Peer]
-PublicKey = {server_pub}
-AllowedIPs = {Config.WG_ALLOWED_IPS}
-Endpoint = {Config.WG_SERVER_ENDPOINT}
-PersistentKeepalive = 25
-"""
-    return config
+    peer = WireguardPeer(public_key=server_pub)
+    if ':' in Config.WG_SERVER_ENDPOINT:
+        host, port = Config.WG_SERVER_ENDPOINT.rsplit(':', 1)
+        peer.endpoint_host = host
+        peer.endpoint_port = int(port)
+    else:
+        peer.endpoint_host = Config.WG_SERVER_ENDPOINT
+
+    peer.persistent_keepalive = 25
+    if Config.WG_ALLOWED_IPS:
+        for ip in Config.WG_ALLOWED_IPS.split(','):
+            peer.allowed_ips.append(ip.strip())
+    config.add_peer(peer)
+
+    return config.to_wgconfig(wgquick_format=True)
 
 def generate_server_config(peers):
     """Generate WireGuard server configuration."""
-    lines = [
-        "[Interface]",
-        f"PrivateKey = {Config.WG_SERVER_PRIVATE_KEY}",
-        f"Address = {Config.WG_SERVER_INTERFACE_IP}",
-        f"ListenPort = {Config.WG_LISTEN_PORT}",
-        f"MTU = {Config.WG_MTU}",
-        ""
-    ]
+    from wireguard_tools import WireguardConfig, WireguardPeer
+    config = WireguardConfig(
+        private_key=Config.WG_SERVER_PRIVATE_KEY,
+        listen_port=Config.WG_LISTEN_PORT,
+        mtu=Config.WG_MTU
+    )
+    if Config.WG_SERVER_INTERFACE_IP:
+        config.addresses.append(Config.WG_SERVER_INTERFACE_IP)
     
-    for peer in peers:
-        lines.append("[Peer]")
-        lines.append(f"PublicKey = {peer.public_key}")
-        if peer.preshared_key:
-            lines.append(f"PresharedKey = {peer.preshared_key}")
-        lines.append(f"AllowedIPs = {peer.ip_address}/32")
-        lines.append("")
+    for p in peers:
+        peer = WireguardPeer(public_key=p.public_key)
+        if p.preshared_key:
+            peer.preshared_key = p.preshared_key
+        peer.allowed_ips.append(f"{p.ip_address}/32")
+        config.add_peer(peer)
         
-    return "\n".join(lines)
+    return config.to_wgconfig(wgquick_format=True)
 
 def generate_qr_code(config_data):
     """Generate a QR code and return it as a base64 encoded string."""
