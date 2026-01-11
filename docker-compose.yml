@@ -56,11 +56,23 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       MAIL_SENDER: ${MAIL_SENDER:-noreply@vpn.example.org}
       ADMIN_MAIL: ${ADMIN_MAIL:-vpn@example.org}
-      # Gunicorn
       GUNICORN_WORKERS: ${GUNICORN_WORKERS:-4}
       GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
+      # WireGuard
+      WG_SERVER_ENDPOINT: ${WG_SERVER_ENDPOINT:-vpn.example.org:51820}
+      WG_SERVER_PRIVATE_KEY: ${WG_SERVER_PRIVATE_KEY}
+      WG_LISTEN_PORT: ${WG_LISTEN_PORT:-51820}
+      WG_SERVER_INTERFACE_IP: ${WG_SERVER_INTERFACE_IP:-10.100.0.1/16}
+      WG_MTU: ${WG_MTU:-1420}
+      WG_ADDRESS_POOL: ${WG_ADDRESS_POOL:-10.100.0.0/16}
+      WG_DNS: ${WG_DNS:-1.1.1.1}
+      WG_ALLOWED_IPS: ${WG_ALLOWED_IPS:-0.0.0.0/0, ::/0}
+      SSE_TOKEN: ${SSE_TOKEN:-change-me-token}
     ports:
       - "${WEB_PORT:-5000}:5000"
+    volumes:
+      - ./app:/srv/lugvpn-web/app
+      - ./scripts:/srv/lugvpn-web/scripts
     networks:
       - appnet
     depends_on:
@@ -86,7 +98,6 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-radius}
     volumes:
       - "mysql_data:/var/lib/mysql"
-      - "./radius_dump.sql:/docker-entrypoint-initdb.d/01-radius_dump.sql:ro"
       - "./init-db.sql:/docker-entrypoint-initdb.d/02-init-db.sql:ro"
     ports:
       - "${MYSQL_PORT:-3306}:3306"
@@ -98,131 +109,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-
-  # ----------------------------
-  # RADIUS
-  # ----------------------------
-  freeradius:
-    profiles: [ "core" ]
-    image: ghcr.io/ustclug/docker-freeradius:nightly
-    # Some images are amd64-only. On arm64 hosts, this forces emulation.
-    platform: ${DOCKER_PLATFORM:-linux/amd64}
-    restart: unless-stopped
-    environment:
-      # Prefer talking to the mysql service over the compose network.
-      MYSQL_HOST: ${FREERADIUS_MYSQL_HOST:-mysql}
-      MYSQL_PORT: ${MYSQL_PORT:-3306}
-      # NOTE: ghcr.io/ustclug/docker-freeradius uses MYSQL_DATEBASE (typo) + MYSQL_USERNAME.
-      # We also set the conventional MYSQL_DATABASE/MYSQL_USER for clarity.
-      MYSQL_DATEBASE: ${MYSQL_DATABASE:-radius}
-      MYSQL_USERNAME: ${FREERADIUS_MYSQL_USER:-radius}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-radius}
-      MYSQL_USER: ${FREERADIUS_MYSQL_USER:-radius}
-      # Default to the mysql app-user password (MYSQL_PASSWORD), not the MySQL root password.
-      MYSQL_PASSWORD: ${FREERADIUS_MYSQL_PASSWORD:-radius}
-      # Optional: initialize the FreeRADIUS SQL schema (creates tables like `nas`).
-      # This requires MySQL admin creds (typically root) and runs only on first container init.
-      MYSQL_ADMIN_USERNAME: ${FREERADIUS_MYSQL_ADMIN_USERNAME:-root}
-      MYSQL_ADMIN_PASSWORD: ${FREERADIUS_MYSQL_ADMIN_PASSWORD:-change-me}
-      INIT_DATABASE_ENABLE: ${FREERADIUS_INIT_DATABASE_ENABLE:-true}
-      RADIUS_KEY: ${RADIUS_KEY:-change-me}
-      DEFAULT_MAX_MONTHLY_TRAFFIC: ${DEFAULT_MAX_MONTHLY_TRAFFIC:-31457280}
-      ENABLE_DEFAULT_MAX_MONTHLY_TRAFFIC: ${ENABLE_DEFAULT_MAX_MONTHLY_TRAFFIC:-true}
-    # Publish RADIUS ports on the host so host-network services (ocserv/light) can reach it at 127.0.0.1.
-    ports:
-      - "${RADIUS_AUTH_PORT:-1812}:1812/udp"
-      - "${RADIUS_ACCT_PORT:-1813}:1813/udp"
-      - "${RADIUS_COA_PORT:-3799}:3799/udp"
-    networks:
-      - appnet
-
-  # ----------------------------
-  # Let's Encrypt (acme.sh toolbox)
-  #
-  # This service is meant to be used via:
-  #   docker compose run --rm acme-sh <acme.sh args>
-  #
-  # It persists state under ${DATA_ROOT}/acme.sh and can install certs into:
-  # - ${DATA_ROOT}/ocserv/pki (vpn)
-  # - ${DATA_ROOT}/light/ssl  (proxy)
-  # ----------------------------
-  acme-sh:
-    profiles: [ "acme" ]
-    image: neilpang/acme.sh:latest
-    restart: "no"
-    environment:
-      TZ: ${TZ:-Asia/Shanghai}
-      ACME_EMAIL: ${ACME_EMAIL:-}
-      ACME_CA: ${ACME_CA:-letsencrypt}
-    volumes:
-      - "${DATA_ROOT:-/srv/docker}/acme.sh:/acme.sh"
-      - "${DATA_ROOT:-/srv/docker}/ocserv/pki:/target/ocserv-pki"
-      - "${DATA_ROOT:-/srv/docker}/light/ssl:/target/light-ssl"
-    networks:
-      - appnet
-
-  # ----------------------------
-  # ACME test server: Pebble (testing only)
-  # ----------------------------
-  pebble:
-    profiles: [ "acme-test" ]
-    # Pebble images are published on GitHub Container Registry (GHCR).
-    image: ghcr.io/letsencrypt/pebble:latest
-    restart: unless-stopped
-    ports:
-      - "${PEBBLE_ACME_PORT:-14000}:14000"
-      - "${PEBBLE_MGMT_PORT:-15000}:15000"
-    environment:
-      PEBBLE_VA_ALWAYS_VALID: "1"
-      PEBBLE_VA_NOSLEEP: "1"
-    networks:
-      - appnet
-
-  # ----------------------------
-  # VPN: ocserv
-  # ----------------------------
-  ocserv:
-    profiles: [ "vpn" ]
-    image: gaoyifan/ocserv
-    platform: ${DOCKER_PLATFORM:-linux/amd64}
-    restart: unless-stopped
-    network_mode: host
-    privileged: true
-    environment:
-      OCSERV_DEFAULT_DOMAIN: ${OCSERV_DEFAULT_DOMAIN:-vpn.example.org}
-      OCSERV_IPV4_NETWORK: ${OCSERV_IPV4_NETWORK:-192.168.160.0/24}
-      OCSERV_DNS1: ${OCSERV_DNS1:-1.1.1.1}
-      OCSERV_DNS2: ${OCSERV_DNS2:-1.0.0.1}
-      OCSERV_TCP_PORT: ${OCSERV_TCP_PORT:-13806}
-      OCSERV_UDP_PORT: ${OCSERV_UDP_PORT:-13806}
-      RADIUS_SERVER: ${RADIUS_SERVER:-127.0.0.1}
-      RADIUS_KEY: ${RADIUS_KEY:-change-me}
-    volumes:
-      - "${DATA_ROOT:-/srv/docker}/ocserv/pki:/etc/pki/ocserv"
-    logging:
-      driver: json-file
-      options:
-        max-size: "64m"
-        max-file: "3"
-
-  # ----------------------------
-  # Proxy: "light-server"
-  # ----------------------------
-  light-server:
-    profiles: [ "proxy" ]
-    image: ustclug/light-server
-    platform: ${DOCKER_PLATFORM:-linux/amd64}
-    restart: unless-stopped
-    network_mode: host
-    cap_add:
-      - NET_ADMIN
-    environment:
-      RADIUS_SERVER: ${RADIUS_SERVER:-127.0.0.1}
-      RADIUS_SECRET: ${RADIUS_SECRET:-change-me}
-      # With neatdns removed, default to Cloudflare.
-      SQUID_DNS: ${SQUID_DNS:-1.1.1.1}
-    volumes:
-      - "${DATA_ROOT:-/srv/docker}/light/ssl:/opt/ssl"
 
 volumes:
   caddy_data: {}

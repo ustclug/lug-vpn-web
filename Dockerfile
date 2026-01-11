@@ -23,6 +23,7 @@ RUN uv sync --frozen --no-dev \
 
 # Copy application code
 COPY app/ ./app/
+COPY scripts/ ./scripts/
 COPY run.py gunicorn.conf.py ./
 
 EXPOSE 5000/tcp

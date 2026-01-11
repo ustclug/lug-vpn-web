@@ -2,11 +2,14 @@ from app import *
 from app.forms import *
 from app.models import *
 from app.mail import *
-from flask import render_template, redirect, url_for, request, flash, abort
+from flask import render_template, redirect, url_for, request, flash, abort, make_response, Response, stream_with_context
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 import datetime
+import time
 from app.utils import *
+from app.wireguard import generate_qr_code
+from sqlalchemy import func
 import json
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -16,8 +19,24 @@ ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 def index():
     if not current_user.is_authenticated:
         return redirect(url_for('login'))
-    records = current_user.get_records(10)
-    return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt)
+    
+    # Ensure peers exist (auto-provision if missing, e.g. after migration)
+    if not current_user.peers and current_user.status == 'pass':
+        current_user.enable_vpn()
+    
+    peers = current_user.peers
+    peers.sort(key=lambda x: x.peer_number)
+    peer_data = []
+    for p in peers:
+        config = p.get_config()
+        qr = generate_qr_code(config)
+        peer_data.append({
+            'number': p.peer_number,
+            'config_url': url_for('download_config', peer_number=p.peer_number),
+            'qr_code': qr
+        })
+        
+    return render_template('index.html', user=current_user, peers=peer_data)
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -159,11 +178,9 @@ def manage():
     inactive_users = User.get_inactive()
     users = User.get_users()
     rejected_users = User.get_rejected()
-    all_month_traffic = User.all_month_traffic()
-    all_last_month_traffic = User.all_last_month_traffic()
+    # Removed traffic stats
     return render_template('manage.html', applying_users=applying_users, users=users, rejected_users=rejected_users,
-                           inactive_users=inactive_users, all_month_traffic=all_month_traffic,
-                           all_last_month_traffic=all_last_month_traffic)
+                           inactive_users=inactive_users)
 
 
 @app.route('/create/', methods=['POST', 'GET'])
@@ -200,10 +217,9 @@ def pass_(id):
     if user.status in ['applying', 'reject']:
         user.pass_apply()
         html = 'Username: ' + user.email + \
-               '<br>Password: ' + user.vpnpassword + \
                '<br>Please login to <a href="' + \
                url_for('index', _external=True) + \
-               '">VPN apply website</a> for detail.'
+               '">VPN apply website</a> to get your WireGuard configuration.'
         send_mail('Your VPN application has passed', html, user.email)
     return redirect(url_for('manage'))
 
@@ -319,30 +335,6 @@ def activate(id):
     return redirect(url_for('manage'))
 
 
-@app.route('/changevpnpassword/', methods=['POST', 'GET'])
-@login_required
-def changevpnpassword():
-    if current_user.status == 'pass':
-        form = ChangeVPNPasswordForm()
-        if request.method == 'POST':
-            if form.validate_on_submit():
-                password = form['password'].data
-                current_user.change_vpn_password(password)
-                current_user.save()
-                flash('VPN password successfully changed')
-                return redirect(url_for('index'))
-        return render_template('changevpnpassword.html', form=form)
-    return redirect(url_for('index'))
-
-
-@app.route('/generatevpnpassword/', methods=['POST'])
-@login_required
-def generatevpnpassword():
-    if current_user.status == 'pass':
-        current_user.change_vpn_password()
-    return redirect(url_for('index'))
-
-
 @app.route('/changepassword/', methods=['POST', 'GET'])
 @login_required
 def changepassword():
@@ -415,31 +407,80 @@ def resetpassword():
     return render_template('resetpassword.html', form=form)
 
 
-@app.route('/traffic/')
-@login_required
-def traffic():
-    if request.args.get('id'):
-        if current_user.admin:
-            user = User.get_user_by_id(request.args.get('id'))
-        else:
-            abort(403)
-    else:
-        user = current_user
-    last_month_traffic = user.last_month_traffic_by_day()
-    month_traffic = user.month_traffic_by_day()
-    last_month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in last_month_traffic]
-    last_month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in last_month_traffic]
-    month_upload = [{'x': day, 'y': float(upload) / 1048576} for day, upload, _ in month_traffic]
-    month_download = [{'x': day, 'y': float(download) / 1048576} for day, _, download in month_traffic]
-    return json.dumps({'last_month_upload': last_month_upload, 'last_month_download': last_month_download,
-                       'month_upload': month_upload, 'month_download': month_download})
-
-
 @app.route('/profile/<int:id>')
 @login_required
 def profile(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    records = user.get_records(10)
-    return render_template('profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt)
+    # Traffic records removed
+    return render_template('profile.html', user=user)
+
+# WireGuard Enpoints
+
+@app.route('/api/wireguard/regenerate', methods=['POST'])
+@login_required
+def regenerate_keys():
+    current_user.regenerate_vpn_config()
+    flash('WireGuard keys regenerated successfully.')
+    return redirect(url_for('index'))
+
+@app.route('/api/wireguard/config/<int:peer_number>')
+@login_required
+def download_config(peer_number):
+    peer = next((p for p in current_user.peers if p.peer_number == peer_number), None)
+    if not peer:
+        abort(404)
+    response = make_response(peer.get_config())
+    response.headers['Content-Disposition'] = f'attachment; filename=peer{peer_number}.conf'
+    return response
+
+@app.route('/api/sse/server-config')
+def server_config_event_stream():
+    token = request.args.get('token')
+    if token != app.config['SSE_TOKEN']:
+        abort(403)
+        
+    def event_stream():
+        # Watch for changes in the database
+        # Use simple polling of Max(updated_at) for robustness across Gunicorn workers
+        last_updated = datetime.datetime.now()
+        
+        while True:
+            with app.app_context():
+                # Check for any peer updates
+                latest_update = db.session.query(func.max(WireGuardPeer.updated_at)).scalar()
+                
+                # Also check created_at in case of new peers
+                latest_create = db.session.query(func.max(WireGuardPeer.created_at)).scalar()
+                
+                changed = False
+                if latest_update and latest_update > last_updated:
+                    last_updated = latest_update
+                    changed = True
+                elif latest_create and latest_create > last_updated:
+                    last_updated = latest_create
+                    changed = True
+                    
+                if changed:
+                    # Retrieve full config dump? 
+                    # The daemon will likely pull the config separately.
+                    # We just send a notification event.
+                    yield f"data: config_update\n\n"
+            
+            time.sleep(5)
+            
+    return Response(stream_with_context(event_stream()), mimetype="text/event-stream")
+
+@app.route('/api/wireguard/server-config')
+def server_config():
+    token = request.args.get('token')
+    if token != app.config['SSE_TOKEN']:
+        abort(403)
+    
+    # Return full server configuration
+    peers = WireGuardPeer.query.all()
+    from app.wireguard import generate_server_config
+    config_text = generate_server_config(peers)
+    
+    return Response(config_text, mimetype="text/plain")

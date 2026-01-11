@@ -6,72 +6,70 @@
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
-  <h1>{{ self.title() }}</h1>
-  <div class="row">
-    <h3>New Applications ({{applying_users|length}})</h3>
-    <ul class="list-group" id="applying_list">
-    {% for u in applying_users %}
-    <li class="list-group-item">
-      <h4 class="list-group-item-heading">{{ u.email }}</h4>
-      <p class="list-group-item-text">
-      <p>
-      Name: {{u.name}}<br>
-      Student NO.: {{u.studentno}}<br>
-      Phone: {{u.phone}}<br>
-      Apply reason: {{u.reason}}<br>
-      Apply time: {{u.applytime}}<br>
-      Location: {{ u.location }}<br>
-      {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
-      </p>
-    </li>
-    {% endfor %}
-    </ul>
-    <h3>
-        All Users
-        ({{users|length}})
-        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
-    </h3>
-    <table class="table" id="all_users">
-        <thead>
-            <tr>
-                <th>Student/Staff No.</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Last month traffic</th>
-                <th>Month traffic</th>
-                <th>Operation</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for u in users %}
-            <tr>
-                <td>{{u.studentno}}</td>
-                <td>{{u.name}}</td>
-                <td>{{u.email}}</td>
-                <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
-                <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
-                <td>
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
-                    {% if u.admin %}
-                        {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm') }}
-                    {% else %}
+    <h1>{{ self.title() }}</h1>
+    <div class="row">
+        <h3>New Applications ({{applying_users|length}})</h3>
+        <ul class="list-group" id="applying_list">
+            {% for u in applying_users %}
+            <li class="list-group-item">
+                <h4 class="list-group-item-heading">{{ u.email }}</h4>
+                <p class="list-group-item-text">
+                <p>
+                    Name: {{u.name}}<br>
+                    Student NO.: {{u.studentno}}<br>
+                    Phone: {{u.phone}}<br>
+                    Apply reason: {{u.reason}}<br>
+                    Apply time: {{u.applytime}}<br>
+                    Location: {{ u.location }}<br>
+                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
+                    <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+                </p>
+            </li>
+            {% endfor %}
+        </ul>
+        <h3>
+            All Users
+            ({{users|length}})
+            <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
+        </h3>
+        <table class="table" id="all_users">
+            <thead>
+                <tr>
+                    <th>Student/Staff No.</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{u.studentno}}</td>
+                    <td>{{u.name}}</td>
+                    <td>{{u.email}}</td>
+                    <td>
+                        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View
+                            details</a>
+                        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
+                        {% if u.admin %}
+                        {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm')
+                        }}
+                        {% else %}
                         {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-default btn-sm') }}
-                    {% endif %}
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
-                    {% if u.status=='banned' %}
+                        {% endif %}
+                        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
+                        {% if u.status=='banned' %}
                         {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
-                    {% else %}
+                        {% else %}
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
-                    {% endif %}
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <h3>Users with pending email confirmation</h3>
+        <h3>Users with pending email confirmation</h3>
         <table class="table" id="inactive_users">
             <thead>
                 <tr>
@@ -83,44 +81,46 @@
                 {% for u in inactive_users %}
                 <tr>
                     <td>{{u.email}}</td>
-                    <td>{{ util.form_button(url_for('activate',id=u.id),'Activate',class='btn btn-warning btn-sm') }}</td>
+                    <td>{{ util.form_button(url_for('activate',id=u.id),'Activate',class='btn btn-warning btn-sm') }}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-    <h3>Rejected Users ({{rejected_users|length}})</h3>
-    <table class="table" id="rejected_users">
-        <thead>
-            <tr>
-                <th>Student NO.</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Reject reason</th>
-                <th>Operation</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for u in rejected_users %}
-            <tr>
-                <td>{{u.studentno}}</td>
-                <td>{{u.name}}</td>
-                <td>{{u.email}}</td>
-                <td>{{u.rejectreason}}</td>
-                <td>
-                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
-                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-  </div>
+        <h3>Rejected Users ({{rejected_users|length}})</h3>
+        <table class="table" id="rejected_users">
+            <thead>
+                <tr>
+                    <th>Student NO.</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Reject reason</th>
+                    <th>Operation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in rejected_users %}
+                <tr>
+                    <td>{{u.studentno}}</td>
+                    <td>{{u.name}}</td>
+                    <td>{{u.email}}</td>
+                    <td>{{u.rejectreason}}</td>
+                    <td>
+                        {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                        <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit
+                            reason</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
-<script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
+<link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css' )}} />
+<script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js' )}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 {% endblock %}

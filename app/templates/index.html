@@ -24,312 +24,53 @@
     <h3>
         <span class="label label-success">Your application has passed</span>
     </h3>
-    <p>Username: <code>{{user.email}}</code></p>
-    <p>Password: <code>{{user.vpnpassword}}</code></p>
-    {{ util.form_button(url_for('generatevpnpassword'),'Regenerate random VPN password',class='btn btn-sm btn-warning') }}
-    <a class="btn btn-sm btn-danger" type="button" href="{{ url_for ('changevpnpassword') }}">Change VPN password</a>
-    <p><em>P.S.</em> DO <strong>NOT</strong> share your account!</p>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h4>WireGuard Configuration</h4>
+            <p>Please download the configuration file or scan the QR code to set up your WireGuard client.</p>
+
+            <form action="{{ url_for('regenerate_keys') }}" method="post"
+                onsubmit="return confirm('Are you sure you want to regenerate all your keys? Existing connections will stop working.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit" class="btn btn-warning">Regenerate All Keys</button>
+            </form>
+            <br>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for peer in peers %}
+        <div class="col-md-6">
+            <div class="panel panel-default">
+                <div class="panel-heading">Client #{{ peer.number }} ({{ peer.config_url.split('/')[-1] }})</div>
+                <div class="panel-body text-center">
+                    <img src="data:image/png;base64,{{ peer.qr_code }}" alt="WireGuard QR Code"
+                        style="max-width: 100%; height: auto;">
+                    <br><br>
+                    <a href="{{ peer.config_url }}" class="btn btn-primary btn-block">Download Config</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 
     <h3>Support us</h3>
     <p>USTC Alumni Foundation (USTCAF) is a non-profit organization focused on supporting USTC alumni worldwide.
-    We rely on generous donations from our fellow alumni and friends to cover our infrastructure and maintenance costs
-    for running our Internet Services. If you find our services useful, please consider supporting us
-    by donating to USTCAF in the following way:</p>
+        We rely on generous donations from our fellow alumni and friends to cover our infrastructure and maintenance
+        costs
+        for running our Internet Services. If you find our services useful, please consider supporting us
+        by donating to USTCAF in the following way:</p>
     <ul>
         <li>Go to our <a href="https://www.ustcaf.org/donate/donate.php">donation webpage</a>;</li>
         <li>After login/registration, select "<b>AFund</b>" under "子基金";</li>
         <li>Under "注释", put "Internet";</li>
         <li>Complete donation following instructions.</li>
     </ul>
-    <p>Thank you for using our services and we appreciate any support from you! If you have any questions, please contact
-    us at <a href="mailto:internet@ustc.global">internet@ustc.global</a></p>
+    <p>Thank you for using our services and we appreciate any support from you! If you have any questions, please
+        contact
+        us at <a href="mailto:internet@ustc.global">internet@ustc.global</a></p>
 
-    <h3>Light HTTP2/TLS proxy (recommended)</h3>
-    <ul>
-        <li>PAC: <code>http://internet.zlix.tech/static/https.pac</code></li>
-        <li>Host: <code>light.zlix.tech</code></li>
-        <li>Port: <code>29980</code></li>
-    </ul>
-    <h4>Usage</h4>
-    <div class="panel-group" id="light-usage">
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-chrome">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-chrome" aria-expanded="true" aria-controls="collapse-chrome">
-                        Chrome+SwitchyOmega
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-chrome" class="panel-collapse collapse in" aria-labelledby="heading-chrome" data-parent="#light-usage">
-                <div class="panel-body">
-                    <ol>
-                        <li>Install <a href='https://www.google.com/chrome/'>Google Chrome</a></li>
-                        <li>Install plugin <a href='https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif'>SwitchyOmega</a></li>
-                        <li>SwitchyOmega Option -&gt; New profile -&gt; PAC Profile -&gt; create</li>
-                        <li>Fill <code>http://internet.zlix.tech/static/https.pac</code> in &quot;PAC URL&quot;</li>
-                        <li>Click &quot;Download Profile Now&quot;</li>
-                        <li>Click the lock-like icon (on the right of &quot;PAC Script&quot;).</li>
-
-                        <li>Enter your username and password</li>
-                        <li>Click &quot;Apply changes&quot; button</li>
-                        <li>Close SwitchyOmega Option Page</li>
-                        <li>Choose the profile you created above</li>
-                        <li>Enjoy</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-light-ios">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-light-ios" aria-expanded="true" aria-controls="collapse-light-ios">
-                        iOS device (iOS 9.3 or later)
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-light-ios" class="panel-collapse collapse" aria-labelledby="heading-light-ios" data-parent="#light-usage">
-                <div class="panel-body">
-                    <ol>
-                        <li>Install <strong>Wingy</strong> via App Store</li>
-                        <li>Open Wingy -&gt; Configurations -&gt; Add New Configuration -&gt; Http(s)</li>
-                        <li>Enable Https</li>
-                        <li>Host <code>vpn.zlix.tech</code></li>
-                        <li>Port <code>29980</code></li>
-                        <li>Enable Auth, and fill in your username and password above</li>
-                        <li>ProxyRule Auto Mode. (P.S. If something went wrong, please try Global Mode)</li>
-                        <li>click Done</li>
-                        <li>Connect to server. (P.S. the biggest button on the first page)</li>
-                        <li>Allow the VPN configuration request, which need your PIN code.</li>
-                        <li>enjoy</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-light-telegram">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-light-telegram" aria-expanded="true" aria-controls="collapse-light-telegram">
-                        Telegram Messenger
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-light-telegram" class="panel-collapse collapse" aria-labelledby="heading-light-telegram" data-parent="#light-usage">
-                <div class="panel-body">
-                    <ol>
-                        <li>Install and Open your <em>Telegram Messenger</em> App</li>
-                        <li>Open Settings -&gt;  Data and Storage -&gt; Use Proxy</li>
-                        <li>Check <em>SOCKS5</em> protocol</li>
-                        <li>Fill related information:</li>
-                    </ol>
-                    <ul>
-                        <li>Server: vpn.zlix.tech</li>
-                        <li>Port: 6626</li>
-                        <li>Username, Password (from this page)</li>
-                        <li>Use for calls: not recommended</li>
-                    </ul>
-                    <ol start="5">
-                        <li>Save and enjoy!</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <h3>VPN</h3>
-    <p>Server address: <b>vpn.zlix.tech</b></p>
-    <p>OpenVPN config file: <a href="{{url_for('static',filename='vpn.ustcaf.ovpn')}}">Download</a></p>
-
-    <h4>Usage</h4>
-    <div class="panel-group" id="vpn-usage">
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-vpn-ios">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-ios" aria-expanded="true" aria-controls="collapse-vpn-ios">
-                        iOS
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-vpn-ios" class="panel-collapse collapse in" aria-labelledby="heading-vpn-ios" data-parent="#vpn-usage">
-                <div class="panel-body">
-                    <h5>OpenVPN</h5>
-                    <ol>
-                        <li>OpenVPN已在中国App Store下架。请先注册一个非中国区的Apple ID（比如美国区）。</li>
-                        <li>使用这个账号登录App Store</li>
-                        <li>在App Store中搜索并下载OpenVPN</li>
-                        <li>打开配置文件，打开程序选择OpenVPN</li>
-                        <li>打开OpenVPN，点击+号，确认导入配置</li>
-                        <li>输入用户名密码，连接。</li>
-                    </ol>
-
-                    <h5>AnyConnect</h5>
-                    <ol>
-                        <li>从App Store安装“Cisco AnyConnect"</li>
-                        <li>打开App ”AnyConnect"</li>
-                        <li>选择Connections -&gt; Add VPN Connection…</li>
-                        <li>Decription输入自定义名称</li>
-                        <li>Server Address填写vpn.zlix.tech:13806</li>
-                        <li>Advanced -&gt; Certificate 选择 Disable</li>
-                        <li>保存VPN配置并返回首页</li>
-                        <li>连接VPN，根据提示输入用户名密码</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-vpn-macos">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-macos" aria-expanded="true" aria-controls="collapse-vpn-macos">
-                        macOS
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-vpn-macos" class="panel-collapse collapse" aria-labelledby="heading-vpn-macos" data-parent="#vpn-usage">
-                <div class="panel-body">
-                    <h5>OpenVPN</h5>
-                    <ol>
-                        <li>下载并安装<a href="https://ftp.ustclug.org/software/openvpn/">TunnelBlick</a></li>
-                        <li>下载并打开（双击）配置文件</li>
-                        <li>输入管理员密码，确认导入配置文件</li>
-                        <li>使用TunnelBlick连接到OpenVPN服务器（需要输入登录凭证）</li>
-                    </ol>
-
-                    <h5>AnyConnect</h5>
-                    <ol>
-                        <li>下载并安装<a href="https://ftp.ustclug.org/software/anyconnect/">AnyConnect Client</a></li>
-                        <li>打开“Cisco AnyConnect Secure Mobility Client”</li>
-                        <li>VPN填入 vpn.zlix.tech:13806</li>
-                        <li>点击Connect按钮</li>
-                        <li>依照提示输入用户名密码</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-vpn-android">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-android" aria-expanded="true" aria-controls="collapse-vpn-android">
-                        Android
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-vpn-android" class="panel-collapse collapse" aria-labelledby="heading-vpn-android" data-parent="#vpn-usage">
-                <div class="panel-body">
-                    <h5>OpenVPN</h5>
-                    <ol type="1">
-                        <li>先在网站上下载 OpenVPN 配置文件，文件名为 <code>vpn.ustcaf.ovpn</code>。</li>
-                        <li>Android 上需要安装 OpenVPN 的客户端，这里我们推荐使用开源的 OpenVPN for Android。 下载途径：</li>
-                    </ol>
-                    <ul>
-                        <li>作者提供的<a href="http://plaisthos.de/android/ics-openvpn-latest-stable.apk">链接</a></li>
-                        <li><a href="https://play.google.com/store/apps/details?id=de.blinkt.openvpn">Google Play</a></li>
-                        <li><a href="https://f-droid.org/repository/browse/?fdid=de.blinkt.openvpn">F-Droid</a></li>
-                    </ul>
-                    <ol start="3" type="1">
-                        <li>在 OpenVPN for Android 右上角三个按钮中最右边一个，即是导入配置文件的按钮，点击并 导入配置文件。</li>
-                    </ol>
-
-                    <h5>AnyConnect</h5>
-                    <ol type="1">
-                        <li>从<a href="https://play.google.com/store/apps/details?id=com.cisco.anyconnect.vpn.android.avf">Google
-                                Play</a>安装“AnyConnect”</li>
-                        <li>打开“AnyConnect”</li>
-                        <li>选择Connection -&gt; Add VPN Connection…</li>
-                        <li>Decription输入自定义名称</li>
-                        <li>Server Address填写vpn.zlix.tech:13806</li>
-                        <li>Advanced -&gt; Certificate 选择 Disable</li>
-                        <li>保存VPN配置并返回首页</li>
-                        <li>点击右上角，选择Settings</li>
-                        <li>去掉Block Untrusted Servers的勾并返回</li>
-                        <li>连接VPN，会有安全提示，确认证书的Serial (hex) 为 37:76:B4:A7:CF:5B:D7:EF:45:3F:C9:CC:75:5D:A5:8B
-                            ，点击Continue</li>
-                        <li>根据提示输入用户名密码</li>
-                        <li>enjoy</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-
-        <div class="panel panel-default">
-            <div class="panel-heading" id="heading-vpn-windows">
-                <h5 class="panel-title">
-                    <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse-vpn-windows" aria-expanded="true" aria-controls="collapse-vpn-windows">
-                        Windows
-                    </button>
-                </h5>
-            </div>
-
-            <div id="collapse-vpn-windows" class="panel-collapse collapse" aria-labelledby="heading-vpn-windows" data-parent="#vpn-usage">
-                <div class="panel-body">
-                    <h5>Cisco AnyConnect</h5>
-                    <ol type="1">
-                        <li>下载并安装 <a href="https://ftp.ustclug.org/software/anyconnect/anyconnect-win-4.4.03034-core-vpn-predeploy-k9.msi">AnyConnect
-                                Client</a></li>
-                        <li>打开 “Cisco AnyConnect Secure Mobility Client”</li>
-                        <li>VPN 填入 vpn.zlix.tech:13806</li>
-                        <li>点击 Connect</li>
-                        <li>依照提示输入用户名密码</li>
-                    </ol>
-
-                    <h5>OpenVPN</h5>
-                    <ol type="1">
-                        <li><a href="https://ftp.ustclug.org/software/openvpn/">下载</a>并安装客户端</li>
-                        <li>打开OpenVPN GUI</li>
-                        <li>右下角会多出来一个图标，右键，import file，选择下载好的配置文件并导入</li>
-                        <li>导入完成后，再次右键，点击connect，按照提示输入用户名和密码</li>
-                        <li>enjoy</li>
-                    </ol>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <h3>VPN Traffic</h3>
-    <p>Last month: {{user.last_month_traffic()}}</p>
-    <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>
-    <p>This month: {{user.month_traffic()}}</p>
-    <div id="month_traffic" style="height: 300px; width: 100%;"></div>
-
-    <h3>VPN Log</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Start time</th>
-                <th>Stop time</th>
-                <th>Login IP</th>
-                <th>Intranet IP</th>
-                <th>Upload traffic</th>
-                <th>Download traffic</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for r in records %}
-            <tr>
-                <td>{{r.acctstarttime}}</td>
-                <td>
-                    {%if r.acctstoptime%}
-                    {{r.acctstoptime}}
-                    {%elif r.acctstarttime%}
-                    Still login
-                    {%endif%}
-                </td>
-                <td>{{r.callingstationid}}</td>
-                <td>{{r.framedipaddress}}</td>
-                <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
-                <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
     {% elif user.status=='reject' %}
     <h3>
         <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
@@ -353,6 +94,4 @@
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<script type="text/javascript" src="{{url_for('static',filename='js/jquery.canvasjs.min.js')}}"></script>
-<script type="text/javascript" src="{{url_for('static',filename='js/traffic.js')}}"></script>
 {% endblock %}

@@ -19,6 +19,9 @@ dependencies = [
     "itsdangerous>=2.2.0",
     "email-validator>=2.2.0",
     "gunicorn>=23.0.0",
+    "wireguard-tools>=0.5.1",
+    "qrcode[pil]>=7.4",
+    "sseclient-py>=1.7.2",
 ]
 
 [project.optional-dependencies]

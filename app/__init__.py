@@ -9,7 +9,10 @@ db = SQLAlchemy(app)
 
 from flask_bootstrap import Bootstrap
 
+from flask_wtf.csrf import CSRFProtect
+
 Bootstrap(app)
+csrf = CSRFProtect(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
