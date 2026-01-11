@@ -34,7 +34,7 @@ def get_public_key(private_key_str):
     from wireguard_tools import WireguardKey
     return str(WireguardKey(private_key_str).public_key())
 
-def generate_client_config(private_key, address, dns=None):
+def generate_client_config(private_key, address, dns=None, preshared_key=None):
     """Generate WireGuard client configuration."""
     from wireguard_tools import WireguardConfig, WireguardPeer
     if dns is None:
@@ -49,6 +49,9 @@ def generate_client_config(private_key, address, dns=None):
             config.dns_servers.append(d.strip())
 
     peer = WireguardPeer(public_key=server_pub)
+    if preshared_key:
+        peer.preshared_key = preshared_key
+
     if ':' in Config.WG_SERVER_ENDPOINT:
         host, port = Config.WG_SERVER_ENDPOINT.rsplit(':', 1)
         peer.endpoint_host = host

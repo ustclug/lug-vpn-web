@@ -51,7 +51,7 @@ class WireGuardPeer(db.Model):
         db.session.commit()
 
     def get_config(self):
-        return generate_client_config(self.private_key, self.ip_address)
+        return generate_client_config(self.private_key, self.ip_address, preshared_key=self.preshared_key)
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
