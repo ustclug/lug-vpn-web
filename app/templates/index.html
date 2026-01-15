@@ -13,7 +13,7 @@
         {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
     </div>
     <div class="alert alert-warning" role="alert">
-        This service is expected to shut down by the end of May. Please make the necessary arrangements in advance.
+        This service is expected to shut down by the end of May. Please make any necessary arrangements in advance.
     </div>
     {% if user.status=='none' %}
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
@@ -31,8 +31,9 @@
     <div class="row">
         <div class="col-md-12">
             <h4>WireGuard Configuration</h4>
-            <p>Please download the configuration file or scan the QR code to set up your WireGuard client.</p>
-            <p>Due to the design of the WireGuard protocol, a single configuration file can only be used on one device at a time; using it on multiple devices may cause network issues.</p>
+            <p>Download the configuration file or scan the QR code to set up your WireGuard client.</p>
+            <p>Because of how WireGuard is designed, one configuration file can only be used by one device at a time; using it on multiple devices may cause connectivity issues.</p>
+            <p>If your configuration file is exposed, use the button below to reset it.</p>
 
             <form action="{{ url_for('regenerate_keys') }}" method="post"
                 onsubmit="return confirm('Are you sure you want to regenerate all your configurations? Existing connections will stop working.');">
