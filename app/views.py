@@ -422,7 +422,7 @@ def profile(id):
 @login_required
 def regenerate_keys():
     current_user.regenerate_vpn_config()
-    flash('WireGuard keys regenerated successfully.')
+    flash('WireGuard configurations regenerated successfully.')
     return redirect(url_for('index'))
 
 @app.route('/api/wireguard/config/<int:peer_number>')

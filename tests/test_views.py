@@ -51,7 +51,7 @@ class TestViews:
             # Check regenerate
             resp = client.post("/api/wireguard/regenerate", follow_redirects=True)
             assert resp.status_code == 200
-            assert b"keys regenerated" in resp.data.lower()
+            assert b"configurations regenerated" in resp.data.lower()
 
     def test_sse_endpoint_auth(self, app, client):
         # Without token

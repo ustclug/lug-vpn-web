@@ -86,7 +86,7 @@ def test_regenerate():
         data['csrf_token'] = csrf_token
         
     r = session.post(f"{BASE_URL}/api/wireguard/regenerate", data=data)
-    check(r, 200, "WireGuard keys regenerated successfully")
+    check(r, 200, "WireGuard configurations regenerated successfully")
 
 def test_download_config():
     log("Testing Config Download...")
