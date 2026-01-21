@@ -1,0 +1,44 @@
+<!-- Farewell Modal -->
+<div class="modal fade" id="farewellModal" tabindex="-1" role="dialog" aria-labelledby="farewellModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="farewellModalLabel">Farewell from USTCAF Internet Service</h4>
+      </div>
+      <div class="modal-body">
+        <p>Dear Donors,</p>
+        <p>Since 2019, <strong>USTCAF Internet Service</strong> has been honored to serve the community with your generous support. Today, the time has come for us to say goodbye.</p>
+        <p>The service is expected to be <strong>shut down by the end of May</strong>, and we kindly ask you to make necessary arrangements in advance.</p>
+        <p>All related software has been fully <strong>open-sourced on GitHub</strong>. If you wish to continue using it, you are welcome to deploy it on your own:<br>
+          <a href="https://github.com/ustclug/lug-vpn-web/tree/ustcaf" target="_blank">https://github.com/ustclug/lug-vpn-web/tree/ustcaf</a>
+        </p>
+        <p>Thank you for your trust and continued support over the years.</p>
+        <p>
+          Sincerely,<br>
+          USTCAF Internet Service Team
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="farewellAckBtn">Acknowledged</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var STORAGE_KEY = 'ustcaf_farewell_acknowledged';
+  
+  if (localStorage.getItem(STORAGE_KEY) !== 'true') {
+    $('#farewellModal').modal({
+      backdrop: 'static',
+      keyboard: false
+    });
+  }
+  
+  $('#farewellAckBtn').on('click', function() {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    $('#farewellModal').modal('hide');
+  });
+})();
+</script>
