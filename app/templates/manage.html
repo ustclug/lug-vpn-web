@@ -21,7 +21,10 @@
                     Apply reason: {{u.reason}}<br>
                     Apply time: {{u.applytime}}<br>
                     Location: {{ u.location }}<br>
-                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
+                    <form action="{{ url_for('pass_', id=u.id) }}" method="post" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-sm btn-success">Pass</button>
+                    </form>
                     <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
                 </p>
             </li>
@@ -52,14 +55,22 @@
                             details</a>
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
                         {% if u.admin %}
-                        {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm')
-                        }}
+                        <form action="{{ url_for('unsetadmin', id=u.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-warning btn-sm">Unset admin</button>
+                        </form>
                         {% else %}
-                        {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-default btn-sm') }}
+                        <form action="{{ url_for('setadmin', id=u.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-default btn-sm">Set admin</button>
+                        </form>
                         {% endif %}
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
                         {% if u.status=='banned' %}
-                        {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
+                        <form action="{{ url_for('unban', id=u.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-danger btn-sm">Unban</button>
+                        </form>
                         {% else %}
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
                         {% endif %}
@@ -81,7 +92,11 @@
                 {% for u in inactive_users %}
                 <tr>
                     <td>{{u.email}}</td>
-                    <td>{{ util.form_button(url_for('activate',id=u.id),'Activate',class='btn btn-warning btn-sm') }}
+                    <td>
+                        <form action="{{ url_for('activate', id=u.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-warning btn-sm">Activate</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
@@ -107,7 +122,10 @@
                     <td>{{u.email}}</td>
                     <td>{{u.rejectreason}}</td>
                     <td>
-                        {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                        <form action="{{ url_for('pass_', id=u.id) }}" method="post" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-danger btn-sm">Pass</button>
+                        </form>
                         <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit
                             reason</a>
                     </td>

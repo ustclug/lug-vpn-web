@@ -10,7 +10,10 @@
     <div>
         You have logged in as <code>{{ user.email }}</code>
         <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
-        {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
+        <form action="{{ url_for('logout') }}" method="post" style="display: inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-sm btn-default">Log out</button>
+        </form>
     </div>
     <div class="alert alert-warning" role="alert">
         This service is expected to shut down by the end of May. Please make any necessary arrangements in advance.
@@ -22,7 +25,10 @@
         <span class="label label-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
-    {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
+    <form action="{{ url_for('cancel') }}" method="post" style="display: inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-warning btn-lg">Cancel</button>
+    </form>
     {% elif user.status=='pass' %}
     <h3>
         <span class="label label-success">Your application has passed</span>
