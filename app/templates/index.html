@@ -68,7 +68,7 @@
         <h2 class="modal-title" id="exampleModalLabel">LUG Light 轻量网络加速服务章程</h2>
       </div>
       <div class="modal-body">
-				{% include "constitution.html" %}
+				{% include "constitution_tabs.html" %}
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -95,7 +95,9 @@
   </div>
 </div>
 
-{% include "usage.html" %}
+<div class="usage-content">
+  {{ usage_html }}
+</div>
 
     <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>

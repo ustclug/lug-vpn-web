@@ -5,11 +5,26 @@ from app.mail import *
 from flask import render_template, redirect, url_for, request, flash, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
+from markupsafe import Markup
 import datetime
+from pathlib import Path
 from app.utils import *
 import json
+import markdown
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+DOC_ROOT_PATH = Path(app.root_path) / 'doc'
+
+
+def render_markdown_file(markdown_file):
+    markdown_path = Path(markdown_file)
+    if not markdown_path.is_absolute():
+        markdown_path = DOC_ROOT_PATH / markdown_path
+    try:
+        markdown_content = markdown_path.read_text(encoding='utf-8')
+    except OSError:
+        return Markup('<p>Document not found. Please contact admin.</p>')
+    return Markup(markdown.markdown(markdown_content, extensions=['extra', 'sane_lists']))
 
 
 @app.route('/')
@@ -21,12 +36,17 @@ def index():
     escaped_email = current_user.email.replace('@', '%40')
     applying_count = User.get_applying_count()
     return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
-                           renewal=renewal, applying_count=applying_count, escaped_email=escaped_email,)
+                           renewal=renewal, applying_count=applying_count, escaped_email=escaped_email,
+                           constitution_zh_html=render_markdown_file('constitution.md'),
+                           constitution_en_html=render_markdown_file('constitution-en.md'),
+                           usage_html=render_markdown_file('usage.md'))
 
 
 @app.route('/constitution/')
 def view_constitution():
-    return render_template('view_constitution.html')
+    return render_template('view_constitution.html',
+                           constitution_zh_html=render_markdown_file('constitution.md'),
+                           constitution_en_html=render_markdown_file('constitution-en.md'))
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -143,7 +163,9 @@ def apply():
                     title = 'New Light Application: '
                 send_mail(title + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
-    return render_template('apply.html', form=form, renew=current_user.status == 'pass')
+    return render_template('apply.html', form=form, renew=current_user.status == 'pass',
+                           constitution_zh_html=render_markdown_file('constitution.md'),
+                           constitution_en_html=render_markdown_file('constitution-en.md'))
 
 
 @app.route('/cancel/', methods=['POST'])
