@@ -11,7 +11,9 @@
 
   {{ wtf.quick_form(form) }}
 
-  {% include "constitution.html" %}
+  <div class="constitution-content">
+    {{ constitution_html }}
+  </div>
 
 </div>
 {% endblock %}
