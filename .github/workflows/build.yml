@@ -10,6 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          ssh-key: ${{ secrets.LIGHT_DOC_PRIVATE_SSH_KEY }}
           submodules: recursive
       - name: Set Docker image tag version
         id: image-name
