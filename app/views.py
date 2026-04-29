@@ -2,7 +2,7 @@ from app import *
 from app.forms import *
 from app.models import *
 from app.mail import *
-from flask import render_template, redirect, url_for, request, flash, abort, jsonify
+from flask import render_template, render_template_string, redirect, url_for, request, flash, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 from markupsafe import Markup
@@ -16,7 +16,7 @@ ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 DOC_ROOT_PATH = Path(app.root_path) / 'doc'
 
 
-def render_markdown_file(markdown_file):
+def render_markdown_file(markdown_file, **context):
     markdown_path = Path(markdown_file)
     if not markdown_path.is_absolute():
         markdown_path = DOC_ROOT_PATH / markdown_path
@@ -24,7 +24,8 @@ def render_markdown_file(markdown_file):
         markdown_content = markdown_path.read_text(encoding='utf-8')
     except OSError:
         return Markup('<p>Document not found. Please contact admin.</p>')
-    return Markup(markdown.markdown(markdown_content, extensions=['extra', 'sane_lists']))
+    rendered_markdown = render_template_string(markdown_content, **context)
+    return Markup(markdown.markdown(rendered_markdown, extensions=['extra', 'sane_lists']))
 
 
 @app.route('/')
@@ -36,10 +37,11 @@ def index():
     escaped_email = current_user.email.replace('@', '%40')
     applying_count = User.get_applying_count()
     return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
-                           renewal=renewal, applying_count=applying_count, escaped_email=escaped_email,
+                           renewal=renewal, applying_count=applying_count,
                            constitution_zh_html=render_markdown_file('constitution.md'),
                            constitution_en_html=render_markdown_file('constitution-en.md'),
-                           usage_html=render_markdown_file('usage.md'))
+                           usage_html=render_markdown_file('usage.md', user=current_user,
+                                                          escaped_email=escaped_email))
 
 
 @app.route('/constitution/')
