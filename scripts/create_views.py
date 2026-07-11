@@ -20,9 +20,8 @@ cur.execute("""
         from
             radius.radacct
         where
-            radius.radacct.acctstarttime BETWEEN
-            DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01') AND
-            LAST_DAY(NOW() - INTERVAL 1 MONTH)
+            radius.radacct.acctstarttime >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01')
+            AND radius.radacct.acctstarttime < DATE_FORMAT(NOW(), '%Y-%m-01')
         group by
             radius.radacct.username;
     """)
@@ -34,9 +33,8 @@ cur.execute("""
         from
             radius.radacct
         where
-            radius.radacct.acctstarttime BETWEEN
-            DATE_FORMAT(NOW() ,'%Y-%m-01') AND
-            LAST_DAY(NOW())
+            radius.radacct.acctstarttime >= DATE_FORMAT(NOW(), '%Y-%m-01')
+            AND radius.radacct.acctstarttime < DATE_FORMAT(NOW() + INTERVAL 1 MONTH, '%Y-%m-01')
         group by
             radius.radacct.username;
         """)
