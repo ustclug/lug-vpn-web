@@ -288,9 +288,9 @@ class User(db.Model, UserMixin):
             from
                 radius.radacct
             where
-                radius.radacct.acctstarttime BETWEEN
+                radius.radacct.acctstarttime >=
                 DATE_FORMAT(NOW() ,'%%Y-%%m-01') AND
-                LAST_DAY(NOW())
+                radius.radacct.acctstarttime < DATE_FORMAT(NOW() + INTERVAL 1 MONTH, '%%Y-%%m-01')
                 and radius.radacct.username = %s;
         """, self.email).first()
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
@@ -302,9 +302,9 @@ class User(db.Model, UserMixin):
             from
                 radius.radacct
             where
-                radius.radacct.acctstarttime BETWEEN
+                radius.radacct.acctstarttime >=
                 DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%%Y-%%m-01') AND
-                LAST_DAY(NOW() - INTERVAL 1 MONTH)
+                radius.radacct.acctstarttime < DATE_FORMAT(NOW(), '%%Y-%%m-01')
                 and radius.radacct.username = %s;
         """, self.email).first()
         return sizeof_fmt(float(r[0]) if r and r[0] else 0)
@@ -328,9 +328,9 @@ class User(db.Model, UserMixin):
             from
                 radius.radacct
             where
-                radius.radacct.acctstarttime BETWEEN
+                radius.radacct.acctstarttime >=
                 DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%%Y-%%m-01') AND
-                LAST_DAY(NOW() - INTERVAL 1 MONTH)
+                radius.radacct.acctstarttime < DATE_FORMAT(NOW(), '%%Y-%%m-01')
                 and radius.radacct.username = %s
             group by
                 day(radius.radacct.acctstarttime);
@@ -351,9 +351,9 @@ class User(db.Model, UserMixin):
             from
                 radius.radacct
             where
-                radius.radacct.acctstarttime BETWEEN
+                radius.radacct.acctstarttime >=
                 DATE_FORMAT(NOW() ,'%%Y-%%m-01') AND
-                LAST_DAY(NOW())
+                radius.radacct.acctstarttime < DATE_FORMAT(NOW() + INTERVAL 1 MONTH, '%%Y-%%m-01')
                 and radius.radacct.username = %s
             group by
                 day(radius.radacct.acctstarttime);
