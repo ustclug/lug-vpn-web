@@ -1,28 +1,29 @@
 name: Build
+env:
+  IMAGE: ustclug/lug-vpn-web:latest
+  CACHE_IMAGE: ustclug/lug-vpn-web:buildcache
 on:
   push:
     branches:
       - production
 jobs:
   build:
+    if: github.repository == 'ustclug/lug-vpn-web'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set Docker image tag version
-        id: image-name
-        run: |
-          TAG=latest
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "name=ustclug/lug-vpn-web:$TAG" >> "$GITHUB_OUTPUT"
-      - name: Build Docker image
-        run: |
-          IMAGE="${{ steps.image-name.outputs.name }}"
-          docker pull "$IMAGE"
-          docker build --cache-from "$IMAGE" -t build-image .
-      - name: Push to Docker Hub
-        if: "github.repository == 'ustclug/lug-vpn-web'"
-        run: |
-          IMAGE="${{ steps.image-name.outputs.name }}"
-          docker tag build-image "$IMAGE"
-          docker login -u "${{ secrets.DOCKER_USER }}" -p "${{ secrets.DOCKER_PASS }}"
-          docker push "$IMAGE"
+      - uses: actions/checkout@v7
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.IMAGE }}
+          cache-from: type=registry,ref=${{ env.CACHE_IMAGE }}
+          cache-to: type=registry,ref=${{ env.CACHE_IMAGE }},mode=max
