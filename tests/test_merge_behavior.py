@@ -55,7 +55,7 @@ class LibraryAPITests(unittest.TestCase):
     @patch.object(utils.requests, 'get')
     def test_request_contract_and_xml_parsing(self, get):
         response = Mock()
-        response.text = '<reader_info><status>ok</status><name>Alice</name></reader_info>'
+        response.content = b'<reader_info><status>ok</status><name>Alice</name></reader_info>'
         response.raise_for_status.return_value = None
         get.return_value = response
 
@@ -66,6 +66,24 @@ class LibraryAPITests(unittest.TestCase):
         )
         self.assertEqual(result, {'status': 'ok', 'name': 'Alice'})
 
+    @patch.object(utils.requests, 'get')
+    def test_xml_declaration_controls_chinese_text_decoding(self, get):
+        response = Mock()
+        response.content = (
+            '<?xml version="1.0" encoding="utf-8"?>'
+            '<reader_info><status>ok</status><name>张三</name>'
+            '<type>教师</type></reader_info>'
+        ).encode('utf-8')
+        # This is how requests can misdecode application/xml without a charset.
+        response.text = response.content.decode('iso-8859-1')
+        response.raise_for_status.return_value = None
+        get.return_value = response
+
+        result = fetch_from_lib_api('https://library.example/check', '10483')
+
+        self.assertEqual(result['name'], '张三')
+        self.assertEqual(result['type'], '教师')
+
     @patch.object(utils.requests, 'get', side_effect=requests.Timeout)
     def test_network_errors_are_normalized(self, _get):
         with self.assertRaises(LibraryAPIError):
@@ -74,7 +92,7 @@ class LibraryAPITests(unittest.TestCase):
     @patch.object(utils.requests, 'get')
     def test_malformed_xml_is_normalized(self, get):
         response = Mock()
-        response.text = '<not-closed>'
+        response.content = b'<not-closed>'
         response.raise_for_status.return_value = None
         get.return_value = response
         with self.assertRaises(LibraryAPIError):

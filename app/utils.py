@@ -64,7 +64,10 @@ def fetch_from_lib_api(endpoint, studentno, timeout=5):
         raise LibraryAPIError('Library API request failed') from exc
 
     try:
-        root = ET.fromstring(response.text)
+        # Parse the raw bytes so ElementTree honors the XML encoding
+        # declaration. The Library API omits charset from Content-Type, which
+        # makes requests decode response.text as ISO-8859-1.
+        root = ET.fromstring(response.content)
     except ET.ParseError as exc:
         raise LibraryAPIError('Library API returned malformed XML') from exc
     if root.tag != 'reader_info':
