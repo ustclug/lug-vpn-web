@@ -1,4 +1,5 @@
 import datetime
+import quopri
 import random
 import string
 import xml.etree.ElementTree as ET
@@ -24,6 +25,13 @@ def sizeof_fmt(num, suffix='B'):
             return '%3.2f %s%s' % (num, unit, suffix)
         num /= 1024.0
     return '%.2f %s%s' % (num, 'Yi', suffix)
+
+
+def format_calling_station_id(value):
+    """Decode quoted-printable escapes used in RADIUS caller IDs."""
+    if value is None:
+        return ''
+    return quopri.decodestring(str(value).encode('utf-8')).decode('utf-8')
 
 
 def expiration_date(expiration_type, today=None):

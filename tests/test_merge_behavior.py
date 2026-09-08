@@ -14,6 +14,7 @@ UTILS_SPEC.loader.exec_module(utils)
 LibraryAPIError = utils.LibraryAPIError
 expiration_date = utils.expiration_date
 fetch_from_lib_api = utils.fetch_from_lib_api
+format_calling_station_id = utils.format_calling_station_id
 
 
 class ExpirationDateTests(unittest.TestCase):
@@ -49,6 +50,21 @@ class ExpirationDateTests(unittest.TestCase):
     def test_unknown_expiration_type_is_rejected(self):
         with self.assertRaises(ValueError):
             expiration_date('forever', datetime.date(2026, 1, 1))
+
+
+class CallingStationIdTests(unittest.TestCase):
+    def test_decodes_quoted_printable_ipv6_port_brackets(self):
+        self.assertEqual(
+            format_calling_station_id('2001:db8::1=5B4500=5D'),
+            '2001:db8::1[4500]',
+        )
+
+    def test_preserves_unencoded_addresses(self):
+        self.assertEqual(format_calling_station_id('192.0.2.1'), '192.0.2.1')
+        self.assertEqual(format_calling_station_id('2001:db8::1'), '2001:db8::1')
+
+    def test_none_is_rendered_as_empty(self):
+        self.assertEqual(format_calling_station_id(None), '')
 
 
 class LibraryAPITests(unittest.TestCase):

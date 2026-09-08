@@ -66,6 +66,7 @@ def index():
     escaped_email = current_user.email.replace('@', '%40')
     applying_count = User.get_applying_count()
     return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
+                           format_calling_station_id=format_calling_station_id,
                            renewal=renewal, applying_count=applying_count,
                            constitution_documents=render_document_set('CONSTITUTION_DOCUMENTS'),
                            terms_documents=render_document_set('TERMS_DOCUMENTS'),
@@ -559,7 +560,10 @@ def profile(id):
         abort(403)
     user = User.get_user_by_id(id)
     records = user.get_records(10)
-    return render_template('profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt)
+    return render_template(
+        'profile.html', user=user, records=records, sizeof_fmt=sizeof_fmt,
+        format_calling_station_id=format_calling_station_id,
+    )
 
 
 @app.route('/su/<int:id>', methods=['POST'])

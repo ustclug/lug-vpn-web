@@ -50,7 +50,7 @@
                       Still login
                   {%endif%}
               </td>
-              <td>{{r.callingstationid}}</td>
+              <td>{{format_calling_station_id(r.callingstationid)}}</td>
               <td>{{r.framedipaddress}}</td>
               <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
               <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
