@@ -4,6 +4,19 @@ from app.utils import *
 import hashlib
 import datetime
 import calendar
+from sqlalchemy import column, table
+
+
+MONTH_TRAFFIC = table(
+    'monthtraffic',
+    column('UserName'),
+    column('TrafficSum'),
+)
+LAST_MONTH_TRAFFIC = table(
+    'lastmonthtraffic',
+    column('UserName'),
+    column('TrafficSum'),
+)
 
 
 class Group(db.Model):
@@ -217,6 +230,73 @@ class User(db.Model, UserMixin):
     @classmethod
     def get_users(cls):
         return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned')).order_by(cls.id).all()
+
+    @staticmethod
+    def _page_offset(total, offset, limit):
+        if not total:
+            return 0
+        return min(max(offset, 0), ((total - 1) // limit) * limit)
+
+    @classmethod
+    def get_users_page(cls, sort='id', direction='asc', offset=0, limit=25):
+        active_filter = db.or_(cls.status == 'pass', cls.status == 'banned')
+        total = cls.query.filter(active_filter).count()
+        offset = cls._page_offset(total, offset, limit)
+
+        last_month_traffic = db.func.coalesce(
+            LAST_MONTH_TRAFFIC.c.TrafficSum, 0
+        ).label('last_month_traffic')
+        month_traffic = db.func.coalesce(
+            MONTH_TRAFFIC.c.TrafficSum, 0
+        ).label('month_traffic')
+        sort_columns = {
+            'id': cls.id,
+            'studentno': cls.studentno,
+            'name': cls.name,
+            'email': cls.email,
+            'last_month_traffic': last_month_traffic,
+            'month_traffic': month_traffic,
+            'expiration': cls.expiration,
+        }
+        order_column = sort_columns.get(sort, cls.id)
+        order = order_column.desc() if direction == 'desc' else order_column.asc()
+
+        rows = (
+            db.session.query(cls, last_month_traffic, month_traffic)
+            .outerjoin(
+                LAST_MONTH_TRAFFIC,
+                LAST_MONTH_TRAFFIC.c.UserName == cls.email,
+            )
+            .outerjoin(MONTH_TRAFFIC, MONTH_TRAFFIC.c.UserName == cls.email)
+            .filter(active_filter)
+            .order_by(order, cls.id.asc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        return rows, total, offset
+
+    @classmethod
+    def get_rejected_page(cls, sort='applytime', direction='desc', offset=0, limit=25):
+        query = cls.query.filter_by(status='reject')
+        total = query.count()
+        offset = cls._page_offset(total, offset, limit)
+        sort_columns = {
+            'applytime': cls.applytime,
+            'studentno': cls.studentno,
+            'name': cls.name,
+            'email': cls.email,
+            'rejectreason': cls.rejectreason,
+        }
+        order_column = sort_columns.get(sort, cls.applytime)
+        order = order_column.desc() if direction == 'desc' else order_column.asc()
+        users = (
+            query.order_by(order, cls.id.asc())
+            .offset(offset)
+            .limit(limit)
+            .all()
+        )
+        return users, total, offset
 
     def set_expiration(self, expiration, delete=False):
         self.expiration = expiration

@@ -14,6 +14,12 @@ import markdown
 
 ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 DOC_ROOT_PATH = Path(app.root_path) / 'doc'
+MANAGE_USERS_PAGE_SIZE = 25
+ACTIVE_USER_SORTS = {
+    'id', 'studentno', 'name', 'email', 'last_month_traffic',
+    'month_traffic', 'expiration',
+}
+REJECTED_USER_SORTS = {'applytime', 'studentno', 'name', 'email', 'rejectreason'}
 
 
 def render_markdown_file(markdown_file, **context):
@@ -234,12 +240,107 @@ def logout():
 def manage_users():
     if not current_user.admin:
         return redirect(url_for('index'))
-    users = User.get_users()
-    rejected_users = User.get_rejected()
-    all_month_traffic = User.all_month_traffic()
-    all_last_month_traffic = User.all_last_month_traffic()
-    return render_template('manageusers.html', users=users, rejected_users=rejected_users,
-                           all_month_traffic=all_month_traffic, all_last_month_traffic=all_last_month_traffic)
+
+    sort = request.args.get('sort', 'id')
+    direction = request.args.get('direction', 'asc')
+    rejected_sort = request.args.get('rejected_sort', 'applytime')
+    rejected_direction = request.args.get('rejected_direction', 'desc')
+    if sort not in ACTIVE_USER_SORTS:
+        sort = 'id'
+    if direction not in {'asc', 'desc'}:
+        direction = 'asc'
+    if rejected_sort not in REJECTED_USER_SORTS:
+        rejected_sort = 'applytime'
+    if rejected_direction not in {'asc', 'desc'}:
+        rejected_direction = 'desc'
+
+    offset = max(request.args.get('offset', 0, type=int), 0)
+    rejected_offset = max(request.args.get('rejected_offset', 0, type=int), 0)
+    user_rows, user_count, offset = User.get_users_page(
+        sort, direction, offset, MANAGE_USERS_PAGE_SIZE
+    )
+    rejected_users, rejected_count, rejected_offset = User.get_rejected_page(
+        rejected_sort, rejected_direction, rejected_offset, MANAGE_USERS_PAGE_SIZE
+    )
+
+    users = [row[0] for row in user_rows]
+    all_last_month_traffic = {row[0].email: row[1] for row in user_rows}
+    all_month_traffic = {row[0].email: row[2] for row in user_rows}
+    query_state = {
+        'sort': sort,
+        'direction': direction,
+        'offset': offset,
+        'rejected_sort': rejected_sort,
+        'rejected_direction': rejected_direction,
+        'rejected_offset': rejected_offset,
+    }
+
+    def page_url(**updates):
+        return url_for('manage_users', **dict(query_state, **updates))
+
+    active_sort_urls = {
+        key: page_url(
+            sort=key,
+            direction=('desc' if sort == key and direction == 'asc' else 'asc'),
+            offset=0,
+        )
+        for key in ACTIVE_USER_SORTS
+    }
+    rejected_sort_urls = {
+        key: page_url(
+            rejected_sort=key,
+            rejected_direction=(
+                'desc'
+                if rejected_sort == key and rejected_direction == 'asc'
+                else 'asc'
+            ),
+            rejected_offset=0,
+        )
+        for key in REJECTED_USER_SORTS
+    }
+
+    active_page = {
+        'total': user_count,
+        'start': offset + 1 if user_count else 0,
+        'end': min(offset + MANAGE_USERS_PAGE_SIZE, user_count),
+        'previous_url': (
+            page_url(offset=max(0, offset - MANAGE_USERS_PAGE_SIZE))
+            if offset else None
+        ),
+        'next_url': (
+            page_url(offset=offset + MANAGE_USERS_PAGE_SIZE)
+            if offset + MANAGE_USERS_PAGE_SIZE < user_count else None
+        ),
+    }
+    rejected_page = {
+        'total': rejected_count,
+        'start': rejected_offset + 1 if rejected_count else 0,
+        'end': min(rejected_offset + MANAGE_USERS_PAGE_SIZE, rejected_count),
+        'previous_url': (
+            page_url(rejected_offset=max(0, rejected_offset - MANAGE_USERS_PAGE_SIZE))
+            if rejected_offset else None
+        ),
+        'next_url': (
+            page_url(rejected_offset=rejected_offset + MANAGE_USERS_PAGE_SIZE)
+            if rejected_offset + MANAGE_USERS_PAGE_SIZE < rejected_count else None
+        ),
+    }
+
+    return render_template(
+        'manageusers.html',
+        users=users,
+        rejected_users=rejected_users,
+        all_month_traffic=all_month_traffic,
+        all_last_month_traffic=all_last_month_traffic,
+        active_page=active_page,
+        rejected_page=rejected_page,
+        active_sort=sort,
+        active_direction=direction,
+        rejected_sort=rejected_sort,
+        rejected_direction=rejected_direction,
+        active_sort_urls=active_sort_urls,
+        rejected_sort_urls=rejected_sort_urls,
+    )
 
 
 @app.route('/manageapplications/')

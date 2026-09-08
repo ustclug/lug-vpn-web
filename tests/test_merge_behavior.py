@@ -167,6 +167,80 @@ class RejectionTransitionTests(unittest.TestCase):
         delete.assert_called_once_with('user@example.com')
 
 
+class ManageUsersPaginationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            from app import app
+            from app import views
+            from app.models import User
+        except ModuleNotFoundError as exc:
+            raise unittest.SkipTest('application dependencies are unavailable') from exc
+        cls.app = app
+        cls.views = views
+        cls.User = User
+
+    def test_page_offset_is_clamped_to_an_existing_page(self):
+        self.assertEqual(self.User._page_offset(0, 100, 25), 0)
+        self.assertEqual(self.User._page_offset(51, -1, 25), 0)
+        self.assertEqual(self.User._page_offset(51, 50, 25), 50)
+        self.assertEqual(self.User._page_offset(51, 999, 25), 50)
+
+    def test_route_passes_sorting_and_offsets_to_backend_queries(self):
+        active_user = SimpleNamespace(email='active@example.com')
+        active_rows = [(active_user, 1024, 2048)]
+        rejected_user = SimpleNamespace(email='rejected@example.com')
+
+        with self.app.test_request_context(
+            '/manageusers/?sort=month_traffic&direction=desc&offset=25'
+            '&rejected_sort=email&rejected_direction=asc&rejected_offset=50'
+        ), patch.object(
+            self.views, 'current_user', SimpleNamespace(admin=True)
+        ), patch.object(
+            self.views.User, 'get_users_page',
+            return_value=(active_rows, 60, 25),
+        ) as get_users_page, patch.object(
+            self.views.User, 'get_rejected_page',
+            return_value=([rejected_user], 80, 50),
+        ) as get_rejected_page, patch.object(
+            self.views, 'render_template', return_value='rendered'
+        ) as render_template:
+            result = self.views.manage_users.__wrapped__()
+
+        self.assertEqual(result, 'rendered')
+        get_users_page.assert_called_once_with('month_traffic', 'desc', 25, 25)
+        get_rejected_page.assert_called_once_with('email', 'asc', 50, 25)
+        context = render_template.call_args.kwargs
+        self.assertEqual(context['users'], [active_user])
+        self.assertEqual(context['all_month_traffic'], {'active@example.com': 2048})
+        self.assertEqual(context['active_page']['start'], 26)
+        self.assertEqual(context['active_page']['end'], 50)
+        self.assertIn('offset=50', context['active_page']['next_url'])
+        self.assertIn('rejected_offset=25', context['rejected_page']['previous_url'])
+
+    def test_route_rejects_unknown_sort_values_and_invalid_offsets(self):
+        with self.app.test_request_context(
+            '/manageusers/?sort=passwordhash&direction=sideways&offset=invalid'
+            '&rejected_sort=passwordhash&rejected_direction=sideways'
+            '&rejected_offset=-10'
+        ), patch.object(
+            self.views, 'current_user', SimpleNamespace(admin=True)
+        ), patch.object(
+            self.views.User, 'get_users_page', return_value=([], 0, 0)
+        ) as get_users_page, patch.object(
+            self.views.User, 'get_rejected_page', return_value=([], 0, 0)
+        ) as get_rejected_page, patch.object(
+            self.views, 'render_template', return_value='rendered'
+        ) as render_template:
+            self.views.manage_users.__wrapped__()
+
+        get_users_page.assert_called_once_with('id', 'asc', 0, 25)
+        get_rejected_page.assert_called_once_with('applytime', 'desc', 0, 25)
+        context = render_template.call_args.kwargs
+        self.assertEqual(context['active_sort'], 'id')
+        self.assertEqual(context['rejected_sort'], 'applytime')
+
+
 class RepositoryContractTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(__file__).resolve().parents[1]

@@ -2,13 +2,31 @@
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}User Management{% endblock %}
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.colreorder.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.responsive.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.select.min.css') }}">
-{% endblock %}
+
+{% macro sort_heading(label, key, current_sort, current_direction, urls) -%}
+<a href="{{ urls[key] }}">
+    {{ label }}
+    {% if current_sort == key %}{{ '▲' if current_direction == 'asc' else '▼' }}{% endif %}
+</a>
+{%- endmacro %}
+
+{% macro pager(page) -%}
+<div class="d-flex align-items-center justify-content-between my-2">
+    <span>Showing {{ page.start }}&ndash;{{ page.end }} of {{ page.total }}</span>
+    <div>
+        {% if page.previous_url %}
+        <a class="btn btn-secondary btn-sm" href="{{ page.previous_url }}">Previous</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm disabled">Previous</span>
+        {% endif %}
+        {% if page.next_url %}
+        <a class="btn btn-secondary btn-sm" href="{{ page.next_url }}">Next</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm disabled">Next</span>
+        {% endif %}
+    </div>
+</div>
+{%- endmacro %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -18,18 +36,20 @@
   <div class="mt-3">
     <h3>
         Active Users
-        ({{users|length}})
+        ({{active_page.total}})
         <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('create') }}">Create</a>
     </h3>
+    {{ pager(active_page) }}
+    <div class="table-responsive">
     <table class="table" id="all_users">
         <thead>
             <tr>
-                <th>Student/Staff No.</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Last month traffic</th>
-                <th>Month traffic</th>
-                <th>Expiration</th>
+                <th>{{ sort_heading('Student/Staff No.', 'studentno', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Name', 'name', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Email', 'email', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Last month traffic', 'last_month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Month traffic', 'month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Expiration', 'expiration', active_sort, active_direction, active_sort_urls) }}</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -66,14 +86,18 @@
         {% endfor %}
         </tbody>
     </table>
-    <h3>Rejected Users ({{rejected_users|length}})</h3>
+    </div>
+    {{ pager(active_page) }}
+    <h3>Rejected Users ({{rejected_page.total}})</h3>
+    {{ pager(rejected_page) }}
+    <div class="table-responsive">
     <table class="table" id="rejected_users">
         <thead>
             <tr>
-                <th>Student NO.</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Reject reason</th>
+                <th>{{ sort_heading('Student NO.', 'studentno', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Name', 'name', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Email', 'email', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Reject reason', 'rejectreason', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
                 <th>Operation</th>
             </tr>
         </thead>
@@ -94,16 +118,8 @@
         {% endfor %}
         </tbody>
     </table>
+    </div>
+    {{ pager(rejected_page) }}
   </div>
 </div>
-{% endblock %}
-{% block scripts %}
-{{super()}}
-<script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.bootstrap4.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.colreorder.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.responsive.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.responsive.bootstrap4.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.select.min.js') }}"></script>
-<script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 {% endblock %}
