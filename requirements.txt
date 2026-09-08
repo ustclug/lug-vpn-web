@@ -9,6 +9,7 @@ Flask-Mail==0.9.1
 Flask-MySQLdb==0.2.0
 Flask-SQLAlchemy==3.0.0
 Flask-WTF==1.2.1
+gunicorn==23.0.0
 itsdangerous==2.1.2
 Jinja2==3.1.6
 Markdown==3.7
