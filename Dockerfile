@@ -1,4 +1,4 @@
-FROM library/python:3.9-alpine
+FROM library/python:3.14-alpine
 WORKDIR /srv/lugvpn-web
 
 COPY requirements.txt ./
