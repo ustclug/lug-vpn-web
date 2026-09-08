@@ -106,7 +106,12 @@
 </div>
 {% endif %}
 
-    <div class="usage-content">{{ usage_html }}</div>
+    {% if usage_documents %}
+    <section class="usage-content">
+      <h3>Usage</h3>
+      {{ render_document_tabs(usage_documents, 'dashboard-usage') }}
+    </section>
+    {% endif %}
     <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
     <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>

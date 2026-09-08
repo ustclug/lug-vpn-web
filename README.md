@@ -14,7 +14,7 @@ The deployment-specific options are:
   the single-select field; free-form text remains available and optional.
 - `LIBRARY_API_URL`: Library API endpoint. A falsey value hides and disables all
   checking features. `LIBRARY_API_TIMEOUT` is the request timeout in seconds.
-- `CONSTITUTION_DOCUMENTS` and `TERMS_DOCUMENTS`: ordered lists of
+- `CONSTITUTION_DOCUMENTS`, `TERMS_DOCUMENTS`, and `USAGE_DOCUMENTS`: ordered lists of
   `(tab_title, filename)` tuples. Filenames must be relative to `app/doc`.
 - `APPLICATION_CONFIRMATION_ENABLED`: show Terms of Service in a confirmation
   modal before application submission. The modal is disabled with a warning if
@@ -22,8 +22,8 @@ The deployment-specific options are:
 
 Markdown files are rendered as Jinja templates before Markdown conversion. The
 documentation source must therefore be trusted. Missing or invalid paths log a
-warning and render `*(missing)*`. `usage.md` is always rendered on the user
-dashboard.
+warning and render `*(missing)*`. Usage documents are rendered on the user
+dashboard; an empty `USAGE_DOCUMENTS` list intentionally hides that section.
 
 ## Container deployment
 

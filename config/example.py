@@ -29,4 +29,7 @@ CONSTITUTION_DOCUMENTS = [
     ('Constitution', 'constitution.md'),
 ]
 TERMS_DOCUMENTS = []
+USAGE_DOCUMENTS = [
+    ('Usage', 'usage.md'),
+]
 APPLICATION_CONFIRMATION_ENABLED = False

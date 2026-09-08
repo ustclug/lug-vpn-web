@@ -69,8 +69,10 @@ def index():
                            renewal=renewal, applying_count=applying_count,
                            constitution_documents=render_document_set('CONSTITUTION_DOCUMENTS'),
                            terms_documents=render_document_set('TERMS_DOCUMENTS'),
-                           usage_html=render_markdown_file('usage.md', user=current_user,
-                                                          escaped_email=escaped_email))
+                           usage_documents=render_document_set(
+                               'USAGE_DOCUMENTS', user=current_user,
+                               escaped_email=escaped_email,
+                           ))
 
 
 @app.route('/constitution/')
