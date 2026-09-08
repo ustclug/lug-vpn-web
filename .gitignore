@@ -92,3 +92,6 @@ ENV/
 
 # config
 config/default.py
+
+# Operator-provided documentation
+app/doc/

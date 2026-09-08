@@ -2,7 +2,7 @@ from app import *
 from app.forms import *
 from app.models import *
 from app.mail import *
-from flask import render_template, redirect, url_for, request, flash, abort
+from flask import render_template, render_template_string, redirect, url_for, request, flash, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
 from markupsafe import Markup
@@ -16,15 +16,45 @@ ts = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 DOC_ROOT_PATH = Path(app.root_path) / 'doc'
 
 
-def render_markdown_file(markdown_file):
-    markdown_path = Path(markdown_file)
-    if not markdown_path.is_absolute():
-        markdown_path = DOC_ROOT_PATH / markdown_path
+def render_markdown_file(markdown_file, **context):
+    relative_path = Path(markdown_file)
     try:
-        markdown_content = markdown_path.read_text(encoding='utf-8')
-    except OSError:
-        return Markup('<p>Document not found. Please contact admin.</p>')
-    return Markup(markdown.markdown(markdown_content, extensions=['extra', 'sane_lists']))
+        if relative_path.is_absolute():
+            raise ValueError('absolute document path')
+        markdown_path = (DOC_ROOT_PATH / relative_path).resolve()
+        markdown_path.relative_to(DOC_ROOT_PATH.resolve())
+    except ValueError:
+        app.logger.warning('Rejected document path outside app/doc: %s', markdown_file)
+        markdown_content = '*(missing)*'
+    else:
+        try:
+            markdown_content = markdown_path.read_text(encoding='utf-8')
+        except OSError as exc:
+            app.logger.warning('Unable to read document %s: %s', markdown_path, exc)
+            markdown_content = '*(missing)*'
+
+    rendered_markdown = render_template_string(markdown_content, **context)
+    return Markup(markdown.markdown(rendered_markdown, extensions=['extra', 'sane_lists']))
+
+
+def render_document_set(config_key, **context):
+    return [
+        (title, render_markdown_file(filename, **context))
+        for title, filename in app.config[config_key]
+    ]
+
+
+def library_api_response(studentno):
+    try:
+        result = fetch_from_lib_api(
+            app.config['LIBRARY_API_URL'],
+            studentno,
+            timeout=app.config['LIBRARY_API_TIMEOUT'],
+        )
+    except LibraryAPIError as exc:
+        app.logger.warning('Library API check failed for %s: %s', studentno, exc)
+        return jsonify({'message': str(exc)}), 502
+    return jsonify(result)
 
 
 @app.route('/')
@@ -33,9 +63,20 @@ def index():
         return redirect(url_for('login'))
     records = current_user.get_records(10)
     renewal = (current_user.expiration - datetime.date.today()).days <= 180 if current_user.expiration else False
+    escaped_email = current_user.email.replace('@', '%40')
     applying_count = User.get_applying_count()
     return render_template('index.html', user=current_user, records=records, sizeof_fmt=sizeof_fmt,
-                           renewal=renewal, applying_count=applying_count)
+                           renewal=renewal, applying_count=applying_count,
+                           constitution_documents=render_document_set('CONSTITUTION_DOCUMENTS'),
+                           terms_documents=render_document_set('TERMS_DOCUMENTS'),
+                           usage_html=render_markdown_file('usage.md', user=current_user,
+                                                          escaped_email=escaped_email))
+
+
+@app.route('/constitution/')
+def view_constitution():
+    return render_template('view_constitution.html',
+                           constitution_documents=render_document_set('CONSTITUTION_DOCUMENTS'))
 
 
 @app.route('/register/', methods=['POST', 'GET'])
@@ -75,7 +116,7 @@ def confirm():
         return render_template('confirm_error.html')
     try:
         email = ts.loads(token, salt=app.config['SECRET_KEY'] + "email-confirm-key", max_age=86400)
-    except:
+    except Exception:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
     user = User.get_user_by_email(email)
@@ -112,18 +153,30 @@ def login():
 @app.route('/apply/', methods=['POST', 'GET'])
 @login_required
 def apply():
-    if not current_user.status in ['none', 'reject', 'applying', 'pass']:
+    if current_user.status not in ['none', 'reject', 'applying', 'pass']:
         abort(403)
-    form = ApplyForm(request.form, obj=current_user)
+    form = ApplyForm(request.form, obj=current_user, id='applyForm')
+    form.reasonClass.choices = [('', 'Select a qualification')] + [
+        (reason, reason) for reason in app.config['APPLICATION_REASONS']
+    ]
+    if app.config['APPLICATION_REASONS']:
+        form.reasonClass.validators = [InputRequired()]
+    else:
+        form._fields.pop('reasonClass', None)
     if request.method == 'POST':
         if form.validate_on_submit():
             name = form['name'].data
             studentno = form['studentno'].data
             phone = form['phone'].data
-            reason = form['reason'].data
+            selected_reason = form.reasonClass.data if 'reasonClass' in form._fields else ''
+            freeform_reason = (form.reasonText.data or '').strip()
+            reason = ' / '.join(filter(None, (selected_reason, freeform_reason)))
             agree = form['agree'].data
             if not agree:
                 flash('You must agree to the constitution', 'error')
+            # check_apply_info() is not imported
+            # elif not app.config['DEBUG'] and not check_apply_info(current_user.email, name, studentno):
+            #     flash('Incorrect information provided', 'error')
             else:
                 if current_user.status == 'pass':
                     current_user.renewing = True
@@ -141,13 +194,20 @@ def apply():
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
                 if current_user.status == 'pass':
-                    title = 'VPN Renewal: '
+                    title = '{} Renewal: '.format(app.config['SITE_NAME'])
                 else:
-                    title = 'New VPN Application: '
+                    title = 'New {} Application: '.format(app.config['SITE_NAME'])
                 send_mail(title + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
+    confirmation_enabled = bool(
+        app.config['APPLICATION_CONFIRMATION_ENABLED'] and app.config['TERMS_DOCUMENTS']
+    )
+    if app.config['APPLICATION_CONFIRMATION_ENABLED'] and not app.config['TERMS_DOCUMENTS']:
+        app.logger.warning('Application confirmation disabled because TERMS_DOCUMENTS is empty')
     return render_template('apply.html', form=form, renew=current_user.status == 'pass',
-                           constitution_html=render_markdown_file('constitution.md'))
+                           constitution_documents=render_document_set('CONSTITUTION_DOCUMENTS'),
+                           terms_documents=render_document_set('TERMS_DOCUMENTS'),
+                           confirmation_enabled=confirmation_enabled)
 
 
 @app.route('/cancel/', methods=['POST'])
@@ -185,7 +245,10 @@ def manage_applications():
     if not current_user.admin:
         return redirect(url_for('index'))
     applying_users = User.get_applying()
-    return render_template('manageapplications.html', applying_users=applying_users)
+    return render_template(
+        'manageapplications.html', applying_users=applying_users,
+        library_api_enabled=bool(app.config['LIBRARY_API_URL']),
+    )
 
 
 @app.route('/create/', methods=['POST', 'GET'])
@@ -219,19 +282,21 @@ def pass_(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    is_long = request.args.get('is_long', False)
+    expiration_type = request.args.get('expiration_type', 'semester')
+    if expiration_type not in EXPIRATION_TYPES:
+        abort(400)
     if user.status in ['applying', 'reject']:
-        user.pass_apply(is_long=is_long)
+        user.pass_apply(expiration_type)
         html = 'Username: ' + user.email + \
                '<br>Password: ' + user.vpnpassword + \
                '<br>Please login to <a href="' + \
                url_for('index', _external=True) + \
-               '">VPN apply website</a> for detail.'
-        send_mail('Your VPN application has passed', html, user.email)
+               '">{} application website</a> for detail.'.format(app.config['SITE_NAME'])
+        send_mail('Your {} application has passed'.format(app.config['SITE_NAME']), html, user.email)
     elif user.renewing:
-        user.pass_renewal(is_long=is_long)
-        html = 'Your VPN renewal has passed<br>Please login to VPN apply website for detail.'
-        send_mail('Your VPN renewal has passed', html, user.email)
+        user.pass_renewal(expiration_type)
+        html = 'Your {} renewal has passed<br>Please login for detail.'.format(app.config['SITE_NAME'])
+        send_mail('Your {} renewal has passed'.format(app.config['SITE_NAME']), html, user.email)
     return redirect(url_for('manage_applications'))
 
 
@@ -241,17 +306,26 @@ def reject(id):
     if not current_user.admin:
         abort(403)
     user = User.get_user_by_id(id)
-    form = RejectForm(rejectreason=user.rejectreason)
+    form = RejectForm(
+        rejectreason=user.rejectreason,
+        expiration=user.expiration or datetime.date.today(),
+        force=False,
+    )
     if request.method == 'POST':
         if form.validate_on_submit():
             rejectreason = form['rejectreason'].data
+            expiration = form['expiration'].data
+            force = form['force'].data
             html = 'Reason:<br>' + rejectreason
-            if user.renewing:
-                user.reject_renewal(rejectreason)
-                send_mail('Your VPN renewal has been rejected', html, user.email)
+            if not expiration:
+                expiration = datetime.date.today()
+            was_renewing = user.renewing
+            user.reject(rejectreason, expiration, force=force)
+            if was_renewing:
+                subject = 'Your {} renewal has been rejected'.format(app.config['SITE_NAME'])
             else:
-                user.reject_apply(rejectreason)
-                send_mail('Your VPN application has been rejected', html, user.email)
+                subject = 'Your {} application has been rejected'.format(app.config['SITE_NAME'])
+            send_mail(subject, html, user.email)
             return redirect(url_for('manage_applications'))
     return render_template('reject.html', form=form, email=user.email)
 
@@ -268,7 +342,7 @@ def ban(id):
             banreason = form['banreason'].data
             user.ban(banreason)
             html = 'Reason:<br>' + banreason
-            send_mail('Your VPN application has been banned', html, user.email)
+            send_mail('Your {} application has been banned'.format(app.config['SITE_NAME']), html, user.email)
             return redirect(url_for('manage_users'))
     return render_template('ban.html', form=form, email=user.email)
 
@@ -283,21 +357,15 @@ def unban(id):
     return redirect(url_for('manage_users'))
 
 
-@app.route('/renew/<int:id>', methods=['POST'])
+@app.route('/renew/<expiration_type>/<int:id>', methods=['POST'])
 @login_required
-def renew(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        user.renew()
-    return redirect(url_for('manage_users'))
-
-
-@app.route('/renewlong/<int:id>', methods=['POST'])
-@login_required
-def renewlong(id):
-    if current_user.admin:
-        user = User.get_user_by_id(id)
-        user.renew(True)
+def renew(expiration_type, id):
+    if not current_user.admin:
+        abort(403)
+    if expiration_type not in EXPIRATION_TYPES:
+        abort(400)
+    user = User.get_user_by_id(id)
+    user.renew(expiration_type)
     return redirect(url_for('manage_users'))
 
 
@@ -359,6 +427,29 @@ def mail(id):
     return render_template('mail.html', form=form, email=user.email)
 
 
+@app.route('/check/<int:id>', methods=['GET'])
+@login_required
+def check_with_lib(id):
+    if not current_user.admin:
+        abort(403)
+    if not app.config['LIBRARY_API_URL']:
+        abort(404)
+    user = User.get_user_by_id(id)
+    if not user:
+        abort(404)
+    return library_api_response(user.studentno)
+
+
+@app.route('/manualcheck/<studentno>', methods=['GET'])
+@login_required
+def manual_check_with_lib(studentno):
+    if not current_user.admin:
+        abort(403)
+    if not app.config['LIBRARY_API_URL']:
+        abort(404)
+    return library_api_response(studentno)
+
+
 @app.route('/changevpnpassword/', methods=['POST'])
 @login_required
 def changevpnpassword():
@@ -417,7 +508,7 @@ def resetpassword():
         return render_template('confirm_error.html')
     try:
         email = ts.loads(token, salt=app.config['SECRET_KEY'] + "recover-password-key", max_age=86400)
-    except:
+    except Exception:
         flash('Invalid token or token out of date', 'error')
         return render_template('confirm_error.html')
     user = User.get_user_by_email(email)

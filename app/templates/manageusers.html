@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
 
-{% block title %}VPN User Management{% endblock %}
+{% block title %}User Management{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -50,8 +50,9 @@
                         <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
 												<a class="btn btn-default btn-sm" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
                     {% endif %}
-                    {{ util.form_button(url_for('renew',id=u.id),'Renew',class='btn btn-default btn-sm') }}
-                    {{ util.form_button(url_for('renewlong',id=u.id),'Renew Long',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-default btn-sm') }}
                     {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
                 </td>
             </tr>
@@ -77,7 +78,9 @@
                 <td>{{u.email}}</td>
                 <td>{{u.rejectreason}}</td>
                 <td>
-                    {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='semester'),'Pass Semester',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='year'),'Pass Year',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='long'),'Pass Long',class='btn btn-danger btn-sm') }}
                     <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
                 </td>
             </tr>

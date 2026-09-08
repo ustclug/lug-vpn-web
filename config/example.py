@@ -17,3 +17,16 @@ ADMIN_MAIL = 'lug@ustc.edu.cn'
 BOOTSTRAP_SERVE_LOCAL = True
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Deployment branding and optional application features.
+SITE_NAME = 'LUG VPN'
+APPLICATION_REASONS = []
+LIBRARY_API_URL = None
+LIBRARY_API_TIMEOUT = 5
+
+# Filenames are relative to app/doc. Operators should mount that directory.
+CONSTITUTION_DOCUMENTS = [
+    ('Constitution', 'constitution.md'),
+]
+TERMS_DOCUMENTS = []
+APPLICATION_CONFIRMATION_ENABLED = False

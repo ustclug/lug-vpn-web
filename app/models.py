@@ -218,34 +218,35 @@ class User(db.Model, UserMixin):
     def get_users(cls):
         return cls.query.filter(db.or_(cls.status == 'pass', cls.status == 'banned')).order_by(cls.id).all()
 
-    def pass_apply(self, is_long=False):
+    def set_expiration(self, expiration, delete=False):
+        self.expiration = expiration
+        if VPNAccount.get_account_by_email(self.email):
+            if delete:
+                VPNAccount.delete(self.email)
+            else:
+                VPNAccount.update_expiration(self.email, expiration)
+
+    def pass_apply(self, expiration_type='semester'):
         self.status = 'pass'
-        self.expiration = next_semester_end()
-        if is_long:
-            self.expiration = next_semester_end(3)
+        self.expiration = expiration_date(expiration_type)
         self.enable_vpn()
         self.save()
 
-    def renew(self, is_long=False):
-        self.expiration = next_semester_end()
-        if is_long:
-            self.expiration = next_semester_end(3)
-        VPNAccount.update_expiration(self.email, self.expiration)
+    def renew(self, expiration_type='semester'):
+        self.set_expiration(expiration_date(expiration_type))
         self.save()
 
-    def pass_renewal(self, is_long=False):
-        self.renew(is_long=is_long)
+    def pass_renewal(self, expiration_type='semester'):
+        self.renew(expiration_type)
         self.renewing = False
         self.save()
 
-    def reject_apply(self, reason=''):
-        self.status = 'reject'
+    def reject(self, reason='', expiration=None, force=False):
         self.rejectreason = reason
-        self.save()
-
-    def reject_renewal(self, reason=''):
-        self.rejectreason = reason
+        self.set_expiration(expiration or datetime.date.today(), delete=force)
         self.renewing = False
+        if force or self.status != 'pass':
+            self.status = 'reject'
         self.save()
 
     def ban(self, reason=''):

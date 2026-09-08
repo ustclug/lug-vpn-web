@@ -3,28 +3,15 @@ on:
   push:
     branches:
       - production
-      - light
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
       - name: Set Docker image tag version
         id: image-name
         run: |
-          case "$GITHUB_REF" in
-            refs/heads/production)
-              TAG=latest;;
-            refs/heads/light)
-              TAG=light;;
-            *)
-              echo "Branch not recognized" >&2
-              exit;;
-          esac
-
-          : ${TAG:=latest} > "$GITHUB_OUTPUT"
+          TAG=latest
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=ustclug/lug-vpn-web:$TAG" >> "$GITHUB_OUTPUT"
       - name: Build Docker image

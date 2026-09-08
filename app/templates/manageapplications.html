@@ -13,18 +13,23 @@
     <ul class="list-group" id="applying_list">
     {% for u in applying_users %}
     <li class="list-group-item">
-      <h4 class="list-group-item-heading">{{ u.email }}</h4>
+			<h4 class="list-group-item-heading">{{ u.email }} <span class="text-primary" id="email-{{ u.id }}"></span></h4>
       <p class="list-group-item-text">
       <p>
-      Name: {{u.name}}<br>
-      Student NO.: {{u.studentno}}<br>
+			Name: {{u.name}} <span class="text-primary" id="name-{{ u.id }}"></span><br>
+      School ID: {{u.studentno}} <span class="text-primary" id="role-{{ u.id }}"></span><br>
       Phone: {{u.phone}}<br>
       Apply reason: {{u.reason}}<br>
       Apply time: {{u.applytime}}<br>
       Renewal: {{u.renewing}}<br></p>
-      {{ util.form_button(url_for('pass_',id=u.id),'Pass',class='btn btn-sm btn-success') }}
-      {{ util.form_button(url_for('pass_',id=u.id,is_long=True),'Pass Long',class='btn btn-sm btn-success') }}
-      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+      {{ util.form_button(url_for('pass_',id=u.id,expiration_type='semester'),'Pass Semester',class='btn btn-sm btn-success') }}
+      {{ util.form_button(url_for('pass_',id=u.id,expiration_type='year'),'Pass Year',class='btn btn-sm btn-success') }}
+      {{ util.form_button(url_for('pass_',id=u.id,expiration_type='long'),'Pass Long',class='btn btn-sm btn-success') }}
+      <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
+			<a class="btn btn-sm btn-danger" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+      {% if library_api_enabled %}
+			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}', true)">Check</a>
+      {% endif %}
       </p>
     </li>
     {% endfor %}
@@ -37,4 +42,47 @@
 <link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
 <script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
+<script type="text/javascript">
+{% if library_api_enabled %}
+// Trigger checkWithLibrary for all applications after page loaded.
+$(window).on('load', () => {
+  {% for u in applying_users %}
+    checkWithLibrary({{ u.id }}, false);
+  {% endfor %}
+});
+function checkWithLibrary(id, toAlert) {
+	$.ajax({
+		url: "/check/" + id,
+		success: function(response) {
+			var data = response;
+			if (data["message"]) {
+			  if (toAlert) {
+          alert(data["message"]);
+        } else {
+			    console.log(data["message"]);
+        }
+				return;
+			}
+			if (data["status"] !== "ok") {
+			  if (toAlert) {
+          alert("Bad status: " + data["status"]);
+        } else {
+			    console.log("Bad status: " + data["status"]);
+        }
+				return;
+			}
+			$("#name-" + id).text(data["name"]);
+			$("#email-" + id).text(data["email"]);
+			$("#role-" + id).text(data["type"]);
+		}
+	});
+}
+function manualCheckWithLibrary(studentno) {
+	$.ajax({
+		url: "/manualcheck/" + studentno,
+		success: (response) => console.log(response)
+	});
+}
+{% endif %}
+</script>
 {% endblock %}

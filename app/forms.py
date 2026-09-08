@@ -1,6 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, IntegerField, SubmitField, TextAreaField, BooleanField, HiddenField
-from wtforms.validators import InputRequired, Email, EqualTo, Length
+from wtforms import (
+    BooleanField, DateField, HiddenField, IntegerField, PasswordField,
+    SelectField, StringField, SubmitField, TextAreaField,
+)
+from wtforms.validators import Email, EqualTo, InputRequired, Length, Optional
 
 
 class OptionalIntegerField(IntegerField):
@@ -12,8 +15,9 @@ class OptionalIntegerField(IntegerField):
                 try:
                     self.data = int(valuelist[0])
                 except (ValueError, TypeError):
-                    self.data = None;
+                    self.data = None
                     raise ValueError(self.gettext('Not a valid integer value'))
+
 
 class RegisterForm(FlaskForm):
     email = StringField('USTC Email', [InputRequired(), Email(), Length(max=63)])
@@ -29,11 +33,19 @@ class LoginForm(FlaskForm):
 
 
 class ApplyForm(FlaskForm):
-    name = StringField('Name in native language (eg. 张三)', [InputRequired()])
-    studentno = StringField('Student/Staff No. (eg. PB18000001)', [InputRequired()])
+    name = StringField('Name in native language (e.g. 张三)', [InputRequired()])
+    studentno = StringField('Student/Staff No. (e.g. PB18000001)', [InputRequired()])
     phone = StringField('Phone', [InputRequired()])
-    reason = TextAreaField('Apply reason (please specify the criteria which you meet)', [InputRequired()])
-    agree = BooleanField('I agree to the following constitution')
+    reasonClass = SelectField('Qualification', [Optional()], choices=[])
+    reasonText = TextAreaField(
+        'Additional application reason',
+        [Optional()],
+        render_kw={'placeholder': 'Enter any extra information here'},
+    )
+    agree = BooleanField(
+        'I have read and agree to the Terms of Service and the Constitution',
+        id='agreeConstitution',
+    )
     submit_btn = SubmitField('Apply')
 
 
@@ -52,7 +64,7 @@ class RecoverPasswordForm(FlaskForm):
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('New Password', [InputRequired(), EqualTo('confirm', message='Passwords must match')])
     confirm = PasswordField('Repeat Password', [InputRequired()])
-    token = HiddenField("token")
+    token = HiddenField('token')
     submit = SubmitField('Submit')
 
 
@@ -65,6 +77,8 @@ class CreateForm(FlaskForm):
 
 class RejectForm(FlaskForm):
     rejectreason = TextAreaField('Reject reason', [InputRequired()])
+    expiration = DateField('Expiration date', [Optional()])
+    force = BooleanField('Force (cancel existing service immediately)', [Optional()])
     submit = SubmitField('Reject')
 
 
@@ -83,5 +97,5 @@ class EditForm(FlaskForm):
     name = StringField('Name')
     studentno = StringField('Student/Staff No.')
     phone = StringField('Phone')
-    quota = OptionalIntegerField('Quota', filters=[lambda x: x or None], render_kw={"placeholder":"default"})
+    quota = OptionalIntegerField('Quota', filters=[lambda x: x or None], render_kw={'placeholder': 'default'})
     submit = SubmitField('Save')

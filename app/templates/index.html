@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% import "bootstrap/utils.html" as util %}
+{% from "document_tabs.html" import render_document_tabs %}
 
-{% block title %}LUG VPN{% endblock %}
+{% block title %}{{ site_name }}{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -30,16 +31,16 @@
   {% endif %}
 
   {% if user.status=='none' %}
-    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply for VPN</a>
+    <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your VPN application is under review, please wait.</span>
+      <span class="label label-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
     {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your VPN application has passed</span>
+      <span class="label label-success">Your application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
@@ -53,39 +54,66 @@
       <a class="btn btn-sm btn-warning" type="button" href="{{ url_for('apply') }}">Renew</a>
     {% endif %}
 
-    <h3>Constitution</h3>
-    <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/constitution.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/constitution.md</a>
+    {% if constitution_documents or terms_documents %}
+    <h3 id="documents">Constitution and Terms of Service</h3>
+    <p>
+      {% if constitution_documents %}
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#constitutionModal">Read Constitution</button>
+      {% endif %}
+      {% if terms_documents %}
+      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#termsModal">Read Terms of Service</button>
+      {% endif %}
+    </p>
+    {% endif %}
+{% if constitution_documents %}
+<div class="modal fade" id="constitutionModal" tabindex="-1" role="dialog" aria-labelledby="constitutionModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h2 class="modal-title" id="constitutionModalLabel">{{ site_name }} Constitution</h2>
+      </div>
+      <div class="modal-body">
+        {{ render_document_tabs(constitution_documents, 'dashboard-constitution') }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% if terms_documents %}
+<div class="modal fade" id="termsModal" tabindex="-1" role="dialog" aria-labelledby="termsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        <h2 class="modal-title" id="termsModalLabel">{{ site_name }} Terms of Service</h2>
+      </div>
+      <div class="modal-body">
+        {{ render_document_tabs(terms_documents, 'dashboard-terms') }}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
-    <h3>Usage</h3>
-    <ul>
-        <li>iOS： <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-iOS.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-iOS.md</a></li>
-        <li>macOS： <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-macOS.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-macOS.md</a></li>
-        <li>Android： <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Android.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Android.md</a></li>
-        <li>Linux： <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Linux.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Linux.md</a></li>
-        <li>Windows：<a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Windows.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/usage-Windows.md</a></li>
-        <li>Chrome OS：<a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/-/blob/master/usage-ChromeOS.md">https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/-/blob/master/usage-ChromeOS.md</a></li>
-        <li>Other platforms: To be added soon. <a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc">contribute documents?</a></li>
-        <li><b>如果 OpenVPN 显示证书验证失败，请下载最新的配置文件 ↓↓</b></li>
-        <li>OpenVPN config file: <a href="{{url_for('static',filename='lugvpn.ovpn')}}">Download</a></li>
-    </ul>
-  
-    <h3>Troubleshooting</h3>
-    <ul>
-        <li><a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/troubleshooting.md">Troubleshooting</a></li>
-    </ul>
-
-    <h3>Requests</h3>
-    <ul>
-        <li><a href="https://git.lug.ustc.edu.cn/LUG-VPN/vpn-doc/blob/master/issues.md">Issues</a></li>
-    </ul>
-  
-    <h3>VPN Traffic</h3>
+    <div class="usage-content">{{ usage_html }}</div>
+    <h3>Traffic</h3>
     <p>Last month: {{user.last_month_traffic()}}</p>
     <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>
     <p>This month: {{user.month_traffic()}}</p>
     <div id="month_traffic" style="height: 300px; width: 100%;"></div>
 
-    <h3>VPN Log</h3>
+    <h3>Log</h3>
     <table class="table">
         <thead>
             <tr>
@@ -118,7 +146,7 @@
     </table>
   {% elif user.status=='reject' %}
     <h3>
-      <span class="label label-danger">Sorry, Your VPN application has been rejected for the following reason</span>
+      <span class="label label-danger">Sorry, your {{ site_name }} application has been rejected for the following reason</span>
     </h3>
     <div class="well">
         {{user.rejectreason}}
@@ -126,13 +154,12 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
-      <span class="label label-danger">Your VPN account has been banned for the following reason</span>
+      <span class="label label-danger">Your {{ site_name }} account has been banned for the following reason</span>
     </h3>
     <div class="well">
         {{user.banreason}}
     </div>
   {% endif %}
-</ul>
 {% endblock %}
 {% block scripts %}
 {{super()}}

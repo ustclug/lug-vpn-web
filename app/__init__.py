@@ -1,9 +1,20 @@
+from importlib import import_module
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 
 app = Flask(__name__)
-app.config.from_object('config.default')
+app.config.from_object('config.example')
+try:
+    operator_config = import_module('config.default')
+except ModuleNotFoundError as exc:
+    if exc.name != 'config.default':
+        raise
+else:
+    app.config.from_object(operator_config)
+
+app.jinja_env.globals['site_name'] = app.config['SITE_NAME']
 
 db = SQLAlchemy(app)
 

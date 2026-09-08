@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% from "document_tabs.html" import render_document_tabs %}
+
+{% block title %}{{ site_name }} Constitution{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>{{ site_name }} Constitution</h1>
+  {% if constitution_documents %}
+    {{ render_document_tabs(constitution_documents, 'public-constitution') }}
+  {% endif %}
+</div>
+{% endblock %}

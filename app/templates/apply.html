@@ -2,22 +2,76 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% import "bootstrap/utils.html" as util %}
 
-{% block title %}{% if renew %}Renew{% else %}Apply{% endif %} for LUG VPN{% endblock %}
+{% from "document_tabs.html" import render_document_tabs %}
+{% block title %}{% if renew %}Renew{% else %}Apply{% endif %} for {{ site_name }}{% endblock %}
 
 {% block content %}
-{{util.flashed_messages(dismissible=True)}}
+{{ util.flashed_messages(dismissible=True) }}
 <div class="container">
-  <h1>{{ self.title() }}</h1>
+	<h1>{{ self.title() }}</h1>
 
-  {{ wtf.quick_form(form) }}
+  {{ wtf.quick_form(form, id="applyForm") }}
 
-  <div class="constitution-content">
-    {{ constitution_html }}
-  </div>
-
+  {% if confirmation_enabled %}
+	<div class="modal fade" id="specialNoticeModal" tabindex="-1" role="dialog" aria-labelledby="specialNoticeModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header bg-danger" style="border-top-left-radius: 6px; border-top-right-radius: 6px;">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+					<h3 class="modal-title" id="specialNoticeModalLabel">Terms of Service</h3>
+				</div>
+				<div class="modal-body">
+          {{ render_document_tabs(terms_documents, 'apply-terms') }}
+				</div>
+				<div class="modal-footer">
+					<button type="button" id="showNotice" class="btn btn-default" data-toggle="modal" data-target="#specialNoticeModal">Apply</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+  {% endif %}
 </div>
+{% if constitution_documents %}
+<div class="container" style="margin-top: 1em;">
+  <h2>Constitution</h2>
+  {{ render_document_tabs(constitution_documents, 'apply-constitution') }}
+</div>
+{% endif %}
 {% endblock %}
+
 {% block scripts %}
-{{super()}}
-<script type="text/javascript" src="{{url_for('static',filename='js/apply.js')}}"></script>
+{{ super() }}
+<script type="text/javascript">
+$(document).ready(function () {
+  {% if confirmation_enabled %}
+  // Credit: https://stackoverflow.com/a/698440/5958455
+  function swapNodes(a, b) {
+    var aparent = a.parentNode;
+    var asibling = a.nextSibling === b ? a : a.nextSibling;
+    b.parentNode.insertBefore(a, b);
+    aparent.insertBefore(b, asibling);
+  }
+
+  // Swap the "show modal" and "submit form" buttons
+  swapNodes(document.getElementById('submit_btn'), document.getElementById('showNotice'));
+
+  // We also need to move the modal inside the form for the submit button to work
+  document.getElementById('applyForm').appendChild(document.getElementById('specialNoticeModal'));
+
+  // For UX reasons, move the "agree ToS" checkbox inside the modal
+  var submitButton = document.getElementById('submit_btn');
+  submitButton.parentNode.insertBefore(document.getElementById('agreeConstitution').parentNode.parentNode, submitButton);
+  {% endif %}
+
+  $('form').on('submit', function (e) {
+    e.preventDefault();
+    $('#submit_btn').attr("disabled", true);
+    $('#submit_btn').attr("value", "Please wait...");
+    this.submit();
+  });
+});
+</script>
 {% endblock %}
