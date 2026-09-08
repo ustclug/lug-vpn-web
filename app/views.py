@@ -5,7 +5,7 @@ from app.mail import *
 from flask import render_template, render_template_string, redirect, url_for, request, flash, abort, jsonify
 from flask_login import current_user, login_required, login_user, logout_user
 from itsdangerous import URLSafeTimedSerializer
-from markupsafe import Markup
+from markupsafe import Markup, escape
 import datetime
 from pathlib import Path
 from app.utils import *
@@ -206,6 +206,8 @@ def apply():
                     title = '{} Renewal: '.format(app.config['SITE_NAME'])
                 else:
                     title = 'New {} Application: '.format(app.config['SITE_NAME'])
+                manage_url = url_for('manage_applications', _external=True)
+                html += '<br><br><a href="{}">Review applications</a>'.format(escape(manage_url))
                 send_mail(title + name, html, app.config['ADMIN_MAIL'])
                 return redirect(url_for('index'))
     confirmation_enabled = bool(
