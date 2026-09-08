@@ -2,15 +2,15 @@
   {% if documents|length > 1 %}
   <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 1em;">
     {% for title, content in documents %}
-    <li role="presentation"{% if loop.first %} class="active"{% endif %}>
-      <a href="#{{ group_id }}-{{ loop.index }}" aria-controls="{{ group_id }}-{{ loop.index }}" role="tab" data-toggle="tab">{{ title }}</a>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link{% if loop.first %} active{% endif %}" href="#{{ group_id }}-{{ loop.index }}" aria-controls="{{ group_id }}-{{ loop.index }}" role="tab" data-toggle="tab">{{ title }}</a>
     </li>
     {% endfor %}
   </ul>
   {% endif %}
   <div class="tab-content">
     {% for title, content in documents %}
-    <div role="tabpanel" class="tab-pane fade{% if loop.first %} active in{% endif %}" id="{{ group_id }}-{{ loop.index }}">
+    <div role="tabpanel" class="tab-pane fade{% if loop.first %} show active{% endif %}" id="{{ group_id }}-{{ loop.index }}">
       {{ content }}
     </div>
     {% endfor %}

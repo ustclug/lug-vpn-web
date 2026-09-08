@@ -1,7 +1,20 @@
-{% extends "bootstrap/base.html" %}
-{% import "bootstrap/fixes.html" as fixes %}
-
-{% block head %}
-{{super()}}
-{{fixes.ie8()}}
-{% endblock %}
+<!doctype html>
+<html lang="en">
+<head>
+  {% block head %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>{% block title %}{% endblock %}</title>
+  {% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  {% endblock %}
+  {% endblock %}
+</head>
+<body>
+  {% block content %}{% endblock %}
+  {% block scripts %}
+  <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  {% endblock %}
+</body>
+</html>

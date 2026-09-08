@@ -1,0 +1,20 @@
+{% macro flashed_messages(messages=None, container=True, dismissible=False) -%}
+{% set category_map = {'critical': 'danger', 'error': 'danger', 'debug': 'info', 'notset': 'info', 'message': 'info'} %}
+{% set flashed = messages or get_flashed_messages(with_categories=True) %}
+{% if flashed %}
+{% if container %}<div class="container flashed-messages mt-3">{% endif %}
+{% for category, message in flashed %}
+  <div class="alert alert-{{ category_map.get(category|lower, category) }}{% if dismissible %} alert-dismissible fade show{% endif %}" role="alert">
+    {{ message }}
+    {% if dismissible %}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    {% endif %}
+  </div>
+{% endfor %}
+{% if container %}</div>{% endif %}
+{% endif %}
+{%- endmacro %}
+
+{% macro form_button(url, content, method='post', class='btn-link') -%}
+<form class="d-inline" action="{{ url }}" method="{{ method }}"><button type="submit" class="{{ class }}">{{ content }}</button></form>
+{%- endmacro %}

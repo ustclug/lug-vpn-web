@@ -18,10 +18,6 @@ app.jinja_env.globals['site_name'] = app.config['SITE_NAME']
 
 db = SQLAlchemy(app)
 
-from flask_bootstrap import Bootstrap
-
-Bootstrap(app)
-
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'

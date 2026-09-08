@@ -2,19 +2,25 @@
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}New Applications{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.colreorder.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.responsive.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.select.min.css') }}">
+{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
   <h1>{{ self.title() }}</h1>
-  <a class="btn btn-default" type="button" href="{{ url_for('index') }}">Back</a>
-  <div class="row">
+  <a class="btn btn-secondary" role="button" href="{{ url_for('index') }}">Back</a>
+  <div class="mt-3">
     <h3>New Applications ({{applying_users|length}})</h3>
     <ul class="list-group" id="applying_list">
     {% for u in applying_users %}
     <li class="list-group-item">
-			<h4 class="list-group-item-heading">{{ u.email }} <span class="text-primary" id="email-{{ u.id }}"></span></h4>
-      <p class="list-group-item-text">
+			<h4>{{ u.email }} <span class="text-primary" id="email-{{ u.id }}"></span></h4>
       <p>
 			Name: {{u.name}} <span class="text-primary" id="name-{{ u.id }}"></span><br>
       School ID: {{u.studentno}} <span class="text-primary" id="role-{{ u.id }}"></span><br>
@@ -30,7 +36,6 @@
       {% if library_api_enabled %}
 			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}', true)">Check</a>
       {% endif %}
-      </p>
     </li>
     {% endfor %}
     </ul>
@@ -39,8 +44,12 @@
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
-<script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
+<script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.bootstrap4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.colreorder.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.responsive.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.responsive.bootstrap4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.select.min.js') }}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 <script type="text/javascript">
 {% if library_api_enabled %}

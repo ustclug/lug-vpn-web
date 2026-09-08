@@ -1,0 +1,32 @@
+{% macro form_field(field) -%}
+  {% if field.type == 'BooleanField' %}
+  <div class="form-group">
+    <div class="custom-control custom-checkbox">
+      {{ field(class_='custom-control-input' + (' is-invalid' if field.errors else '')) }}
+      {{ field.label(class_='custom-control-label') }}
+      {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      {% if field.description %}<small class="form-text text-muted">{{ field.description }}</small>{% endif %}
+    </div>
+  </div>
+  {% elif field.type == 'SubmitField' %}
+  <div class="form-group">
+    {{ field(class_='btn btn-primary') }}
+  </div>
+  {% else %}
+  <div class="form-group{% if field.flags.required %} required{% endif %}">
+    {{ field.label() }}
+    {{ field(class_='form-control' + (' is-invalid' if field.errors else '')) }}
+    {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+    {% if field.description %}<small class="form-text text-muted">{{ field.description }}</small>{% endif %}
+  </div>
+  {% endif %}
+{%- endmacro %}
+
+{% macro quick_form(form, action='', method='post', id='') -%}
+<form action="{{ action }}" method="{{ method }}"{% if id %} id="{{ id }}"{% endif %}>
+  {{ form.hidden_tag() }}
+  {% for field in form if field.type not in ('CSRFTokenField', 'HiddenField') %}
+    {{ form_field(field) }}
+  {% endfor %}
+</form>
+{%- endmacro %}

@@ -10,20 +10,20 @@
   <h1>{{ self.title() }}</h1>
   <div>
     You have logged in as <code>{{ user.email }}</code>
-    <a class="btn btn-sm btn-default" type="button" href="{{ url_for('changepassword') }}">Change password</a>
-    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-default') }}
+    <a class="btn btn-sm btn-secondary" role="button" href="{{ url_for('changepassword') }}">Change password</a>
+    {{ util.form_button(url_for('logout'),'Log out',class='btn btn-sm btn-secondary') }}
   </div>
 
   {% if user.admin %}
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h3 class="panel-title">Admin Panel</h3>
+    <div class="card my-3">
+      <div class="card-header">
+        <h3 class="h5 mb-0">Admin Panel</h3>
       </div>
-      <div class="panel-body">
-        <a class="btn btn-default" type="button" href="{{ url_for('manage_applications') }}">
+      <div class="card-body">
+        <a class="btn btn-secondary" role="button" href="{{ url_for('manage_applications') }}">
             New Applications ({{ applying_count }})
         </a>
-        <a class="btn btn-default" type="button" href="{{ url_for('manage_users') }}">
+        <a class="btn btn-secondary" role="button" href="{{ url_for('manage_users') }}">
             User Management
         </a>
       </div>
@@ -34,13 +34,13 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.status=='applying' %}
     <h3>
-      <span class="label label-info">Your application is under review, please wait.</span>
+      <span class="badge badge-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
     {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
-      <span class="label label-success">Your application has passed</span>
+      <span class="badge badge-success">Your application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
@@ -151,17 +151,17 @@
     </table>
   {% elif user.status=='reject' %}
     <h3>
-      <span class="label label-danger">Sorry, your {{ site_name }} application has been rejected for the following reason</span>
+      <span class="badge badge-danger">Sorry, your {{ site_name }} application has been rejected for the following reason</span>
     </h3>
-    <div class="well">
+    <div class="card card-body">
         {{user.rejectreason}}
     </div>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
-      <span class="label label-danger">Your {{ site_name }} account has been banned for the following reason</span>
+      <span class="badge badge-danger">Your {{ site_name }} account has been banned for the following reason</span>
     </h3>
-    <div class="well">
+    <div class="card card-body">
         {{user.banreason}}
     </div>
   {% endif %}

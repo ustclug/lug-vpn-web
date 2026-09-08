@@ -2,17 +2,24 @@
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}User Management{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.colreorder.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.responsive.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.select.min.css') }}">
+{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
 <div class="container">
   <h1>{{ self.title() }}</h1>
-  <a class="btn btn-default" type="button" href="{{ url_for('index') }}">Back</a>
-  <div class="row">
+  <a class="btn btn-secondary" role="button" href="{{ url_for('index') }}">Back</a>
+  <div class="mt-3">
     <h3>
         Active Users
         ({{users|length}})
-        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('create') }}">Create</a>
+        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('create') }}">Create</a>
     </h3>
     <table class="table" id="all_users">
         <thead>
@@ -36,24 +43,24 @@
                 <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
                 <td>{{u.expiration}}</td>
                 <td>
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
                     {% if u.admin %}
                         {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm') }}
                     {% else %}
-                        {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-default btn-sm') }}
+                        {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-secondary btn-sm') }}
                     {% endif %}
-                    <a class="btn btn-default btn-sm" type="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
                     {% if u.status=='banned' %}
                         {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
                     {% else %}
-                        <a class="btn btn-default btn-sm" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
-												<a class="btn btn-default btn-sm" type="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+                        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+												<a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
                     {% endif %}
-                    {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-default btn-sm') }}
-                    {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-default btn-sm') }}
-                    {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-default btn-sm') }}
-                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-default btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-secondary btn-sm') }}
                 </td>
             </tr>
         {% endfor %}
@@ -92,7 +99,11 @@
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<link rel="stylesheet" type="text/css" href={{url_for('static',filename='css/datatables.min.css')}}/>
-<script type="text/javascript" src={{url_for('static',filename='js/datatables.min.js')}}></script>
+<script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.bootstrap4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.colreorder.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.responsive.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.responsive.bootstrap4.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/datatables.select.min.js') }}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 {% endblock %}

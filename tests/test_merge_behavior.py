@@ -168,6 +168,32 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("app.config.from_object('config.example')", init_source)
         self.assertIn("import_module('config.default')", init_source)
 
+    def test_bootstrap_4_assets_and_dependencies(self):
+        bootstrap_css = (
+            self.root / 'app' / 'static' / 'css' / 'bootstrap.min.css'
+        ).read_text(encoding='utf-8')
+        bootstrap_js = (
+            self.root / 'app' / 'static' / 'js' / 'bootstrap.bundle.min.js'
+        ).read_text(encoding='utf-8')
+        requirements = (self.root / 'requirements.txt').read_text(encoding='utf-8')
+
+        self.assertIn('Bootstrap v4.6.2', bootstrap_css[:300])
+        self.assertIn('Bootstrap v4.6.2', bootstrap_js[:300])
+        self.assertNotIn('Flask-Bootstrap', requirements)
+
+    def test_templates_do_not_use_bootstrap_3_components(self):
+        forbidden = (
+            'btn-default', 'panel-default', 'panel-heading', 'panel-body',
+            'panel-title', 'label-info', 'label-success', 'label-danger',
+            'class="well', 'list-group-item-heading',
+            'list-group-item-text', ' active in',
+        )
+        for template in (self.root / 'app' / 'templates').rglob('*.html'):
+            source = template.read_text(encoding='utf-8')
+            for token in forbidden:
+                with self.subTest(template=template.name, token=token):
+                    self.assertNotIn(token, source)
+
 
 if __name__ == '__main__':
     unittest.main()

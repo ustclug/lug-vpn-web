@@ -14,8 +14,6 @@ MAIL_PASSWORD = ''
 MAIL_DEFAULT_SENDER = ''
 ADMIN_MAIL = 'lug@ustc.edu.cn'
 
-BOOTSTRAP_SERVE_LOCAL = True
-
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Deployment branding and optional application features.
