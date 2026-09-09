@@ -295,8 +295,35 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
         cls.app = app
         cls.views = views
 
-    def test_placeholder_qualification_is_rejected_with_notice(self):
-        user = SimpleNamespace(status='none', save=Mock())
+    def test_first_configured_qualification_is_the_default(self):
+        user = SimpleNamespace(status='none')
+        config = {
+            'APPLICATION_REASONS': ['Student', 'Staff'],
+            'APPLICATION_CONFIRMATION_ENABLED': False,
+            'CONSTITUTION_DOCUMENTS': [],
+            'TERMS_DOCUMENTS': [],
+            'WTF_CSRF_ENABLED': False,
+        }
+
+        with patch.dict(self.app.config, config), self.app.test_request_context(
+            '/apply/'
+        ), patch.object(
+            self.views, 'current_user', user
+        ), patch.object(
+            self.views, 'render_document_set', return_value=[]
+        ):
+            response = self.views.apply.__wrapped__()
+
+        self.assertNotIn('Select a qualification', response)
+        self.assertLess(
+            response.index('<option value="Student">Student</option>'),
+            response.index('<option value="Staff">Staff</option>'),
+        )
+
+    def test_empty_qualification_is_allowed(self):
+        user = SimpleNamespace(
+            status='none', email='test@example.com', save=Mock(),
+        )
         form_data = {
             'name': 'Test User',
             'studentno': 'PB12345678',
@@ -319,13 +346,15 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
             self.views, 'current_user', user
         ), patch.object(
             self.views, 'render_document_set', return_value=[]
+        ), patch.object(
+            self.views, 'send_mail'
         ):
             response = self.views.apply.__wrapped__()
 
-        self.assertIn('class="alert alert-danger', response)
-        self.assertIn('A qualification must be chosen.', response)
-        user.save.assert_not_called()
-        self.assertEqual(user.status, 'none')
+        self.assertEqual(response.status_code, 302)
+        user.save.assert_called_once_with()
+        self.assertEqual(user.status, 'applying')
+        self.assertEqual(user.reason, '')
 
 
 class RepositoryContractTests(unittest.TestCase):
@@ -371,14 +400,13 @@ class RepositoryContractTests(unittest.TestCase):
                 with self.subTest(template=template.name, token=token):
                     self.assertNotIn(token, source)
 
-    def test_application_form_has_frontend_qualification_validation(self):
+    def test_application_form_has_no_frontend_non_empty_qualification_check(self):
         source = (
             self.root / 'app' / 'templates' / 'apply.html'
         ).read_text(encoding='utf-8')
 
-        self.assertIn('id="qualificationNotice"', source)
-        self.assertIn('A qualification must be chosen.', source)
-        self.assertIn("$('#reasonClass').on('invalid'", source)
+        self.assertNotIn('qualificationNotice', source)
+        self.assertNotIn('qualificationIsChosen', source)
         self.assertIn("$('#applyForm').on('submit'", source)
 
 

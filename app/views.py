@@ -165,17 +165,13 @@ def apply():
     if current_user.status not in ['none', 'reject', 'applying', 'pass']:
         abort(403)
     form = ApplyForm(request.form, obj=current_user, id='applyForm')
-    form.reasonClass.choices = [('', 'Select a qualification')] + [
+    form.reasonClass.choices = [
         (reason, reason) for reason in app.config['APPLICATION_REASONS']
     ]
-    if app.config['APPLICATION_REASONS']:
-        form.reasonClass.validators = [InputRequired()]
-    else:
+    if not app.config['APPLICATION_REASONS']:
         form._fields.pop('reasonClass', None)
     if request.method == 'POST':
         form_is_valid = form.validate_on_submit()
-        if 'reasonClass' in form._fields and not form.reasonClass.data:
-            flash('A qualification must be chosen.', 'error')
         if form_is_valid:
             name = form['name'].data
             studentno = form['studentno'].data

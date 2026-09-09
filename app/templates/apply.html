@@ -7,10 +7,6 @@
 
 {% block content %}
 {{ util.flashed_messages(dismissible=True) }}
-<div id="qualificationNotice" class="container flashed-messages mt-3"
-     role="alert" aria-live="assertive" style="display: none;">
-  <div class="alert alert-danger">A qualification must be chosen.</div>
-</div>
 <div class="container">
 	<h1>{{ self.title() }}</h1>
 
@@ -70,36 +66,8 @@ $(document).ready(function () {
   submitButton.parentNode.insertBefore(document.getElementById('agreeConstitution').parentNode.parentNode, submitButton);
   {% endif %}
 
-  function qualificationIsChosen() {
-    var qualification = $('#reasonClass');
-    if (!qualification.length || qualification.val()) {
-      $('#qualificationNotice').hide();
-      qualification.removeClass('is-invalid').removeAttr('aria-invalid');
-      return true;
-    }
-
-    $('#qualificationNotice').show();
-    qualification.addClass('is-invalid').attr('aria-invalid', 'true').focus();
-    return false;
-  }
-
-  $('#reasonClass').on('change', qualificationIsChosen);
-  $('#reasonClass').on('invalid', function (e) {
-    e.preventDefault();
-    qualificationIsChosen();
-  });
-  $('#showNotice, #submit_btn').on('click', function (e) {
-    if (!qualificationIsChosen()) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  });
-
   $('#applyForm').on('submit', function (e) {
     e.preventDefault();
-    if (!qualificationIsChosen()) {
-      return;
-    }
     $('#submit_btn').attr("disabled", true);
     $('#submit_btn').attr("value", "Please wait...");
     this.submit();
