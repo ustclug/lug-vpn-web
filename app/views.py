@@ -173,7 +173,10 @@ def apply():
     else:
         form._fields.pop('reasonClass', None)
     if request.method == 'POST':
-        if form.validate_on_submit():
+        form_is_valid = form.validate_on_submit()
+        if 'reasonClass' in form._fields and not form.reasonClass.data:
+            flash('A qualification must be chosen.', 'error')
+        if form_is_valid:
             name = form['name'].data
             studentno = form['studentno'].data
             phone = form['phone'].data

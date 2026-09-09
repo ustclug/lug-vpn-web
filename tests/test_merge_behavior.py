@@ -241,6 +241,50 @@ class ManageUsersPaginationTests(unittest.TestCase):
         self.assertEqual(context['rejected_sort'], 'applytime')
 
 
+class ApplicationQualificationValidationTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            from app import app
+            from app import views
+        except ModuleNotFoundError as exc:
+            raise unittest.SkipTest('application dependencies are unavailable') from exc
+        cls.app = app
+        cls.views = views
+
+    def test_placeholder_qualification_is_rejected_with_notice(self):
+        user = SimpleNamespace(status='none', save=Mock())
+        form_data = {
+            'name': 'Test User',
+            'studentno': 'PB12345678',
+            'phone': '123456789',
+            'reasonClass': '',
+            'reasonText': '',
+            'agree': 'y',
+        }
+        config = {
+            'APPLICATION_REASONS': ['Student'],
+            'APPLICATION_CONFIRMATION_ENABLED': False,
+            'CONSTITUTION_DOCUMENTS': [],
+            'TERMS_DOCUMENTS': [],
+            'WTF_CSRF_ENABLED': False,
+        }
+
+        with patch.dict(self.app.config, config), self.app.test_request_context(
+            '/apply/', method='POST', data=form_data
+        ), patch.object(
+            self.views, 'current_user', user
+        ), patch.object(
+            self.views, 'render_document_set', return_value=[]
+        ):
+            response = self.views.apply.__wrapped__()
+
+        self.assertIn('class="alert alert-danger', response)
+        self.assertIn('A qualification must be chosen.', response)
+        user.save.assert_not_called()
+        self.assertEqual(user.status, 'none')
+
+
 class RepositoryContractTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(__file__).resolve().parents[1]
@@ -283,6 +327,16 @@ class RepositoryContractTests(unittest.TestCase):
             for token in forbidden:
                 with self.subTest(template=template.name, token=token):
                     self.assertNotIn(token, source)
+
+    def test_application_form_has_frontend_qualification_validation(self):
+        source = (
+            self.root / 'app' / 'templates' / 'apply.html'
+        ).read_text(encoding='utf-8')
+
+        self.assertIn('id="qualificationNotice"', source)
+        self.assertIn('A qualification must be chosen.', source)
+        self.assertIn("$('#reasonClass').on('invalid'", source)
+        self.assertIn("$('#applyForm').on('submit'", source)
 
 
 if __name__ == '__main__':
