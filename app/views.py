@@ -201,6 +201,32 @@ def apply():
                        '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone + \
                        '<br>Reason: ' + reason
+                if app.config['LIBRARY_API_URL']:
+                    try:
+                        library_info = fetch_from_lib_api(
+                            app.config['LIBRARY_API_URL'],
+                            studentno,
+                            timeout=app.config['LIBRARY_API_TIMEOUT'],
+                        )
+                    except LibraryAPIError as exc:
+                        app.logger.warning(
+                            'Library API check failed for %s while applying: %s',
+                            studentno, exc,
+                        )
+                        status_code = exc.status_code or 'unknown'
+                        library_html = (
+                            'Failed to query Library API (HTTP status {})'
+                            .format(status_code)
+                        )
+                    else:
+                        if (library_info.get('status') or '').strip().lower() == 'not found':
+                            library_html = 'Library API: user not found'
+                        else:
+                            library_html = (
+                                'Library API Name: ' + (library_info.get('name') or '') +
+                                '<br>Library API Type: ' + (library_info.get('type') or '')
+                            )
+                    html += '<br>---<br>' + library_html
                 if current_user.status == 'pass':
                     title = '{} Renewal: '.format(app.config['SITE_NAME'])
                 else:

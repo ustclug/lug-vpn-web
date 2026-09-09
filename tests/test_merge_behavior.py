@@ -101,9 +101,55 @@ class LibraryAPITests(unittest.TestCase):
         self.assertEqual(result['type'], '教师')
 
     @patch.object(utils.requests, 'get', side_effect=requests.Timeout)
-    def test_network_errors_are_normalized(self, _get):
+    @patch.object(utils.time, 'sleep')
+    def test_network_errors_are_retried_up_to_three_times(self, sleep, get):
         with self.assertRaises(LibraryAPIError):
             fetch_from_lib_api('https://library.example/check', 'PB123')
+
+        self.assertEqual(get.call_count, 4)
+        self.assertEqual(sleep.call_args_list, [unittest.mock.call(1)] * 3)
+
+    @patch.object(utils.requests, 'get')
+    @patch.object(utils.time, 'sleep')
+    def test_network_error_is_retried_until_success(self, sleep, get):
+        response = Mock()
+        response.content = b'<reader_info><name>Alice</name><type>Student</type></reader_info>'
+        response.raise_for_status.return_value = None
+        get.side_effect = [requests.Timeout(), response]
+
+        result = fetch_from_lib_api('https://library.example/check', 'PB123')
+
+        self.assertEqual(result, {'name': 'Alice', 'type': 'Student'})
+        self.assertEqual(get.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    @patch.object(utils.requests, 'get')
+    @patch.object(utils.time, 'sleep')
+    def test_http_status_is_preserved_after_retries(self, sleep, get):
+        response = Mock(status_code=503)
+        response.raise_for_status.side_effect = requests.HTTPError(response=response)
+        get.return_value = response
+
+        with self.assertRaises(LibraryAPIError) as raised:
+            fetch_from_lib_api('https://library.example/check', 'PB123')
+
+        self.assertEqual(raised.exception.status_code, 503)
+        self.assertEqual(get.call_count, 4)
+        self.assertEqual(sleep.call_args_list, [unittest.mock.call(1)] * 3)
+
+    @patch.object(utils.requests, 'get')
+    def test_not_found_response_is_returned_for_caller_handling(self, get):
+        response = Mock()
+        response.content = (
+            b'<reader_info><ip>202.38.95.102</ip>'
+            b'<status>not found</status><count>0</count></reader_info>'
+        )
+        response.raise_for_status.return_value = None
+        get.return_value = response
+
+        result = fetch_from_lib_api('https://library.example/check', 'PB123')
+
+        self.assertEqual(result['status'], 'not found')
 
     @patch.object(utils.requests, 'get')
     def test_malformed_xml_is_normalized(self, get):
@@ -355,6 +401,105 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
         user.save.assert_called_once_with()
         self.assertEqual(user.status, 'applying')
         self.assertEqual(user.reason, '')
+
+    def test_library_api_details_are_added_to_application_email(self):
+        user = SimpleNamespace(
+            status='none', email='test@example.com', save=Mock(),
+        )
+        form_data = {
+            'name': 'Test User',
+            'studentno': 'PB12345678',
+            'phone': '123456789',
+            'reasonClass': 'Student',
+            'reasonText': '',
+            'agree': 'y',
+        }
+        config = {
+            'APPLICATION_REASONS': ['Student'],
+            'APPLICATION_CONFIRMATION_ENABLED': False,
+            'CONSTITUTION_DOCUMENTS': [],
+            'TERMS_DOCUMENTS': [],
+            'WTF_CSRF_ENABLED': False,
+            'LIBRARY_API_URL': 'https://library.example/check',
+            'LIBRARY_API_TIMEOUT': 5,
+        }
+
+        with patch.dict(self.app.config, config), self.app.test_request_context(
+            '/apply/', method='POST', data=form_data
+        ), patch.object(
+            self.views, 'current_user', user
+        ), patch.object(
+            self.views, 'fetch_from_lib_api',
+            return_value={'name': '张三', 'type': '学生'},
+        ) as fetch, patch.object(
+            self.views, 'send_mail'
+        ) as send_mail:
+            response = self.views.apply.__wrapped__()
+
+        self.assertEqual(response.status_code, 302)
+        fetch.assert_called_once_with(
+            'https://library.example/check', 'PB12345678', timeout=5,
+        )
+        email_html = send_mail.call_args.args[1]
+        self.assertIn(
+            '<br>Reason: Student<br>---<br>Library API Name: 张三'
+            '<br>Library API Type: 学生',
+            email_html,
+        )
+
+    def test_library_api_not_found_is_added_to_application_email(self):
+        self._assert_library_api_email_result(
+            {'status': 'not found', 'count': '0'},
+            '<br>---<br>Library API: user not found',
+        )
+
+    def test_library_api_http_failure_is_added_to_application_email(self):
+        self._assert_library_api_email_result(
+            LibraryAPIError('Library API request failed', status_code=503),
+            '<br>---<br>Failed to query Library API (HTTP status 503)',
+            raises=True,
+        )
+
+    def _assert_library_api_email_result(self, result, expected, raises=False):
+        user = SimpleNamespace(
+            status='none', email='test@example.com', save=Mock(),
+        )
+        form_data = {
+            'name': 'Test User',
+            'studentno': 'PB12345678',
+            'phone': '123456789',
+            'reasonClass': 'Student',
+            'reasonText': '',
+            'agree': 'y',
+        }
+        config = {
+            'APPLICATION_REASONS': ['Student'],
+            'APPLICATION_CONFIRMATION_ENABLED': False,
+            'CONSTITUTION_DOCUMENTS': [],
+            'TERMS_DOCUMENTS': [],
+            'WTF_CSRF_ENABLED': False,
+            'LIBRARY_API_URL': 'https://library.example/check',
+            'LIBRARY_API_TIMEOUT': 5,
+        }
+        fetch_result = {'side_effect' if raises else 'return_value': result}
+
+        with patch.dict(self.app.config, config), self.app.test_request_context(
+            '/apply/', method='POST', data=form_data
+        ), patch.object(
+            self.views, 'current_user', user
+        ), patch.object(
+            self.views, 'fetch_from_lib_api', **fetch_result
+        ), patch.object(
+            self.views, 'send_mail'
+        ) as send_mail:
+            response = self.views.apply.__wrapped__()
+
+        self.assertEqual(response.status_code, 302)
+        email_html = send_mail.call_args.args[1]
+        self.assertIn(expected, email_html)
+        self.assertNotIn('Library API Name:', email_html)
+        self.assertNotIn('Library API Type:', email_html)
+        self.assertNotIn('Unavailable', email_html)
 
 
 class RepositoryContractTests(unittest.TestCase):

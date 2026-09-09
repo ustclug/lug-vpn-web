@@ -2,16 +2,21 @@ import datetime
 import quopri
 import random
 import string
+import time
 import xml.etree.ElementTree as ET
 
 import requests
 
 
 EXPIRATION_TYPES = ('semester', 'year', 'long')
+LIBRARY_API_MAX_RETRIES = 3
+LIBRARY_API_RETRY_DELAY = 1
 
 
 class LibraryAPIError(Exception):
-    pass
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        self.status_code = status_code
 
 
 def random_string(length):
@@ -65,11 +70,20 @@ def next_school_year_end():
 
 
 def fetch_from_lib_api(endpoint, studentno, timeout=5):
-    try:
-        response = requests.get(endpoint, params={'id': studentno}, timeout=timeout)
-        response.raise_for_status()
-    except requests.RequestException as exc:
-        raise LibraryAPIError('Library API request failed') from exc
+    for attempt in range(LIBRARY_API_MAX_RETRIES + 1):
+        try:
+            response = requests.get(endpoint, params={'id': studentno}, timeout=timeout)
+            response.raise_for_status()
+            break
+        except requests.RequestException as exc:
+            if attempt == LIBRARY_API_MAX_RETRIES:
+                status_code = (
+                    exc.response.status_code if exc.response is not None else None
+                )
+                raise LibraryAPIError(
+                    'Library API request failed', status_code=status_code,
+                ) from exc
+            time.sleep(LIBRARY_API_RETRY_DELAY)
 
     try:
         # Parse the raw bytes so ElementTree honors the XML encoding
