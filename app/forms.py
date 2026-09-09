@@ -38,7 +38,7 @@ class ApplyForm(FlaskForm):
     phone = StringField('Phone', [InputRequired()])
     reasonClass = SelectField('Qualification', [Optional()], choices=[])
     reasonText = TextAreaField(
-        'Additional application reason',
+        'For asterisk-marked reasons, please provide details below',
         [Optional()],
         render_kw={'placeholder': 'Enter any extra information here'},
     )
