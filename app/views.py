@@ -436,7 +436,7 @@ def reject(id):
                 subject = 'Your {} application has been rejected'.format(app.config['SITE_NAME'])
             send_mail(subject, html, user.email)
             return redirect(url_for('manage_applications'))
-    return render_template('reject.html', form=form, email=user.email)
+    return render_template('reject.html', form=form, email=user.email, user=user)
 
 
 @app.route('/ban/<int:id>', methods=['POST', 'GET'])

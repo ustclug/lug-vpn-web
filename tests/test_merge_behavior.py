@@ -167,6 +167,49 @@ class RejectionTransitionTests(unittest.TestCase):
         delete.assert_called_once_with('user@example.com')
 
 
+class RejectApplicationViewTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        try:
+            from app import app
+            from app import views
+        except ModuleNotFoundError as exc:
+            raise unittest.SkipTest('application dependencies are unavailable') from exc
+        cls.app = app
+        cls.views = views
+
+    def test_application_details_are_rendered_before_reject_reason(self):
+        user = SimpleNamespace(
+            email='applicant@example.com',
+            name='Test Applicant',
+            studentno='PB12345678',
+            phone='123456789',
+            reason='Student qualification',
+            applytime=datetime.datetime(2026, 9, 9, 12, 30),
+            renewing=False,
+            rejectreason=None,
+            expiration=None,
+        )
+
+        with patch.dict(self.app.config, {'WTF_CSRF_ENABLED': False}), \
+                self.app.test_request_context('/reject/42'), patch.object(
+                    self.views, 'current_user', SimpleNamespace(admin=True)
+                ), patch.object(
+                    self.views.User, 'get_user_by_id', return_value=user
+                ):
+            response = self.views.reject.__wrapped__(42)
+
+        self.assertIn('Test Applicant', response)
+        self.assertIn('PB12345678', response)
+        self.assertIn('123456789', response)
+        self.assertIn('Student qualification', response)
+        self.assertIn('2026-09-09 12:30:00', response)
+        self.assertLess(
+            response.index('Application details'),
+            response.index('Reject reason'),
+        )
+
+
 class ManageUsersPaginationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

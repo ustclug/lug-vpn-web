@@ -9,6 +9,31 @@
 <div class="container">
   <h1>Reject application of {{email}}</h1>
 
+  <div class="card mb-4">
+    <div class="card-header">Application details</div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">{{ user.name }}</dd>
+
+        <dt class="col-sm-3">School ID</dt>
+        <dd class="col-sm-9">{{ user.studentno }}</dd>
+
+        <dt class="col-sm-3">Phone</dt>
+        <dd class="col-sm-9">{{ user.phone }}</dd>
+
+        <dt class="col-sm-3">Apply reason</dt>
+        <dd class="col-sm-9">{{ user.reason }}</dd>
+
+        <dt class="col-sm-3">Apply time</dt>
+        <dd class="col-sm-9">{{ user.applytime }}</dd>
+
+        <dt class="col-sm-3">Renewal</dt>
+        <dd class="col-sm-9">{{ user.renewing }}</dd>
+      </dl>
+    </div>
+  </div>
+
   {{ wtf.quick_form(form) }}
 
 </div>
