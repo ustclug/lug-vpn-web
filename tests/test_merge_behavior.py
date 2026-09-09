@@ -411,7 +411,7 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
             'studentno': 'PB12345678',
             'phone': '123456789',
             'reasonClass': 'Student',
-            'reasonText': '',
+            'reasonText': 'Member of robotics club',
             'agree': 'y',
         }
         config = {
@@ -442,21 +442,24 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
         )
         email_html = send_mail.call_args.args[1]
         self.assertIn(
-            '<br>Reason: Student<br>---<br>Library API Name: 张三'
+            '<br>Qualification: Student'
+            '<br>Additional info: Member of robotics club'
+            '<hr>Library API Name: 张三'
             '<br>Library API Type: 学生',
             email_html,
         )
+        self.assertNotIn('<br>Reason:', email_html)
 
     def test_library_api_not_found_is_added_to_application_email(self):
         self._assert_library_api_email_result(
             {'status': 'not found', 'count': '0'},
-            '<br>---<br>Library API: user not found',
+            '<hr>Library API: user not found',
         )
 
     def test_library_api_http_failure_is_added_to_application_email(self):
         self._assert_library_api_email_result(
             LibraryAPIError('Library API request failed', status_code=503),
-            '<br>---<br>Failed to query Library API (HTTP status 503)',
+            '<hr>Failed to query Library API (HTTP status 503)',
             raises=True,
         )
 

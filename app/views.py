@@ -200,7 +200,8 @@ def apply():
                        '<br>Email: ' + current_user.email + \
                        '<br>Student/Staff No: ' + studentno + \
                        '<br>Phone: ' + phone + \
-                       '<br>Reason: ' + reason
+                       '<br>Qualification: ' + selected_reason + \
+                       '<br>Additional info: ' + freeform_reason
                 if app.config['LIBRARY_API_URL']:
                     try:
                         library_info = fetch_from_lib_api(
@@ -226,7 +227,7 @@ def apply():
                                 'Library API Name: ' + (library_info.get('name') or '') +
                                 '<br>Library API Type: ' + (library_info.get('type') or '')
                             )
-                    html += '<br>---<br>' + library_html
+                    html += '<hr>' + library_html
                 if current_user.status == 'pass':
                     title = '{} Renewal: '.format(app.config['SITE_NAME'])
                 else:
