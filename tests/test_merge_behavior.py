@@ -522,7 +522,7 @@ class RepositoryContractTests(unittest.TestCase):
         self.assertIn("app.config.from_object('config.example')", init_source)
         self.assertIn("import_module('config.default')", init_source)
 
-    def test_bootstrap_4_assets_and_dependencies(self):
+    def test_bootstrap_5_assets_and_dependencies(self):
         bootstrap_css = (
             self.root / 'app' / 'static' / 'css' / 'bootstrap.min.css'
         ).read_text(encoding='utf-8')
@@ -531,9 +531,61 @@ class RepositoryContractTests(unittest.TestCase):
         ).read_text(encoding='utf-8')
         requirements = (self.root / 'requirements.txt').read_text(encoding='utf-8')
 
-        self.assertIn('Bootstrap v4.6.2', bootstrap_css[:300])
-        self.assertIn('Bootstrap v4.6.2', bootstrap_js[:300])
+        self.assertIn('v5.3.8', bootstrap_css[:300])
+        self.assertIn('v5.3.8', bootstrap_js[:300])
         self.assertNotIn('Flask-Bootstrap', requirements)
+
+    def test_templates_do_not_use_bootstrap_4_markup(self):
+        forbidden = (
+            'data-toggle=', 'data-target=', 'data-dismiss=',
+            'class="close"', 'badge-info', 'badge-success', 'badge-danger',
+            'custom-control', 'custom-checkbox', 'custom-control-input',
+            'custom-control-label', 'form-group',
+        )
+        for template in (self.root / 'app' / 'templates').rglob('*.html'):
+            source = template.read_text(encoding='utf-8')
+            for token in forbidden:
+                with self.subTest(template=template.name, token=token):
+                    self.assertNotIn(token, source)
+
+    def test_datatables_uses_bootstrap_5_integration(self):
+        template = (
+            self.root / 'app' / 'templates' / 'manageapplications.html'
+        ).read_text(encoding='utf-8')
+        versions = {
+            'js/datatables.min.js': 'DataTables 3.0.3',
+            'js/datatables.colreorder.min.js': 'ColReorder 3.0.1',
+            'js/datatables.responsive.min.js': 'Responsive 4.0.3',
+            'js/datatables.select.min.js': 'Select 4.0.1',
+        }
+
+        self.assertIn('datatables.bootstrap5.min.css', template)
+        self.assertIn('datatables.bootstrap5.min.js', template)
+        self.assertIn('datatables.colreorder.bootstrap5.min.css', template)
+        self.assertIn('datatables.colreorder.bootstrap5.min.js', template)
+        self.assertIn('datatables.responsive.bootstrap5.min.css', template)
+        self.assertIn('datatables.responsive.bootstrap5.min.js', template)
+        self.assertIn('datatables.select.bootstrap5.min.css', template)
+        self.assertIn('datatables.select.bootstrap5.min.js', template)
+        self.assertNotIn('bootstrap4', template)
+        for relative_path, version_banner in versions.items():
+            source = (
+                self.root / 'app' / 'static' / relative_path
+            ).read_text(encoding='utf-8')
+            with self.subTest(asset=relative_path):
+                self.assertIn(version_banner, source[:200])
+
+    def test_datatables_initialization_uses_current_api(self):
+        source = (
+            self.root / 'app' / 'static' / 'js' / 'manage.js'
+        ).read_text(encoding='utf-8')
+
+        self.assertIn("DataTable.type('file-size'", source)
+        self.assertIn('DataTable.isDataTable', source)
+        self.assertIn('new DataTable', source)
+        self.assertIn('order: []', source)
+        self.assertNotIn('aaSorting', source)
+        self.assertNotIn('jQuery.fn.dataTable', source)
 
     def test_templates_do_not_use_bootstrap_3_components(self):
         forbidden = (

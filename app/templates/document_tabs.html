@@ -3,7 +3,7 @@
   <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 1em;">
     {% for title, content in documents %}
     <li class="nav-item" role="presentation">
-      <a class="nav-link{% if loop.first %} active{% endif %}" href="#{{ group_id }}-{{ loop.index }}" aria-controls="{{ group_id }}-{{ loop.index }}" role="tab" data-toggle="tab">{{ title }}</a>
+      <a class="nav-link{% if loop.first %} active{% endif %}" href="#{{ group_id }}-{{ loop.index }}" aria-controls="{{ group_id }}-{{ loop.index }}" aria-selected="{{ 'true' if loop.first else 'false' }}" role="tab" data-bs-toggle="tab">{{ title }}</a>
     </li>
     {% endfor %}
   </ul>

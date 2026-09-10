@@ -34,13 +34,13 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply</a>
   {% elif user.status=='applying' %}
     <h3>
-      <span class="badge badge-info">Your application is under review, please wait.</span>
+      <span class="badge text-bg-info">Your application is under review, please wait.</span>
     </h3>
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Edit</a>
     {{ util.form_button(url_for('cancel'),'Cancel',class='btn btn-warning btn-lg') }}
   {% elif user.status=='pass' %}
     <h3>
-      <span class="badge badge-success">Your application has passed</span>
+      <span class="badge text-bg-success">Your application has passed</span>
     </h3>
     <p>Username: <code>{{user.email}}</code></p>
     <p>Password: <code>{{user.vpnpassword}}</code></p>
@@ -58,10 +58,10 @@
     <h3 id="documents">Constitution and Terms of Service</h3>
     <p>
       {% if constitution_documents %}
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#constitutionModal">Read Constitution</button>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#constitutionModal">Read Constitution</button>
       {% endif %}
       {% if terms_documents %}
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#termsModal">Read Terms of Service</button>
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#termsModal">Read Terms of Service</button>
       {% endif %}
     </p>
     {% endif %}
@@ -70,16 +70,14 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
         <h2 class="modal-title" id="constitutionModalLabel">{{ site_name }} Constitution</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         {{ render_document_tabs(constitution_documents, 'dashboard-constitution') }}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -90,16 +88,14 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
         <h2 class="modal-title" id="termsModalLabel">{{ site_name }} Terms of Service</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         {{ render_document_tabs(terms_documents, 'dashboard-terms') }}
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -151,7 +147,7 @@
     </table>
   {% elif user.status=='reject' %}
     <h3>
-      <span class="badge badge-danger">Sorry, your {{ site_name }} application has been rejected for the following reason</span>
+      <span class="badge text-bg-danger">Sorry, your {{ site_name }} application has been rejected for the following reason</span>
     </h3>
     <div class="card card-body">
         {{user.rejectreason}}
@@ -159,7 +155,7 @@
     <a class="btn btn-lg btn-success" type="button" href="{{ url_for('apply') }}">Apply again</a>
   {% elif user.status=='banned' %}
     <h3>
-      <span class="badge badge-danger">Your {{ site_name }} account has been banned for the following reason</span>
+      <span class="badge text-bg-danger">Your {{ site_name }} account has been banned for the following reason</span>
     </h3>
     <div class="card card-body">
         {{user.banreason}}

@@ -1,23 +1,23 @@
 {% macro form_field(field) -%}
   {% if field.type == 'BooleanField' %}
-  <div class="form-group">
-    <div class="custom-control custom-checkbox">
-      {{ field(class_='custom-control-input' + (' is-invalid' if field.errors else '')) }}
-      {{ field.label(class_='custom-control-label') }}
+  <div class="mb-3">
+    <div class="form-check">
+      {{ field(class_='form-check-input' + (' is-invalid' if field.errors else '')) }}
+      {{ field.label(class_='form-check-label') }}
       {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-      {% if field.description %}<small class="form-text text-muted">{{ field.description }}</small>{% endif %}
+      {% if field.description %}<div class="form-text">{{ field.description }}</div>{% endif %}
     </div>
   </div>
   {% elif field.type == 'SubmitField' %}
-  <div class="form-group">
+  <div class="mb-3">
     {{ field(class_='btn btn-primary') }}
   </div>
   {% else %}
-  <div class="form-group{% if field.flags.required %} required{% endif %}">
-    {{ field.label() }}
-    {{ field(class_='form-control' + (' is-invalid' if field.errors else '')) }}
+  <div class="mb-3{% if field.flags.required %} required{% endif %}">
+    {{ field.label(class_='form-label') }}
+    {{ field(class_=('form-select' if field.type == 'SelectField' else 'form-control') + (' is-invalid' if field.errors else '')) }}
     {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-    {% if field.description %}<small class="form-text text-muted">{{ field.description }}</small>{% endif %}
+    {% if field.description %}<div class="form-text">{{ field.description }}</div>{% endif %}
   </div>
   {% endif %}
 {%- endmacro %}
