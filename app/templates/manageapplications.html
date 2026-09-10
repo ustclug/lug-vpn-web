@@ -2,13 +2,6 @@
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}New Applications{% endblock %}
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.colreorder.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.responsive.bootstrap5.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/datatables.select.bootstrap5.min.css') }}">
-{% endblock %}
 
 {% block content %}
 {{util.flashed_messages(dismissible=True)}}
@@ -44,14 +37,6 @@
 {% endblock %}
 {% block scripts %}
 {{super()}}
-<script src="{{ url_for('static', filename='js/datatables.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.bootstrap5.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.colreorder.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.colreorder.bootstrap5.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.responsive.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.responsive.bootstrap5.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.select.min.js') }}"></script>
-<script src="{{ url_for('static', filename='js/datatables.select.bootstrap5.min.js') }}"></script>
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
 <script type="text/javascript">
 {% if library_api_enabled %}

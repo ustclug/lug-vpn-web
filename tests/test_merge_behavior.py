@@ -548,44 +548,15 @@ class RepositoryContractTests(unittest.TestCase):
                 with self.subTest(template=template.name, token=token):
                     self.assertNotIn(token, source)
 
-    def test_datatables_uses_bootstrap_5_integration(self):
-        template = (
-            self.root / 'app' / 'templates' / 'manageapplications.html'
-        ).read_text(encoding='utf-8')
-        versions = {
-            'js/datatables.min.js': 'DataTables 3.0.3',
-            'js/datatables.colreorder.min.js': 'ColReorder 3.0.1',
-            'js/datatables.responsive.min.js': 'Responsive 4.0.3',
-            'js/datatables.select.min.js': 'Select 4.0.1',
-        }
-
-        self.assertIn('datatables.bootstrap5.min.css', template)
-        self.assertIn('datatables.bootstrap5.min.js', template)
-        self.assertIn('datatables.colreorder.bootstrap5.min.css', template)
-        self.assertIn('datatables.colreorder.bootstrap5.min.js', template)
-        self.assertIn('datatables.responsive.bootstrap5.min.css', template)
-        self.assertIn('datatables.responsive.bootstrap5.min.js', template)
-        self.assertIn('datatables.select.bootstrap5.min.css', template)
-        self.assertIn('datatables.select.bootstrap5.min.js', template)
-        self.assertNotIn('bootstrap4', template)
-        for relative_path, version_banner in versions.items():
-            source = (
-                self.root / 'app' / 'static' / relative_path
-            ).read_text(encoding='utf-8')
-            with self.subTest(asset=relative_path):
-                self.assertIn(version_banner, source[:200])
-
-    def test_datatables_initialization_uses_current_api(self):
-        source = (
-            self.root / 'app' / 'static' / 'js' / 'manage.js'
-        ).read_text(encoding='utf-8')
-
-        self.assertIn("DataTable.type('file-size'", source)
-        self.assertIn('DataTable.isDataTable', source)
-        self.assertIn('new DataTable', source)
-        self.assertIn('order: []', source)
-        self.assertNotIn('aaSorting', source)
-        self.assertNotIn('jQuery.fn.dataTable', source)
+    def test_datatables_is_not_vendored_or_referenced(self):
+        for path in (self.root / 'app').rglob('*'):
+            if not path.is_file():
+                continue
+            with self.subTest(path=path.relative_to(self.root)):
+                self.assertNotIn('datatable', path.name.lower())
+                if path.suffix in {'.html', '.js', '.py'}:
+                    source = path.read_text(encoding='utf-8')
+                    self.assertNotIn('DataTable', source)
 
     def test_templates_do_not_use_bootstrap_3_components(self):
         forbidden = (
