@@ -1,50 +1,39 @@
 {% import "bootstrap/utils.html" as util %}
-{% macro sort_heading(label, key, current_sort, current_direction, urls) -%}
-<a href="{{ urls[key] }}">
-    {{ label }}
-    {% if current_sort == key %}{{ '▲' if current_direction == 'asc' else '▼' }}{% endif %}
-</a>
+{% macro sort_heading(label, key) -%}
+<button class="btn btn-link p-0 text-body fw-semibold text-start" type="button" data-sort="{{ key }}">{{ label }}<span data-sort-indicator class="ms-1"></span></button>
 {%- endmacro %}
 
-{% macro pager(page) -%}
+{% macro pager() -%}
 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-3">
-    <span class="small text-body-secondary">Showing {{ page.start }}&ndash;{{ page.end }} of {{ page.total }}</span>
+    <span class="small text-body-secondary" data-page-summary></span>
     <div class="btn-group" role="group" aria-label="Pagination">
-        {% if page.previous_url %}
-        <a class="btn btn-outline-secondary btn-sm" href="{{ page.previous_url }}">Previous</a>
-        {% else %}
-        <span class="btn btn-outline-secondary btn-sm disabled">Previous</span>
-        {% endif %}
-        {% if page.next_url %}
-        <a class="btn btn-outline-secondary btn-sm" href="{{ page.next_url }}">Next</a>
-        {% else %}
-        <span class="btn btn-outline-secondary btn-sm disabled">Next</span>
-        {% endif %}
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-step="-1">Previous</button>
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-step="1">Next</button>
     </div>
 </div>
 {%- endmacro %}
 
-<section class="card shadow-sm mb-4" aria-labelledby="active-users-heading">
+<section class="card shadow-sm mb-4" data-users="active" aria-labelledby="active-users-heading">
     <div class="card-header bg-body py-3 d-flex align-items-center gap-2">
         <h2 id="active-users-heading" class="h5 mb-0">Active users</h2>
-        <span class="badge rounded-pill text-bg-light border">{{ active_page.total }}</span>
+        <span class="badge rounded-pill text-bg-light border" data-count>{{ users|length }}</span>
     </div>
     <div class="table-responsive">
     <table class="table table-hover align-middle users-table mb-0" id="all_users">
         <thead class="table-light">
             <tr>
-                <th scope="col">{{ sort_heading('Student/Staff No.', 'studentno', active_sort, active_direction, active_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Name', 'name', active_sort, active_direction, active_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Email', 'email', active_sort, active_direction, active_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Last month', 'last_month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('This month', 'month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Expiration', 'expiration', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Student/Staff No.', 'studentno') }}</th>
+                <th scope="col">{{ sort_heading('Name', 'name') }}</th>
+                <th scope="col">{{ sort_heading('Email', 'email') }}</th>
+                <th scope="col">{{ sort_heading('Last month', 'last_month_traffic') }}</th>
+                <th scope="col">{{ sort_heading('This month', 'month_traffic') }}</th>
+                <th scope="col">{{ sort_heading('Expiration', 'expiration') }}</th>
                 <th scope="col">Operation</th>
             </tr>
         </thead>
         <tbody>
         {% for u in users %}
-            <tr>
+            <tr data-user="{{ dict(id=u.id, studentno=u.studentno, name=u.name, email=u.email, last_month_traffic=all_last_month_traffic[u.email], month_traffic=all_month_traffic[u.email], expiration=(u.expiration|string if u.expiration else ''))|tojson|forceescape }}">
                 <td class="text-nowrap">{{u.studentno}}</td>
                 <td class="text-nowrap">
                     <span class="fw-medium">{{u.name}}</span>
@@ -90,33 +79,32 @@
                     </div>
                 </td>
             </tr>
-        {% else %}
-            <tr><td colspan="7" class="text-center text-body-secondary py-5">No active users found.</td></tr>
         {% endfor %}
+            <tr data-empty hidden><td colspan="7" class="text-center text-body-secondary py-5">No active users found.</td></tr>
         </tbody>
     </table>
     </div>
-    {{ pager(active_page) }}
+    {{ pager() }}
 </section>
-<section class="card shadow-sm mb-4" aria-labelledby="rejected-users-heading">
+<section class="card shadow-sm mb-4" data-users="rejected" aria-labelledby="rejected-users-heading">
     <div class="card-header bg-body py-3 d-flex align-items-center gap-2">
         <h2 id="rejected-users-heading" class="h5 mb-0">Rejected users</h2>
-        <span class="badge rounded-pill text-bg-light border">{{ rejected_page.total }}</span>
+        <span class="badge rounded-pill text-bg-light border" data-count>{{ rejected_users|length }}</span>
     </div>
     <div class="table-responsive">
     <table class="table table-hover align-middle users-table mb-0" id="rejected_users">
         <thead class="table-light">
             <tr>
-                <th scope="col">{{ sort_heading('Student NO.', 'studentno', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Name', 'name', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Email', 'email', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th scope="col">{{ sort_heading('Reject reason', 'rejectreason', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Student NO.', 'studentno') }}</th>
+                <th scope="col">{{ sort_heading('Name', 'name') }}</th>
+                <th scope="col">{{ sort_heading('Email', 'email') }}</th>
+                <th scope="col">{{ sort_heading('Reject reason', 'rejectreason') }}</th>
                 <th scope="col">Operation</th>
             </tr>
         </thead>
         <tbody>
         {% for u in rejected_users %}
-            <tr>
+            <tr data-user="{{ dict(id=u.id, studentno=u.studentno, name=u.name, email=u.email, rejectreason=u.rejectreason, applytime=(u.applytime|string if u.applytime else ''))|tojson|forceescape }}">
                 <td class="text-nowrap">{{u.studentno}}</td>
                 <td class="text-nowrap">{{u.name}}</td>
                 <td class="user-email">{{u.email}}</td>
@@ -130,11 +118,10 @@
                     </div>
                 </td>
             </tr>
-        {% else %}
-            <tr><td colspan="5" class="text-center text-body-secondary py-5">No rejected users found.</td></tr>
         {% endfor %}
+            <tr data-empty hidden><td colspan="5" class="text-center text-body-secondary py-5">No rejected users found.</td></tr>
         </tbody>
     </table>
     </div>
-    {{ pager(rejected_page) }}
+    {{ pager() }}
 </section>

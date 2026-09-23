@@ -3,83 +3,120 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 import {test} from 'node:test';
 
-function setup() {
-    const elements = Object.fromEntries(['users-list', 'users-status', 'users-retry', 'user-search', 'user-query'].map(id => [id, {
-        listeners: {}, attributes: {}, dataset: {url: '/manageusers/data/'},
-        innerHTML: '', value: '', hidden: false,
+function element() {
+    return {listeners: {}, attributes: {}, dataset: {}, value: '', hidden: false,
         addEventListener(type, handler) { this.listeners[type] = handler; },
         setAttribute(key, value) { this.attributes[key] = value; },
-        replaceChildren() { this.innerHTML = ''; },
-        querySelector() { return this.innerHTML.includes('<tr>') ? {} : null; }
-    }]));
+        replaceChildren(...children) { this.children = children; },
+        append(child) { this.children.push(child); }};
+}
+function setup() {
+    const elements = Object.fromEntries(['users-list', 'users-status', 'users-retry', 'user-search', 'user-query'].map(id => [id, element()]));
+    const sections = ['active', 'rejected'].map(kind => {
+        const section = element();
+        section.dataset.users = kind;
+        const nodes = Object.fromEntries(['tbody', '[data-empty]', '[data-count]', '[data-page-summary]', '[data-step="-1"]', '[data-step="1"]'].map(key => [key, element()]));
+        const rows = Array.from({length: 60}, (_, index) => ({dataset: {user: JSON.stringify({
+            id: index + 1, name: `User ${index + 1}`, studentno: `PB${index + 1}`,
+            email: `user${index + 1}@example.com`, month_traffic: index * 100,
+            applytime: '2026-01-01', expiration: ''
+        })}, nextElementSibling: element()}));
+        section.querySelector = key => nodes[key];
+        section.querySelectorAll = key => key === '[data-user]' ? rows : [];
+        return section;
+    });
+    elements['users-list'].dataset.url = '/manageusers/data/';
+    elements['users-list'].querySelectorAll = () => sections;
     const requests = [];
     const windowEvents = {};
-    const location = new URL('https://vpn.example/manageusers/?offset=25&rejected_offset=50');
-    const context = {
-        URL, AbortController, location,
+    const location = new URL('https://vpn.example/manageusers/');
+    const updateLocation = (_state, _unused, url) => { location.href = url.href; };
+    const context = {URL, location,
         document: {getElementById: id => elements[id]},
         window: {addEventListener: (event, handler) => { windowEvents[event] = handler; }},
-        history: {pushState: (_state, _unused, url) => { location.href = url.href; }},
-        fetch: (url, options) => new Promise(resolve => requests.push({url, options, resolve}))
-    };
+        history: {pushState: updateLocation, replaceState: updateLocation},
+        fetch: (url, options) => new Promise(resolve => requests.push({url, options, resolve}))};
     runInNewContext(readFileSync(new URL('../app/static/js/manageusers.js', import.meta.url), 'utf8'), context);
-    async function respond(index, html, status = 200) {
-        requests[index].resolve({ok: status === 200, status, json: async () => ({html})});
+    async function respond(index = 0, status = 200) {
+        requests[index].resolve({ok: status === 200, status, json: async () => ({html: 'server fragment'})});
         await new Promise(resolve => setImmediate(resolve));
     }
     function search(value) {
         elements['user-query'].value = value;
-        elements['user-search'].listeners.submit({preventDefault() {}});
+        elements['user-query'].listeners.input();
     }
-    return {elements, requests, location, windowEvents, respond, search};
+    function click(section, dataset) {
+        elements['users-list'].listeners.click({target: {closest: () => ({dataset, closest: () => sections[section]})}});
+    }
+    const ids = (section = 0) => sections[section].querySelector('tbody').children
+        .filter(row => row.dataset?.user).map(row => JSON.parse(row.dataset.user).id);
+    return {elements, requests, location, windowEvents, respond, search, click, ids, select: context.selectUserPage};
 }
 
-test('search resets offsets; stale responses cannot replace newer results', async () => {
+test('loads once; searches all users including later pages without another request', async () => {
     const app = setup();
-    assert.equal(app.elements['users-list'].attributes['aria-busy'], 'true');
-    app.search(' Alice ');
-    assert.equal(app.requests[0].options.signal.aborted, true);
-    assert.equal(app.requests[1].url.searchParams.get('q'), 'Alice');
-    assert.equal(app.location.searchParams.has('offset'), false);
-    assert.equal(app.location.searchParams.has('rejected_offset'), false);
-    await app.respond(1, '<tr>Alice</tr>');
-    await app.respond(0, '<tr>Old</tr>');
-    assert.equal(app.elements['users-list'].innerHTML, '<tr>Alice</tr>');
-    assert.equal(app.elements['users-list'].attributes['aria-busy'], 'false');
+    await app.respond();
+    assert.equal(app.ids().length, 25);
+    app.search('USER60@EXAMPLE.COM');
+    assert.deepEqual(app.ids(), [60]);
+    assert.deepEqual(app.ids(1), [60]);
+    app.search('missing');
+    assert.deepEqual(app.ids(), []);
+    app.search('');
+    assert.equal(app.ids().length, 25);
+    assert.equal(app.requests.length, 1);
 });
 
-test('errors can be retried and empty results are announced', async () => {
+test('searches typed during loading apply after the single response arrives', async () => {
     const app = setup();
-    await app.respond(0, '', 500);
+    app.search('PB59');
+    await app.respond();
+    assert.deepEqual(app.ids(), [59]);
+    assert.equal(app.requests.length, 1);
+});
+
+test('paging, numeric sorting, and history operate on cached rows', async () => {
+    const app = setup();
+    await app.respond();
+    app.click(0, {step: '1'});
+    assert.equal(app.ids()[0], 26);
+    app.click(0, {sort: 'month_traffic'});
+    assert.equal(app.ids()[0], 1);
+    app.click(0, {sort: 'month_traffic'});
+    assert.equal(app.ids()[0], 60);
+    app.location.search = '?q=PB58';
+    app.windowEvents.popstate();
+    assert.deepEqual(app.ids(), [58]);
+    assert.equal(app.elements['user-query'].value, 'PB58');
+    assert.equal(app.requests.length, 1);
+});
+
+test('failure can be retried, but a loaded list is not fetched again', async () => {
+    const app = setup();
+    await app.respond(0, 500);
     assert.equal(app.elements['users-retry'].hidden, false);
     app.elements['users-retry'].listeners.click();
-    await app.respond(1, '<table></table>');
-    assert.equal(app.elements['users-retry'].hidden, true);
-    assert.equal(app.elements['users-status'].textContent, 'No matching users.');
-});
-
-test('sorting uses fetch, detail links keep normal navigation, and history reloads search', async () => {
-    const app = setup();
-    await app.respond(0, '<tr>Users</tr>');
-    let prevented = false;
-    const click = href => app.elements['users-list'].listeners.click({
-        button: 0, target: {closest: () => ({href})}, preventDefault() { prevented = true; }
-    });
-    click('https://vpn.example/profile/1/');
-    assert.equal(prevented, false);
-    click('https://vpn.example/manageusers/?q=Bob&sort=email');
-    assert.equal(prevented, true);
+    await app.respond(1);
+    app.elements['users-retry'].listeners.click();
     assert.equal(app.requests.length, 2);
-    assert.equal(app.elements['user-query'].value, 'Bob');
-    app.location.search = '?q=Alice';
-    app.windowEvents.popstate();
-    assert.equal(app.elements['user-query'].value, 'Alice');
-    assert.equal(app.requests[1].options.signal.aborted, true);
+    assert.equal(app.elements['users-retry'].hidden, true);
 });
 
 test('expired sessions show an actionable error', async () => {
     const app = setup();
-    await app.respond(0, '', 401);
+    await app.respond(0, 401);
     assert.match(app.elements['users-status'].textContent, /Sign in again/);
-    assert.equal(app.elements['users-retry'].hidden, false);
+});
+
+test('literal wildcard search, null values, invalid sort and offset are handled', () => {
+    const app = setup();
+    const records = [{data: {id: 1, name: null, email: 'x%_/@example.com'}},
+        {data: {id: 2, name: '张三', studentno: 'PB2', email: 'other@example.com'}}];
+    const page = app.select(records, new URLSearchParams('q=%25_&sort=invalid&offset=999'), '');
+    assert.equal(page.total, 1);
+    assert.equal(page.offset, 0);
+    assert.equal(page.visible[0].data.id, 1);
+    assert.equal(app.select(records, new URLSearchParams('q=张'), '').total, 1);
+    assert.equal(app.select(records, new URLSearchParams('offset=NaN'), '').offset, 0);
+    assert.equal(app.select(records, new URLSearchParams('offset=-20'), '').offset, 0);
 });
