@@ -1,4 +1,4 @@
-{% macro form_field(field) -%}
+{% macro form_field(field, submit_class='btn btn-primary') -%}
   {% if field.type == 'BooleanField' %}
   <div class="mb-3">
     <div class="form-check">
@@ -10,7 +10,7 @@
   </div>
   {% elif field.type == 'SubmitField' %}
   <div class="mb-3">
-    {{ field(class_='btn btn-primary') }}
+    {{ field(class_=submit_class) }}
   </div>
   {% else %}
   <div class="mb-3{% if field.flags.required %} required{% endif %}">
@@ -22,11 +22,14 @@
   {% endif %}
 {%- endmacro %}
 
-{% macro quick_form(form, action='', method='post', id='') -%}
+{% macro quick_form(form, action='', method='post', id='', submit_class='btn btn-primary') -%}
 <form action="{{ action }}" method="{{ method }}"{% if id %} id="{{ id }}"{% endif %}>
   {{ form.hidden_tag() }}
+  {% if form.csrf_token is defined %}
+    {% for error in form.csrf_token.errors %}<p class="text-danger small">{{ error }}</p>{% endfor %}
+  {% endif %}
   {% for field in form if field.type not in ('CSRFTokenField', 'HiddenField') %}
-    {{ form_field(field) }}
+    {{ form_field(field, submit_class) }}
   {% endfor %}
 </form>
 {%- endmacro %}

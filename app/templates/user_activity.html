@@ -1,0 +1,55 @@
+  <section class="mb-4" aria-labelledby="traffic-heading">
+    <h2 id="traffic-heading" class="h5 mb-3">Traffic</h2>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h3 class="h6 text-body-secondary">This month</h3>
+            <p class="h4 mb-4">{{ user.month_traffic() }}</p>
+            <div id="month_traffic" class="traffic-chart"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h3 class="h6 text-body-secondary">Last month</h3>
+            <p class="h4 mb-4">{{ user.last_month_traffic() }}</p>
+            <div id="last_month_traffic" class="traffic-chart"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="card shadow-sm mb-4">
+    <div class="card-header bg-body py-3"><h2 class="h5 mb-0">Recent connections</h2></div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle text-nowrap mb-0">
+        <thead class="table-light"><tr>
+          <th scope="col">Start time</th><th scope="col">Stop time</th>
+          <th scope="col">Login IP</th><th scope="col">Intranet IP</th>
+          <th scope="col">Upload traffic</th><th scope="col">Download traffic</th>
+        </tr></thead>
+        <tbody>
+        {% for r in records %}
+            <tr>
+                <td>{{r.acctstarttime}}</td>
+                <td>
+                    {%if r.acctstoptime%}
+                        {{r.acctstoptime}}
+                    {%elif r.acctstarttime%}
+                        Connected
+                    {%endif%}
+                </td>
+                <td>{{format_calling_station_id(r.callingstationid)}}</td>
+                <td>{{r.framedipaddress}}</td>
+                <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
+                <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-center text-body-secondary py-4">No connections yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>

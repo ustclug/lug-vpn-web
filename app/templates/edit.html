@@ -1,15 +1,5 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/utils.html" as util %}
-
+{% extends "form_page.html" %}
 {% block title %}Edit Profile{% endblock %}
-
-{% block content %}
-{{util.flashed_messages(dismissible=True)}}
-<div class="container">
-  <h1>Edit profile of {{email}}</h1>
-
-  {{ wtf.quick_form(form) }}
-
-</div>
-{% endblock %}
+{% block back_url %}{{ url_for('manage_users') }}{% endblock %}
+{% block back_label %}Back to users{% endblock %}
+{% block page_intro %}<p class="text-body-secondary text-break mt-2 mb-0">Editing: {{ email }}</p>{% endblock %}

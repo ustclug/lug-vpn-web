@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "page_layout.html" %}
 {% from "document_tabs.html" import render_document_tabs %}
-
 {% block title %}{{ site_name }} Constitution{% endblock %}
-
-{% block content %}
-<div class="container">
-  <h1>{{ site_name }} Constitution</h1>
+{% block back_label %}Back to {{ site_name }}{% endblock %}
+{% block page_body %}
+<section class="card shadow-sm"><div class="card-body p-3 p-md-4">
   {% if constitution_documents %}
     {{ render_document_tabs(constitution_documents, 'public-constitution') }}
+  {% else %}
+    <p class="text-body-secondary mb-0">No constitution document is available.</p>
   {% endif %}
-</div>
+</div></section>
 {% endblock %}

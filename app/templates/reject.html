@@ -1,16 +1,11 @@
-{% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% import "bootstrap/utils.html" as util %}
-
+{% extends "form_page.html" %}
 {% block title %}Reject Application{% endblock %}
-
-{% block content %}
-{{util.flashed_messages(dismissible=True)}}
-<div class="container">
-  <h1>Reject application of {{email}}</h1>
-
-  <div class="card mb-4">
-    <div class="card-header">Application details</div>
+{% block back_url %}{{ url_for('manage_applications') }}{% endblock %}
+{% block back_label %}Back to applications{% endblock %}
+{% block page_intro %}<p class="text-body-secondary text-break mt-2 mb-0">{{ email }}</p>{% endblock %}
+{% block before_form %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-body fw-semibold py-3">Application details</div>
     <div class="card-body">
       <dl class="row mb-0">
         <dt class="col-sm-3">Name</dt>
@@ -34,7 +29,5 @@
     </div>
   </div>
 
-  {{ wtf.quick_form(form) }}
-
-</div>
 {% endblock %}
+{% block form_content %}{{ wtf.quick_form(form, submit_class='btn btn-danger') }}{% endblock %}
