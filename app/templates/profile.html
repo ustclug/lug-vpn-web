@@ -1,36 +1,70 @@
-{% extends "page_layout.html" %}
-{% block title %}User profile{% endblock %}
-{% block page_width %}wide-page{% endblock %}
-{% block back_url %}{{ url_for('manage_users') }}{% endblock %}
-{% block back_label %}Back to users{% endblock %}
-{% block page_intro %}<p class="text-body-secondary text-break mt-2 mb-0">{{ user.email }}</p>{% endblock %}
-{% block page_body %}
-<section class="card shadow-sm mb-4">
-  <div class="card-header bg-body py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <h2 class="h5 mb-0">Account details</h2>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary btn-sm" href="{{ url_for('edit',id=user.id) }}">Edit profile</a>
-      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('mail',id=user.id) }}">Send email</a>
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block title %}{{user.name}}({{user.email}}){% endblock %}
+
+{% block content %}
+{{util.flashed_messages(dismissible=True)}}
+<div class="container">
+  <h1>Profile of {{user.email}}</h1>
+
+  <p>ID: <span id="userid">{{user.id}}</span></p>
+  <p>Student/Staff No.: {{user.studentno}}</p>
+  <p>Name: {{user.name}}</p>
+  <p>Email: {{user.email}}</p>
+  <p>Phone: {{user.phone}}</p>
+  <p>Apply reason: {{user.reason}}</p>
+  <p>Apply time: {{user.applytime}}</p>
+  <p>Status: {{user.status}}</p>
+  {% if user.status=='banned' %}
+    <p>Ban reason: {{user.banreason}}</p>
+  {% endif %}
+
+  <h3>VPN Traffic</h3>
+  <p>Last month: {{user.last_month_traffic()}}</p>
+  <div id="last_month_traffic" style="height: 300px; width: 100%;"></div>
+  <p>This month: {{user.month_traffic()}}</p>
+  <div id="month_traffic" style="height: 300px; width: 100%;"></div>
+
+  <h3>VPN Log</h3>
+  <div class="table-responsive">
+    <table class="table align-middle">
+      <thead>
+          <tr>
+              <th>Start time</th>
+              <th>Stop time</th>
+              <th>Login IP</th>
+              <th>Intranet IP</th>
+              <th>Upload traffic</th>
+              <th>Download traffic</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for r in records %}
+          <tr>
+              <td>{{r.acctstarttime}}</td>
+              <td>
+                  {%if r.acctstoptime%}
+                      {{r.acctstoptime}}
+                  {%elif r.acctstarttime%}
+                      Still login
+                  {%endif%}
+              </td>
+              <td>{{format_calling_station_id(r.callingstationid)}}</td>
+              <td>{{r.framedipaddress}}</td>
+              <td>{{sizeof_fmt(r.acctinputoctets)}}</td>
+              <td>{{sizeof_fmt(r.acctoutputoctets)}}</td>
+          </tr>
+      {% endfor %}
+      </tbody>
+  </table>
     </div>
-  </div>
-  <div class="card-body p-3 p-md-4">
-    <dl class="row mb-0">
-      <dt class="col-sm-3 text-body-secondary fw-normal">ID</dt><dd class="col-sm-9"><span id="userid">{{ user.id }}</span></dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Student/Staff No.</dt><dd class="col-sm-9">{{ user.studentno }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Name</dt><dd class="col-sm-9">{{ user.name }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Email</dt><dd class="col-sm-9">{{ user.email }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Phone</dt><dd class="col-sm-9">{{ user.phone }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Apply reason</dt><dd class="col-sm-9">{{ user.reason }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Apply time</dt><dd class="col-sm-9">{{ user.applytime }}</dd>
-      <dt class="col-sm-3 text-body-secondary fw-normal">Status</dt><dd class="col-sm-9"><span class="badge text-bg-{{ 'danger' if user.status == 'banned' else 'secondary' }}">{{ user.status }}</span></dd>
-      {% if user.status == 'banned' %}<dt class="col-sm-3 text-body-secondary fw-normal">Ban reason</dt><dd class="col-sm-9">{{ user.banreason }}</dd>{% endif %}
-    </dl>
-  </div>
-</section>
-{% include "user_activity.html" %}
+
+</div>
 {% endblock %}
 {% block scripts %}
-{{ super() }}
-<script src="{{ url_for('static',filename='js/jquery.canvasjs.min.js') }}"></script>
-<script src="{{ url_for('static',filename='js/traffic.js') }}"></script>
+{{super()}}
+<script type="text/javascript" src="{{url_for('static',filename='js/jquery.canvasjs.min.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static',filename='js/traffic.js')}}"></script>
 {% endblock %}

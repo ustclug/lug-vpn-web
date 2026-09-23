@@ -1,0 +1,23 @@
+/* Small layout adjustments on top of Bootstrap's defaults. */
+body > .container:not(.flashed-messages) { padding-top: 1.5rem; padding-bottom: 2rem; }
+h1 { font-size: 2rem; margin-bottom: 1.25rem; overflow-wrap: anywhere; }
+h3 { font-size: 1.4rem; margin-top: 1.5rem; margin-bottom: 1rem; }
+h4 { font-size: 1.15rem; overflow-wrap: anywhere; }
+.account-page form { max-width: 30rem; }
+.form-page > form { max-width: 44rem; }
+.form-page textarea { min-height: 7rem; }
+.login-help { max-width: 44rem; }
+.status-message { white-space: normal; text-align: left; line-height: 1.5; }
+.usage-content img { max-width: 100%; height: auto; }
+.table-responsive { margin-bottom: 1rem; }
+.table th { font-size: .875rem; }
+.table td { overflow-wrap: anywhere; }
+.users-table { min-width: 1050px; }
+.users-table td:nth-child(1), .users-table td:nth-child(2),
+#all_users td:nth-child(4), #all_users td:nth-child(5), #all_users td:nth-child(6) { white-space: nowrap; }
+.users-table .user-operations { min-width: 23rem; width: 36%; }
+.users-table .btn-sm { font-size: .8125rem; }
+.users-table [data-sort] { font-size: inherit; text-decoration: none; }
+.users-table [data-sort]:hover { text-decoration: underline; }
+#users-status:empty { display: none; }
+.users-search { width: 23rem; max-width: 100%; }

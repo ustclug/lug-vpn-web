@@ -318,7 +318,6 @@ class ManageUsersLoadingTests(unittest.TestCase):
         active.assert_not_called()
         rejected.assert_not_called()
         self.assertIn('manageusers.js', html)
-        self.assertIn('value="Alice"', html)
 
     def test_data_requires_authenticated_admin_before_queries(self):
         for user, status in [

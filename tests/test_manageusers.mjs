@@ -11,11 +11,11 @@ function element() {
         append(child) { this.children.push(child); }};
 }
 function setup() {
-    const elements = Object.fromEntries(['users-list', 'users-status', 'users-retry', 'user-search', 'user-query'].map(id => [id, element()]));
+    const elements = Object.fromEntries(['users-list', 'users-status', 'users-retry'].map(id => [id, element()]));
     const sections = ['active', 'rejected'].map(kind => {
         const section = element();
         section.dataset.users = kind;
-        const nodes = Object.fromEntries(['tbody', '[data-empty]', '[data-count]', '[data-page-summary]', '[data-step="-1"]', '[data-step="1"]'].map(key => [key, element()]));
+        const nodes = Object.fromEntries(['[data-query]', 'tbody', '[data-empty]', '[data-count]', '[data-page-summary]', '[data-step="-1"]', '[data-step="1"]'].map(key => [key, element()]));
         const rows = Array.from({length: 60}, (_, index) => ({dataset: {user: JSON.stringify({
             id: index + 1, name: `User ${index + 1}`, studentno: `PB${index + 1}`,
             email: `user${index + 1}@example.com`, month_traffic: index * 100,
@@ -41,9 +41,11 @@ function setup() {
         requests[index].resolve({ok: status === 200, status, json: async () => ({html: 'server fragment'})});
         await new Promise(resolve => setImmediate(resolve));
     }
-    function search(value) {
-        elements['user-query'].value = value;
-        elements['user-query'].listeners.input();
+    function search(value, section = 0) {
+        sections[section].querySelector('[data-query]').value = value;
+        elements['users-list'].listeners.input({target: {
+            matches: () => true, closest: () => sections[section]
+        }});
     }
     function click(section, dataset) {
         elements['users-list'].listeners.click({target: {closest: () => ({dataset, closest: () => sections[section]})}});
@@ -59,7 +61,10 @@ test('loads once; searches all users including later pages without another reque
     assert.equal(app.ids().length, 25);
     app.search('USER60@EXAMPLE.COM');
     assert.deepEqual(app.ids(), [60]);
-    assert.deepEqual(app.ids(1), [60]);
+    assert.equal(app.ids(1).length, 25);
+    app.search('PB59', 1);
+    assert.deepEqual(app.ids(1), [59]);
+    assert.deepEqual(app.ids(), [60]);
     app.search('missing');
     assert.deepEqual(app.ids(), []);
     app.search('');
@@ -67,9 +72,9 @@ test('loads once; searches all users including later pages without another reque
     assert.equal(app.requests.length, 1);
 });
 
-test('searches typed during loading apply after the single response arrives', async () => {
+test('URL searches apply after the single response arrives', async () => {
     const app = setup();
-    app.search('PB59');
+    app.location.search = '?q=PB59';
     await app.respond();
     assert.deepEqual(app.ids(), [59]);
     assert.equal(app.requests.length, 1);
@@ -87,7 +92,6 @@ test('paging, numeric sorting, and history operate on cached rows', async () => 
     app.location.search = '?q=PB58';
     app.windowEvents.popstate();
     assert.deepEqual(app.ids(), [58]);
-    assert.equal(app.elements['user-query'].value, 'PB58');
     assert.equal(app.requests.length, 1);
 });
 

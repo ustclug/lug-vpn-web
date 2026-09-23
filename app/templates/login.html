@@ -1,41 +1,27 @@
 {% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% import "bootstrap/utils.html" as util %}
 
 {% block title %}{{ site_name }} Login{% endblock %}
-{% block styles %}
-{{ super() }}
-<style>.login-page { max-width: 30rem; }</style>
-{% endblock %}
+
 {% block content %}
-<main class="container login-page py-5">
-  <header class="text-center mb-4">
-    <p class="text-body-secondary mb-2">{{ site_name }}</p>
-    <h1 class="h3 mb-2">Sign in</h1>
-    <p class="text-body-secondary mb-0">Manage your VPN account and access.</p>
-  </header>
-  {{ util.flashed_messages(container=False, dismissible=True) }}
-  <section class="card shadow-sm">
-    <div class="card-body p-4">
-      <form method="post">
-        {{ form.hidden_tag() }}
-        {% for field in [form.email, form.password] %}
-        <div class="mb-3">
-          {{ field.label(class_='form-label') }}
-          {{ field(class_='form-control' + (' is-invalid' if field.errors else ''), autocomplete=('username' if field.name == 'email' else 'current-password')) }}
-          {% for error in field.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-        </div>
-        {% endfor %}
-        {% if form.csrf_token is defined %}{% for error in form.csrf_token.errors %}<p class="text-danger small">{{ error }}</p>{% endfor %}{% endif %}
-        {{ form.submit(class_='btn btn-primary w-100 mt-2') }}
-      </form>
-      <div class="text-center mt-3">
-        <a class="small" href="{{ url_for('recoverpassword') }}">Forgot your password?</a>
-      </div>
-    </div>
-    <div class="card-footer bg-body-tertiary text-center py-3 small">
-      Don't have an account? <a href="{{ url_for('register') }}">Sign up</a>
-    </div>
-  </section>
-  <p class="small text-body-secondary mt-4 mb-0">Opened this page from USTC Email? If sign-in fails, open this site directly in a new browser tab.</p>
-</main>
+{{util.flashed_messages(dismissible=True)}}
+<div class="container account-page">
+  <h1>{{ self.title() }}</h1>
+
+  <div>
+    {{ wtf.quick_form(form) }}
+  </div>
+  <div class="login-help small text-body-secondary mt-4">
+    <p>
+      Not a user? Click <a href={{ url_for('register') }}>here</a> to sign up.
+    </p>
+    <p>
+      Can't login? Click <a href={{ url_for('recoverpassword') }}>here</a> to recover your account.
+    </p>
+    <p>
+      * If you opened this page from USTC Email and can't login, please open a new tab and visit this site manually.
+    </p>
+  </div>
+</div>
 {% endblock %}

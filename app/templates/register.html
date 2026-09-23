@@ -1,10 +1,15 @@
-{% extends "form_page.html" %}
-{% block title %}{% if request.endpoint == 'create' %}Create user{% else %}{{ site_name }} Sign Up{% endif %}{% endblock %}
-{% block page_width %}narrow-page{% endblock %}
-{% block back_url %}{{ url_for('manage_users' if request.endpoint == 'create' else 'login') }}{% endblock %}
-{% block back_label %}{% if request.endpoint == 'create' %}Back to users{% else %}Back to sign in{% endif %}{% endblock %}
-{% block form_footer %}
-{% if request.endpoint != 'create' %}
-<div class="card-footer bg-body-tertiary text-center small py-3">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></div>
-{% endif %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block title %}{{ site_name }} Sign Up{% endblock %}
+
+{% block content %}
+{{util.flashed_messages(dismissible=True)}}
+<div class="container account-page">
+  <h1>{{ self.title() }}</h1>
+
+  {{ wtf.quick_form(form) }}
+
+</div>
 {% endblock %}

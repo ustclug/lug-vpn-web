@@ -12,7 +12,7 @@ function selectUserPage(records, params, prefix) {
     const requestedDirection = params.get(prefix + 'direction');
     const direction = ['asc', 'desc'].includes(requestedDirection)
         ? requestedDirection : (prefix ? 'desc' : 'asc');
-    const query = (params.get('q') || '').trim().toLowerCase();
+    const query = (params.get(prefix + 'q') || '').trim().toLowerCase();
     const filtered = records.filter(({data}) => ['studentno', 'name', 'email'].some(
         key => String(data[key] ?? '').toLowerCase().includes(query)
     ));
@@ -36,15 +36,13 @@ function selectUserPage(records, params, prefix) {
     const list = document.getElementById('users-list');
     const status = document.getElementById('users-status');
     const retry = document.getElementById('users-retry');
-    const form = document.getElementById('user-search');
-    const query = document.getElementById('user-query');
     let tables = [];
     let loading = false;
 
     function render() {
         const params = new URL(location.href).searchParams;
-        query.value = params.get('q') || '';
         for (const table of tables) {
+            table.section.querySelector('[data-query]').value = params.get(table.prefix + 'q') || '';
             const page = selectUserPage(table.records, params, table.prefix);
             table.page = page;
             // Keep only the current page in the DOM, but retain every user's rows in memory.
@@ -87,7 +85,7 @@ function selectUserPage(records, params, prefix) {
                 const prefix = section.dataset.users === 'rejected' ? 'rejected_' : '';
                 const records = Array.from(section.querySelectorAll('[data-user]'), row => ({
                     data: JSON.parse(row.dataset.user),
-                    rows: prefix ? [row] : [row, row.nextElementSibling]
+                    rows: [row]
                 }));
                 return {section, prefix, records, body: section.querySelector('tbody'),
                     empty: section.querySelector('[data-empty]')};
@@ -111,18 +109,22 @@ function selectUserPage(records, params, prefix) {
         render();
     }
 
-    function search(replace) {
+    function search(section, replace) {
+        const table = tables.find(item => item.section === section);
+        if (!table) return;
         const url = new URL(location.href);
-        url.searchParams.set('q', query.value);
-        url.searchParams.delete('offset');
-        url.searchParams.delete('rejected_offset');
+        url.searchParams.set(table.prefix + 'q', section.querySelector('[data-query]').value);
+        url.searchParams.delete(table.prefix + 'offset');
         navigate(url, replace);
     }
-    form.addEventListener('submit', event => {
+    list.addEventListener('submit', event => {
+        if (!event.target.matches('[data-user-search]')) return;
         event.preventDefault();
-        search(false);
+        search(event.target.closest('[data-users]'), false);
     });
-    query.addEventListener('input', () => search(true));
+    list.addEventListener('input', event => {
+        if (event.target.matches('[data-query]')) search(event.target.closest('[data-users]'), true);
+    });
     list.addEventListener('click', event => {
         const button = event.target.closest('[data-sort], [data-step]');
         if (!button || button.disabled) return;

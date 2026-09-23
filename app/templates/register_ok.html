@@ -1,15 +1,18 @@
-{% extends "page_layout.html" %}
-{% block title %}Check your email{% endblock %}
-{% block page_width %}narrow-page{% endblock %}
-{% block back_url %}{{ url_for('login') }}{% endblock %}
-{% block back_label %}Back to sign in{% endblock %}
-{% block page_body %}
-<section class="card shadow-sm"><div class="card-body p-4">
-  <p>A confirmation email has been sent to your email address. Follow the link within 24 hours.</p>
-  <div class="d-flex flex-wrap gap-2">
-    <a class="btn btn-primary" href="http://mail.ustc.edu.cn">USTC Email</a>
-    <a class="btn btn-outline-secondary" href="{{ url_for('login') }}">Sign in</a>
-  </div>
-  <p class="small text-body-secondary mt-3 mb-0">Need another email? <a href="{{ url_for('recoverpassword') }}">Resend email</a></p>
-</div></section>
+{% extends "base.html" %}
+{% import "bootstrap/utils.html" as util %}
+
+{% block title %}Confirm Email{% endblock %}
+
+{% block content %}
+{{util.flashed_messages(dismissible=True)}}
+<div class="container">
+  <h1>{{ self.title() }}</h1>
+  <p>A confirm email has been sent to your email address.
+  Please follow the confirm link in 24 hours</p>
+  <p>
+    <a class="btn btn-secondary" href="http://mail.ustc.edu.cn">USTC Email</a>
+    <a class="btn btn-secondary" href="{{url_for('login')}}">Log in</a>
+    <a class="btn btn-secondary" href="{{url_for('recoverpassword')}}">Resend email</a>
+  </p>
+</div>
 {% endblock %}
