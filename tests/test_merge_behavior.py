@@ -541,7 +541,7 @@ class ApplicationQualificationValidationTests(unittest.TestCase):
 
     def test_library_api_http_failure_is_added_to_application_email(self):
         self._assert_library_api_email_result(
-            LibraryAPIError('Library API request failed', status_code=503),
+            self.views.LibraryAPIError('Library API request failed', status_code=503),
             '<hr>Failed to query Library API (HTTP status 503)',
             raises=True,
         )
