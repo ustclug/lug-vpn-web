@@ -7,106 +7,134 @@
 {%- endmacro %}
 
 {% macro pager(page) -%}
-<div class="d-flex align-items-center justify-content-between my-2">
-    <span>Showing {{ page.start }}&ndash;{{ page.end }} of {{ page.total }}</span>
-    <div>
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-3">
+    <span class="small text-body-secondary">Showing {{ page.start }}&ndash;{{ page.end }} of {{ page.total }}</span>
+    <div class="btn-group" role="group" aria-label="Pagination">
         {% if page.previous_url %}
-        <a class="btn btn-secondary btn-sm" href="{{ page.previous_url }}">Previous</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ page.previous_url }}">Previous</a>
         {% else %}
-        <span class="btn btn-secondary btn-sm disabled">Previous</span>
+        <span class="btn btn-outline-secondary btn-sm disabled">Previous</span>
         {% endif %}
         {% if page.next_url %}
-        <a class="btn btn-secondary btn-sm" href="{{ page.next_url }}">Next</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ page.next_url }}">Next</a>
         {% else %}
-        <span class="btn btn-secondary btn-sm disabled">Next</span>
+        <span class="btn btn-outline-secondary btn-sm disabled">Next</span>
         {% endif %}
     </div>
 </div>
 {%- endmacro %}
 
-    <h3>
-        Active Users
-        ({{active_page.total}})
-        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('create') }}">Create</a>
-    </h3>
-    {{ pager(active_page) }}
+<section class="card shadow-sm mb-4" aria-labelledby="active-users-heading">
+    <div class="card-header bg-body py-3 d-flex align-items-center gap-2">
+        <h2 id="active-users-heading" class="h5 mb-0">Active users</h2>
+        <span class="badge rounded-pill text-bg-light border">{{ active_page.total }}</span>
+    </div>
     <div class="table-responsive">
-    <table class="table" id="all_users">
-        <thead>
+    <table class="table table-hover align-middle users-table mb-0" id="all_users">
+        <thead class="table-light">
             <tr>
-                <th>{{ sort_heading('Student/Staff No.', 'studentno', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>{{ sort_heading('Name', 'name', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>{{ sort_heading('Email', 'email', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>{{ sort_heading('Last month traffic', 'last_month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>{{ sort_heading('Month traffic', 'month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>{{ sort_heading('Expiration', 'expiration', active_sort, active_direction, active_sort_urls) }}</th>
-                <th>Operation</th>
+                <th scope="col">{{ sort_heading('Student/Staff No.', 'studentno', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Name', 'name', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Email', 'email', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Last month', 'last_month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('This month', 'month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Expiration', 'expiration', active_sort, active_direction, active_sort_urls) }}</th>
+                <th scope="col">Operation</th>
             </tr>
         </thead>
         <tbody>
         {% for u in users %}
             <tr>
-                <td>{{u.studentno}}</td>
-                <td>{{u.name}}</td>
-                <td>{{u.email}}</td>
-                <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
-                <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
-                <td>{{u.expiration}}</td>
-                <td>
-                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
-                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
-                    {% if u.admin %}
-                        {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm') }}
-                    {% else %}
-                        {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-secondary btn-sm') }}
-                    {% endif %}
-                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
-                    {% if u.status=='banned' %}
-                        {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
-                    {% else %}
-                        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
-												<a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
-                    {% endif %}
-                    {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-secondary btn-sm') }}
-                    {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-secondary btn-sm') }}
-                    {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-secondary btn-sm') }}
-                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-secondary btn-sm') }}
+                <td class="text-nowrap">{{u.studentno}}</td>
+                <td class="text-nowrap">
+                    <span class="fw-medium">{{u.name}}</span>
+                    {% if u.admin %}<span class="badge text-bg-light border ms-1">Admin</span>{% endif %}
+                    {% if u.status == 'banned' %}<span class="badge text-bg-warning ms-1">Banned</span>{% endif %}
+                </td>
+                <td class="user-email">{{u.email}}</td>
+                <td class="text-nowrap">{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td class="text-nowrap">{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td class="text-nowrap">{{u.expiration or '—'}}</td>
+                <td class="text-nowrap">
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('profile',id=u.id) }}">View details</a>
+                        <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('edit',id=u.id) }}">Edit</a>
+                        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#user-actions-{{u.id}}" aria-expanded="false" aria-controls="user-actions-{{u.id}}">More</button>
+                    </div>
                 </td>
             </tr>
+            <tr>
+                <td colspan="7" class="p-0 border-0">
+                    <div class="collapse" id="user-actions-{{u.id}}">
+                        <div class="bg-body-tertiary border-bottom p-3">
+                            <p class="small fw-semibold mb-2">Actions for {{u.name or u.email}}</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% if u.admin %}
+                                    {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-outline-danger btn-sm') }}
+                                {% else %}
+                                    {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-outline-secondary btn-sm') }}
+                                {% endif %}
+                                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('mail',id=u.id) }}">Mail</a>
+                                {% if u.status=='banned' %}
+                                    {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-outline-danger btn-sm') }}
+                                {% else %}
+                                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+                                    <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+                                {% endif %}
+                                {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-outline-secondary btn-sm') }}
+                                {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-outline-secondary btn-sm') }}
+                                {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-outline-secondary btn-sm') }}
+                                {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-outline-secondary btn-sm') }}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="7" class="text-center text-body-secondary py-5">No active users found.</td></tr>
         {% endfor %}
         </tbody>
     </table>
     </div>
     {{ pager(active_page) }}
-    <h3>Rejected Users ({{rejected_page.total}})</h3>
-    {{ pager(rejected_page) }}
+</section>
+<section class="card shadow-sm mb-4" aria-labelledby="rejected-users-heading">
+    <div class="card-header bg-body py-3 d-flex align-items-center gap-2">
+        <h2 id="rejected-users-heading" class="h5 mb-0">Rejected users</h2>
+        <span class="badge rounded-pill text-bg-light border">{{ rejected_page.total }}</span>
+    </div>
     <div class="table-responsive">
-    <table class="table" id="rejected_users">
-        <thead>
+    <table class="table table-hover align-middle users-table mb-0" id="rejected_users">
+        <thead class="table-light">
             <tr>
-                <th>{{ sort_heading('Student NO.', 'studentno', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th>{{ sort_heading('Name', 'name', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th>{{ sort_heading('Email', 'email', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th>{{ sort_heading('Reject reason', 'rejectreason', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
-                <th>Operation</th>
+                <th scope="col">{{ sort_heading('Student NO.', 'studentno', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Name', 'name', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Email', 'email', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th scope="col">{{ sort_heading('Reject reason', 'rejectreason', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th scope="col">Operation</th>
             </tr>
         </thead>
         <tbody>
         {% for u in rejected_users %}
             <tr>
-                <td>{{u.studentno}}</td>
-                <td>{{u.name}}</td>
-                <td>{{u.email}}</td>
-                <td>{{u.rejectreason}}</td>
+                <td class="text-nowrap">{{u.studentno}}</td>
+                <td class="text-nowrap">{{u.name}}</td>
+                <td class="user-email">{{u.email}}</td>
+                <td class="user-reason">{{u.rejectreason}}</td>
                 <td>
-                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='semester'),'Pass Semester',class='btn btn-danger btn-sm') }}
-                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='year'),'Pass Year',class='btn btn-danger btn-sm') }}
-                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='long'),'Pass Long',class='btn btn-danger btn-sm') }}
-                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
+                    <div class="d-flex flex-wrap gap-2">
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='semester'),'Pass Semester',class='btn btn-outline-success btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='year'),'Pass Year',class='btn btn-outline-success btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='long'),'Pass Long',class='btn btn-outline-success btn-sm') }}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
+                    </div>
                 </td>
             </tr>
+        {% else %}
+            <tr><td colspan="5" class="text-center text-body-secondary py-5">No rejected users found.</td></tr>
         {% endfor %}
         </tbody>
     </table>
     </div>
     {{ pager(rejected_page) }}
+</section>
