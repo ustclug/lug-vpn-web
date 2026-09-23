@@ -238,8 +238,19 @@ class User(db.Model, UserMixin):
         return min(max(offset, 0), ((total - 1) // limit) * limit)
 
     @classmethod
-    def get_users_page(cls, sort='id', direction='asc', offset=0, limit=25):
+    def _search_filter(cls, search):
+        if not search:
+            return db.true()
+        # Treat SQL LIKE wildcards as literal search text.
+        pattern = '%' + search.replace('/', '//').replace('%', '/%').replace('_', '/_') + '%'
+        return db.or_(*(field.ilike(pattern, escape='/') for field in (
+            cls.studentno, cls.name, cls.email,
+        )))
+
+    @classmethod
+    def get_users_page(cls, sort='id', direction='asc', offset=0, limit=25, search=''):
         active_filter = db.or_(cls.status == 'pass', cls.status == 'banned')
+        active_filter = db.and_(active_filter, cls._search_filter(search))
         total = cls.query.filter(active_filter).count()
         offset = cls._page_offset(total, offset, limit)
 
@@ -277,8 +288,8 @@ class User(db.Model, UserMixin):
         return rows, total, offset
 
     @classmethod
-    def get_rejected_page(cls, sort='applytime', direction='desc', offset=0, limit=25):
-        query = cls.query.filter_by(status='reject')
+    def get_rejected_page(cls, sort='applytime', direction='desc', offset=0, limit=25, search=''):
+        query = cls.query.filter_by(status='reject').filter(cls._search_filter(search))
         total = query.count()
         offset = cls._page_offset(total, offset, limit)
         sort_columns = {

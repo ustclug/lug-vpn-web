@@ -284,7 +284,7 @@ class ManageUsersPaginationTests(unittest.TestCase):
             '/manageusers/?sort=month_traffic&direction=desc&offset=25'
             '&rejected_sort=email&rejected_direction=asc&rejected_offset=50'
         ), patch.object(
-            self.views, 'current_user', SimpleNamespace(admin=True)
+            self.views, 'current_user', SimpleNamespace(admin=True, is_authenticated=True)
         ), patch.object(
             self.views.User, 'get_users_page',
             return_value=(active_rows, 60, 25),
@@ -294,11 +294,11 @@ class ManageUsersPaginationTests(unittest.TestCase):
         ) as get_rejected_page, patch.object(
             self.views, 'render_template', return_value='rendered'
         ) as render_template:
-            result = self.views.manage_users.__wrapped__()
+            result = self.views.manage_users_data()
 
-        self.assertEqual(result, 'rendered')
-        get_users_page.assert_called_once_with('month_traffic', 'desc', 25, 25)
-        get_rejected_page.assert_called_once_with('email', 'asc', 50, 25)
+        self.assertEqual(result.get_json(), {'html': 'rendered'})
+        get_users_page.assert_called_once_with('month_traffic', 'desc', 25, 25, search='')
+        get_rejected_page.assert_called_once_with('email', 'asc', 50, 25, search='')
         context = render_template.call_args.kwargs
         self.assertEqual(context['users'], [active_user])
         self.assertEqual(context['all_month_traffic'], {'active@example.com': 2048})
@@ -313,7 +313,7 @@ class ManageUsersPaginationTests(unittest.TestCase):
             '&rejected_sort=passwordhash&rejected_direction=sideways'
             '&rejected_offset=-10'
         ), patch.object(
-            self.views, 'current_user', SimpleNamespace(admin=True)
+            self.views, 'current_user', SimpleNamespace(admin=True, is_authenticated=True)
         ), patch.object(
             self.views.User, 'get_users_page', return_value=([], 0, 0)
         ) as get_users_page, patch.object(
@@ -321,13 +321,96 @@ class ManageUsersPaginationTests(unittest.TestCase):
         ) as get_rejected_page, patch.object(
             self.views, 'render_template', return_value='rendered'
         ) as render_template:
-            self.views.manage_users.__wrapped__()
+            self.views.manage_users_data()
 
-        get_users_page.assert_called_once_with('id', 'asc', 0, 25)
-        get_rejected_page.assert_called_once_with('applytime', 'desc', 0, 25)
+        get_users_page.assert_called_once_with('id', 'asc', 0, 25, search='')
+        get_rejected_page.assert_called_once_with('applytime', 'desc', 0, 25, search='')
         context = render_template.call_args.kwargs
         self.assertEqual(context['active_sort'], 'id')
         self.assertEqual(context['rejected_sort'], 'applytime')
+
+
+    def test_initial_page_does_not_query_lists(self):
+        with self.app.test_request_context('/manageusers/?q=Alice'), patch.object(
+            self.views, 'current_user', SimpleNamespace(admin=True)
+        ), patch.object(self.User, 'get_users_page') as active, patch.object(
+            self.User, 'get_rejected_page'
+        ) as rejected:
+            html = self.views.manage_users.__wrapped__()
+        active.assert_not_called()
+        rejected.assert_not_called()
+        self.assertIn('manageusers.js', html)
+        self.assertIn('value="Alice"', html)
+
+    def test_data_requires_authenticated_admin_before_queries(self):
+        for user, status in [
+            (SimpleNamespace(is_authenticated=False), 401),
+            (SimpleNamespace(is_authenticated=True, admin=False), 403),
+        ]:
+            with self.subTest(status=status), self.app.test_request_context(
+                '/manageusers/data/'
+            ), patch.object(self.views, 'current_user', user), patch.object(
+                self.User, 'get_users_page'
+            ) as active, patch.object(self.User, 'get_rejected_page') as rejected:
+                response, code = self.views.manage_users_data()
+            self.assertEqual(code, status)
+            active.assert_not_called()
+            rejected.assert_not_called()
+
+    def test_search_is_passed_to_both_lists_and_retained_in_links(self):
+        with self.app.test_request_context('/manageusers/data/?q= Alice '), patch.object(
+            self.views, 'current_user', SimpleNamespace(admin=True, is_authenticated=True)
+        ), patch.object(self.User, 'get_users_page', return_value=([], 60, 0)) as active, patch.object(
+            self.User, 'get_rejected_page', return_value=([], 60, 0)
+        ) as rejected, patch.object(self.views, 'render_template', return_value='fragment') as render:
+            response = self.views.manage_users_data()
+        self.assertEqual(active.call_args.kwargs['search'], 'Alice')
+        self.assertEqual(rejected.call_args.kwargs['search'], 'Alice')
+        context = render.call_args.kwargs
+        self.assertIn('q=Alice', context['active_page']['next_url'])
+        self.assertIn('q=Alice', context['rejected_sort_urls']['email'])
+        self.assertEqual(response.headers['Cache-Control'], 'no-store')
+
+    def test_fragment_escapes_user_data_and_preserves_post_actions(self):
+        user = SimpleNamespace(
+            id=1, email='alice@example.com', name='<script>alert(1)</script>',
+            studentno='PB100', expiration=None, admin=False, status='pass',
+        )
+        rejected_user = SimpleNamespace(
+            id=2, email='bob@example.com', name='Bob', studentno='PB200',
+            rejectreason='<img src=x onerror=alert(1)>',
+        )
+        with self.app.test_request_context('/manageusers/data/'), patch.object(
+            self.views, 'current_user', SimpleNamespace(admin=True, is_authenticated=True)
+        ), patch.object(self.User, 'get_users_page', return_value=([(user, 1024, 2048)], 1, 0)), patch.object(
+            self.User, 'get_rejected_page', return_value=([rejected_user], 1, 0)
+        ):
+            html = self.views.manage_users_data().get_json()['html']
+        self.assertIn('&lt;script&gt;', html)
+        self.assertNotIn('<script>', html)
+        self.assertIn('&lt;img', html)
+        self.assertIn('method="post"', html)
+        for label in ['Set admin', 'Renew Semester', 'Pass Semester', 'Edit reason']:
+            self.assertIn(label, html)
+        self.assertNotIn('<html', html)
+
+    def test_search_matches_identity_fields_and_literal_wildcards(self):
+        from sqlalchemy import create_engine, select
+        engine = create_engine('sqlite://')
+        self.User.__table__.create(engine)
+        with engine.begin() as connection:
+            connection.execute(self.User.__table__.insert(), [
+                dict(id=1, passwordhash='test', salt='test', name='Alice', studentno='PB100', email='a@example.com'),
+                dict(id=2, passwordhash='test', salt='test', name='张三', studentno='PB200', email='percent%_/@example.com'),
+            ])
+            for term, expected in [('alice', [1]), ('PB200', [2]), ('a@example', [1]),
+                                   ('张', [2]), ('%_/', [2]), ('missing', []), ('', [1, 2])]:
+                with self.subTest(term=term):
+                    ids = connection.execute(select(self.User.id).where(
+                        self.User._search_filter(term)
+                    ).order_by(self.User.id)).scalars().all()
+                    self.assertEqual(ids, expected)
+        engine.dispose()
 
 
 class ApplicationQualificationValidationTests(unittest.TestCase):

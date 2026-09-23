@@ -1,0 +1,112 @@
+{% import "bootstrap/utils.html" as util %}
+{% macro sort_heading(label, key, current_sort, current_direction, urls) -%}
+<a href="{{ urls[key] }}">
+    {{ label }}
+    {% if current_sort == key %}{{ '▲' if current_direction == 'asc' else '▼' }}{% endif %}
+</a>
+{%- endmacro %}
+
+{% macro pager(page) -%}
+<div class="d-flex align-items-center justify-content-between my-2">
+    <span>Showing {{ page.start }}&ndash;{{ page.end }} of {{ page.total }}</span>
+    <div>
+        {% if page.previous_url %}
+        <a class="btn btn-secondary btn-sm" href="{{ page.previous_url }}">Previous</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm disabled">Previous</span>
+        {% endif %}
+        {% if page.next_url %}
+        <a class="btn btn-secondary btn-sm" href="{{ page.next_url }}">Next</a>
+        {% else %}
+        <span class="btn btn-secondary btn-sm disabled">Next</span>
+        {% endif %}
+    </div>
+</div>
+{%- endmacro %}
+
+    <h3>
+        Active Users
+        ({{active_page.total}})
+        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('create') }}">Create</a>
+    </h3>
+    {{ pager(active_page) }}
+    <div class="table-responsive">
+    <table class="table" id="all_users">
+        <thead>
+            <tr>
+                <th>{{ sort_heading('Student/Staff No.', 'studentno', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Name', 'name', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Email', 'email', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Last month traffic', 'last_month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Month traffic', 'month_traffic', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>{{ sort_heading('Expiration', 'expiration', active_sort, active_direction, active_sort_urls) }}</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{u.studentno}}</td>
+                <td>{{u.name}}</td>
+                <td>{{u.email}}</td>
+                <td>{{(all_last_month_traffic[u.email] if all_last_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td>{{(all_month_traffic[u.email] if all_month_traffic[u.email] else 0) | filesizeformat(True)}}</td>
+                <td>{{u.expiration}}</td>
+                <td>
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('profile',id=u.id) }}">View details</a>
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('edit',id=u.id) }}">Edit</a>
+                    {% if u.admin %}
+                        {{ util.form_button(url_for('unsetadmin',id=u.id),'Unset admin',class='btn btn-warning btn-sm') }}
+                    {% else %}
+                        {{ util.form_button(url_for('setadmin',id=u.id),'Set admin',class='btn btn-secondary btn-sm') }}
+                    {% endif %}
+                    <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('mail',id=u.id) }}">Mail</a>
+                    {% if u.status=='banned' %}
+                        {{ util.form_button(url_for('unban',id=u.id),'Unban',class='btn btn-danger btn-sm') }}
+                    {% else %}
+                        <a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
+												<a class="btn btn-secondary btn-sm" role="button" href="{{ url_for('reject',id=u.id) }}">Reject</a>
+                    {% endif %}
+                    {{ util.form_button(url_for('renew',expiration_type='semester',id=u.id),'Renew Semester',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='year',id=u.id),'Renew Year',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('renew',expiration_type='long',id=u.id),'Renew Long',class='btn btn-secondary btn-sm') }}
+                    {{ util.form_button(url_for('su',id=u.id),'su',class='btn btn-secondary btn-sm') }}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {{ pager(active_page) }}
+    <h3>Rejected Users ({{rejected_page.total}})</h3>
+    {{ pager(rejected_page) }}
+    <div class="table-responsive">
+    <table class="table" id="rejected_users">
+        <thead>
+            <tr>
+                <th>{{ sort_heading('Student NO.', 'studentno', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Name', 'name', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Email', 'email', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>{{ sort_heading('Reject reason', 'rejectreason', rejected_sort, rejected_direction, rejected_sort_urls) }}</th>
+                <th>Operation</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in rejected_users %}
+            <tr>
+                <td>{{u.studentno}}</td>
+                <td>{{u.name}}</td>
+                <td>{{u.email}}</td>
+                <td>{{u.rejectreason}}</td>
+                <td>
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='semester'),'Pass Semester',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='year'),'Pass Year',class='btn btn-danger btn-sm') }}
+                    {{ util.form_button(url_for('pass_',id=u.id,expiration_type='long'),'Pass Long',class='btn btn-danger btn-sm') }}
+                    <a class="btn btn-sm btn-primary" type="button" href="{{ url_for('reject',id=u.id) }}">Edit reason</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {{ pager(rejected_page) }}

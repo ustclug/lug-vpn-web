@@ -269,6 +269,17 @@ def manage_users():
     if not current_user.admin:
         return redirect(url_for('index'))
 
+    return render_template('manageusers.html')
+
+
+@app.route('/manageusers/data/')
+def manage_users_data():
+    if not current_user.is_authenticated:
+        return jsonify(error='Please sign in again.'), 401
+    if not current_user.admin:
+        return jsonify(error='Administrator access required.'), 403
+
+    search = request.args.get('q', '').strip()
     sort = request.args.get('sort', 'id')
     direction = request.args.get('direction', 'asc')
     rejected_sort = request.args.get('rejected_sort', 'applytime')
@@ -285,16 +296,17 @@ def manage_users():
     offset = max(request.args.get('offset', 0, type=int), 0)
     rejected_offset = max(request.args.get('rejected_offset', 0, type=int), 0)
     user_rows, user_count, offset = User.get_users_page(
-        sort, direction, offset, MANAGE_USERS_PAGE_SIZE
+        sort, direction, offset, MANAGE_USERS_PAGE_SIZE, search=search
     )
     rejected_users, rejected_count, rejected_offset = User.get_rejected_page(
-        rejected_sort, rejected_direction, rejected_offset, MANAGE_USERS_PAGE_SIZE
+        rejected_sort, rejected_direction, rejected_offset, MANAGE_USERS_PAGE_SIZE, search=search
     )
 
     users = [row[0] for row in user_rows]
     all_last_month_traffic = {row[0].email: row[1] for row in user_rows}
     all_month_traffic = {row[0].email: row[2] for row in user_rows}
     query_state = {
+        'q': search,
         'sort': sort,
         'direction': direction,
         'offset': offset,
@@ -354,8 +366,8 @@ def manage_users():
         ),
     }
 
-    return render_template(
-        'manageusers.html',
+    html = render_template(
+        'manageusers_list.html',
         users=users,
         rejected_users=rejected_users,
         all_month_traffic=all_month_traffic,
@@ -369,6 +381,10 @@ def manage_users():
         active_sort_urls=active_sort_urls,
         rejected_sort_urls=rejected_sort_urls,
     )
+
+    response = jsonify(html=html)
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @app.route('/manageapplications/')
