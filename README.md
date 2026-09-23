@@ -42,3 +42,29 @@ environment variable and defaults to `Asia/Shanghai`.
 
 Both service variants use the same `ustclug/lug-vpn-web:latest` image and supply
 their differences through these mounts.
+
+## Database performance
+
+User Management joins the `monthtraffic` and `lastmonthtraffic` views, which
+aggregate `radacct` records by their session start month. An index beginning
+with `acctstarttime` allows these queries to scan the relevant month instead
+of the full accounting history. The existing `(username, acctstarttime)` index
+serves per-user queries and should be retained.
+
+Check `SHOW INDEX FROM radius.radacct` first. If no index begins with
+`acctstarttime`, add one (the following syntax is for MySQL 8.0 with InnoDB):
+
+```sql
+ALTER TABLE radius.radacct
+  ADD INDEX idx_radacct_acctstarttime (acctstarttime),
+  ALGORITHM=INPLACE,
+  LOCK=NONE;
+```
+
+Index creation consumes I/O and can briefly require metadata locks, even with
+`LOCK=NONE`. Compare `EXPLAIN ANALYZE SELECT * FROM monthtraffic` and the same
+query for `lastmonthtraffic` before and after the change to check actual scan
+counts and execution times; `EXPLAIN ANALYZE` executes the query. On a MySQL
+8.0.46 deployment, both views previously scanned the full
+`(username, acctstarttime)` index, and adding the time index noticeably improved
+User Management loading.
