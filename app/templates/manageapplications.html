@@ -12,7 +12,7 @@
     <h3>New Applications ({{applying_users|length}})</h3>
     <ul class="list-group" id="applying_list">
     {% for u in applying_users %}
-    <li class="list-group-item py-3">
+    <li class="list-group-item py-3" data-library-id="{{ u.id }}" data-library-studentno="{{ u.studentno }}">
 			<h4>{{ u.email }} <span class="text-primary" id="email-{{ u.id }}"></span></h4>
       <p>
 			Name: {{u.name}} <span class="text-primary" id="name-{{ u.id }}"></span><br>
@@ -28,7 +28,7 @@
       <a class="btn btn-sm btn-danger" type="button" href="{{ url_for('reject', id=u.id) }}">Reject</a>
 			<a class="btn btn-sm btn-danger" type="button" href="{{ url_for('ban',id=u.id) }}">Ban</a>
       {% if library_api_enabled %}
-			<a class="btn btn-sm btn-primary" type="button" onclick="checkWithLibrary('{{ u.id }}', true)">Check</a>
+      <button class="btn btn-sm btn-primary" type="button" data-library-check>Check</button>
       {% endif %}
       </div>
     </li>
@@ -42,47 +42,15 @@
 {% block scripts %}
 {{super()}}
 <script type="text/javascript" src="{{url_for('static',filename='js/manage.js')}}"></script>
-<script type="text/javascript">
 {% if library_api_enabled %}
-// Trigger checkWithLibrary for all applications after page loaded.
-$(window).on('load', () => {
-  {% for u in applying_users %}
-    checkWithLibrary({{ u.id }}, false);
-  {% endfor %}
-});
-function checkWithLibrary(id, toAlert) {
-	$.ajax({
-		url: "/check/" + id,
-		success: function(response) {
-			var data = response;
-			if (data["message"]) {
-			  if (toAlert) {
-          alert(data["message"]);
-        } else {
-			    console.log(data["message"]);
-        }
-				return;
-			}
-			if (data["status"] !== "ok") {
-			  if (toAlert) {
-          alert("Bad status: " + data["status"]);
-        } else {
-			    console.log("Bad status: " + data["status"]);
-        }
-				return;
-			}
-			$("#name-" + id).text(data["name"]);
-			$("#email-" + id).text(data["email"]);
-			$("#role-" + id).text(data["type"]);
-		}
-	});
-}
+<script type="text/javascript" src="{{url_for('static',filename='js/librarycheck.js')}}"></script>
+<script type="text/javascript">
 function manualCheckWithLibrary(studentno) {
 	$.ajax({
 		url: "/manualcheck/" + studentno,
 		success: (response) => console.log(response)
 	});
 }
-{% endif %}
 </script>
+{% endif %}
 {% endblock %}
